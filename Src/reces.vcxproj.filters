@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="sslib">
+      <UniqueIdentifier>{b460b02d-8dbd-4697-8c51-af012b8c16d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sslib\ソース ファイル">
+      <UniqueIdentifier>{0add7992-9775-4c43-af8a-a7c4646d0e2f}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="sslib\ヘッダー ファイル">
+      <UniqueIdentifier>{9b709c27-078f-426d-a240-dc996342ccc4}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Arc7-zip32.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcDll.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcDllBase.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcTar32.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcUniso32.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcUnlha32.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcUnrar32.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcXacRett.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FileInfo.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="PrivateProfile.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="reces.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\CfgFile.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\CommandArgument.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\Console.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\ConsoleApp.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\File.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\FileOperation.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\FileSearch.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\Library.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\Misc.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\Path.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\ProgressBar.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\String.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\VariableArgument.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\Window.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcB2e.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcCommon.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Spi.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SpiBase.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\EnvironmentVariable.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\ApiHook.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcCAL.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcLMZip32.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Arc7-zip32.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcDll.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcDllBase.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcTar32.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcUniso32.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcUnlha32.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcUnrar32.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcXacRett.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FileInfo.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="PrivateProfile.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="reces.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\CfgFile.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\CommandArgument.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\Console.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\ConsoleApp.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\File.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\FileOperation.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\FileSearch.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\Library.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\Misc.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\Path.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\ProgressBar.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\sslib.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\String.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\VariableArgument.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\Window.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\resource.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcB2e.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcCommon.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Spi.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SpiBase.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\EnvironmentVariable.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\ApiHook.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcCAL.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcLMZip32.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcCfg.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\reces.ico">
+      <Filter>リソース ファイル</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\reces.rc">
+      <Filter>リソース ファイル</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

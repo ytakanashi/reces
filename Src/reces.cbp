@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="reces" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="..\bin\Debug\reces" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="..\bin\Release\reces" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add library="version" />
+			<Add library="ole32" />
+			<Add library="uuid" />
+			<Add library="imagehlp" />
+		</Linker>
+		<Unit filename="Arc7-zip32.cpp" />
+		<Unit filename="Arc7-zip32.h" />
+		<Unit filename="ArcB2e.cpp" />
+		<Unit filename="ArcB2e.h" />
+		<Unit filename="ArcCAL.cpp" />
+		<Unit filename="ArcCAL.h" />
+		<Unit filename="ArcCfg.h" />
+		<Unit filename="ArcCommon.cpp" />
+		<Unit filename="ArcCommon.h" />
+		<Unit filename="ArcDll.cpp" />
+		<Unit filename="ArcDll.h" />
+		<Unit filename="ArcDllBase.cpp" />
+		<Unit filename="ArcDllBase.h" />
+		<Unit filename="ArcLMZip32.cpp" />
+		<Unit filename="ArcLMZip32.h" />
+		<Unit filename="ArcTar32.cpp" />
+		<Unit filename="ArcTar32.h" />
+		<Unit filename="ArcUniso32.cpp" />
+		<Unit filename="ArcUniso32.h" />
+		<Unit filename="ArcUnlha32.cpp" />
+		<Unit filename="ArcUnlha32.h" />
+		<Unit filename="ArcUnrar32.cpp" />
+		<Unit filename="ArcUnrar32.h" />
+		<Unit filename="ArcXacrett.cpp" />
+		<Unit filename="ArcXacrett.h" />
+		<Unit filename="FileInfo.cpp" />
+		<Unit filename="FileInfo.h" />
+		<Unit filename="PrivateProfile.cpp" />
+		<Unit filename="PrivateProfile.h" />
+		<Unit filename="Spi.cpp" />
+		<Unit filename="Spi.h" />
+		<Unit filename="SpiBase.cpp" />
+		<Unit filename="SpiBase.h" />
+		<Unit filename="StdAfx.h" />
+		<Unit filename="reces.cpp" />
+		<Unit filename="reces.h" />
+		<Unit filename="resources\reces.ico" />
+		<Unit filename="resources\reces.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="resources\resource.h" />
+		<Unit filename="sslib\ApiHook.cpp" />
+		<Unit filename="sslib\ApiHook.h" />
+		<Unit filename="sslib\CfgFile.cpp" />
+		<Unit filename="sslib\CfgFile.h" />
+		<Unit filename="sslib\CommandArgument.cpp" />
+		<Unit filename="sslib\CommandArgument.h" />
+		<Unit filename="sslib\Console.cpp" />
+		<Unit filename="sslib\Console.h" />
+		<Unit filename="sslib\ConsoleApp.cpp" />
+		<Unit filename="sslib\ConsoleApp.h" />
+		<Unit filename="sslib\EnvironmentVariable.cpp" />
+		<Unit filename="sslib\EnvironmentVariable.h" />
+		<Unit filename="sslib\File.cpp" />
+		<Unit filename="sslib\File.h" />
+		<Unit filename="sslib\FileOperation.cpp" />
+		<Unit filename="sslib\FileOperation.h" />
+		<Unit filename="sslib\FileSearch.cpp" />
+		<Unit filename="sslib\FileSearch.h" />
+		<Unit filename="sslib\Library.cpp" />
+		<Unit filename="sslib\Library.h" />
+		<Unit filename="sslib\Misc.cpp" />
+		<Unit filename="sslib\Misc.h" />
+		<Unit filename="sslib\Path.cpp" />
+		<Unit filename="sslib\Path.h" />
+		<Unit filename="sslib\ProgressBar.cpp" />
+		<Unit filename="sslib\ProgressBar.h" />
+		<Unit filename="sslib\String.cpp" />
+		<Unit filename="sslib\String.h" />
+		<Unit filename="sslib\VariableArgument.cpp" />
+		<Unit filename="sslib\VariableArgument.h" />
+		<Unit filename="sslib\Window.cpp" />
+		<Unit filename="sslib\Window.h" />
+		<Unit filename="sslib\sslib.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
