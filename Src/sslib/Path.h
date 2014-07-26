@@ -7,19 +7,14 @@ namespace sslib{
 namespace path{
 
 
-static const TCHAR long_path_prefix[]=_T("\\\\?\\");
-
 //MAX_PATHを超えるパスの為の接頭辞'\\?\'を追加
-//tstring addLongPathPrefix(const tstring& file_path);
+tstring addLongPathPrefix(const tstring& file_path);
 
 //MAX_PATHを超えるパスの為の接頭辞'\\?\'を削除
-//tstring removeLongPathPrefix(const tstring& file_path);
+tstring removeLongPathPrefix(const tstring& file_path);
 
 //ディレクトリを再帰的に検索してlistに追加
 template<class T>void recursiveSearch(T* path_list,const TCHAR* search_dir,const TCHAR* wildcard=_T("*"),bool include_dir=false);
-
-//ディnレクトリを再帰的に検索してlistに相対パスで追加
-template<class T>void makeRelativePathList(T* path_list,const TCHAR* base_dir,const TCHAR* search_dir);
 
 //ファイル名に使えない文字が含まれるかどうか
 bool isBadName(const TCHAR* file_name);
@@ -57,6 +52,12 @@ tstring removeExtension(const tstring& file_path);
 //拡張子を取得
 tstring getExtension(const tstring& file_path);
 
+//短いファイル名を取得
+tstring getShortPathName(const TCHAR* file_path);
+
+//長いファイル名を取得
+tstring getLongPathName(const TCHAR* file_path);
+
 //二重引用符を取り除く
 tstring removeQuotation(const tstring& file_path);
 //末尾の条件に合致する文字を削除
@@ -69,7 +70,7 @@ tstring removeLastNumber(const tstring& file_path);
 tstring removeLastNumberAndSymbol(const tstring& file_path);
 
 //一時ディレクトリのパスを取得(末尾に\有り)
-bool getTempDirPath(TCHAR* temp_dir,int buffer_size);
+tstring getTempDirPath();
 
 //相対パスを取得する
 //注意:ディレクトリの場合末尾に区切り文字が追加される

@@ -1,7 +1,7 @@
 ﻿//ArcCommon.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -26,16 +26,8 @@ public:
 		void clear(){done=total=0;file_name.clear();}
 	};
 
-	struct ARC_UPDATE_PROGRESSBAR_PARAM{
-		sslib::misc::Event& ready_event;
-		ARC_PROCESSING_INFO* info;
-
-		ARC_UPDATE_PROGRESSBAR_PARAM(sslib::misc::Event& ready_event_,ARC_PROCESSING_INFO* info_):ready_event(ready_event_),info(info_){}
-	};
-
 	ArcCommon():
-	m_progress_thread_id(0),
-	m_aborted(false){};
+	m_progress_thread_id(0){};
 	~ArcCommon(){}
 
 protected:
@@ -79,16 +71,13 @@ protected:
 	//level=-1で共通パスをすべて取り除く
 	bool excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_dir,int level=-1);
 
-	//処理を中止する
-	bool m_aborted;
-
 public:
 	//プログレスバー更新通知
 	static const UINT WM_UPDATE_PROGRESSBAR;
 
 public:
 	//処理を中止する
-	virtual void abort(){m_aborted=true;}
+	virtual void abort();
 
 };
 #endif //_ARCCOMMON_H_B97F1BB8_B019_40f2_9646_8B52530658FF

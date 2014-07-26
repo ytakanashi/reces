@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -408,6 +408,8 @@ public:
 	int getArchiveType(const TCHAR* file_name);
 	//指定されたAPIが使用可能かどうかを得ます
 	bool queryFunctionList(const int function);
+	//オプション指定ダイアログの表示
+	bool configDialog(HWND wnd_handle=NULL,tstring* result_buffer=NULL,const int mode=0);
 	//指定ファイルが有効な書庫ファイルかどうか調べ、有効であればオープンし、一意の数値（ハンドル）を返します
 	HARC openArchive(const HWND wnd_handle,const TCHAR* file_name,const DWORD mode);
 	//OpenArchive()で割り付けたハンドルを解放する

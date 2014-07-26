@@ -2,7 +2,7 @@
 //LMZIP32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -320,6 +320,8 @@ ArcDll::ARCDLL_RESULT ArcLMZip32::compress(const TCHAR* arc_path_orig,std::list<
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
+	unload();
+
 	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
 #endif
 }
@@ -352,10 +354,6 @@ ArcDll::ARCDLL_RESULT ArcLMZip32::extract(const TCHAR* arc_path_orig,const TCHAR
 			return ARCDLL_NO_MATCHES_FOUND;
 		}
 		list_file.close();
-	}
-
-	if(!m_arc_cfg.cfg().no_display.no_information&&
-	   !app()->stdOut().isRedirected()){
 	}
 
 	tstring output_dir_bak;
@@ -423,7 +421,7 @@ ArcDll::ARCDLL_RESULT ArcLMZip32::extract(const TCHAR* arc_path_orig,const TCHAR
 
 	hook::uninstall();
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	if(dll_ret==50/*PK_DISK*/)dll_ret=0;
 
@@ -440,6 +438,8 @@ ArcDll::ARCDLL_RESULT ArcLMZip32::extract(const TCHAR* arc_path_orig,const TCHAR
 		//ディレクトリの更新日時を復元
 		recoverDirectoryTimestamp(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.decode_uesc,true);
 	}
+
+	unload();
 
 	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
 		//共通パスを取り除く
@@ -472,7 +472,7 @@ void ArcLMZip32::list(const TCHAR* arc_path_orig,tstring* log_msg){
 	}
 }
 
-bool ArcLMZip32::sendCommands(const TCHAR* commands,tstring* log_msg){
+int ArcLMZip32::sendCommands(const TCHAR* commands,tstring* log_msg){
 	int dll_ret=-1;
 
 	//実行
@@ -484,9 +484,7 @@ bool ArcLMZip32::sendCommands(const TCHAR* commands,tstring* log_msg){
 		dll_ret=execute(NULL/*m_arc_cfg.wnd()*/,commands,log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
-
-	return dll_ret==0;
+	return dll_ret;
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す
@@ -635,16 +633,18 @@ bool ArcLMZip32::writeFormatedList(const File& list_file,const tstring& full_pat
 
 //処理を中止する
 void ArcLMZip32::abort(){
-	if(!m_aborted){
-		//CANCEL押下
-		HWND old_wnd=::GetLastActivePopup(hook::extracting_wnd_handle);
-		for(HWND msg_wnd=old_wnd;old_wnd==msg_wnd;msg_wnd=::GetLastActivePopup(hook::extracting_wnd_handle)){
-			//中断確認メッセージボックスが出るまでボタン押下
-			::SendDlgItemMessage(hook::extracting_wnd_handle,IDCANCEL,BM_CLICK,0,0);
-			::Sleep(100);
+	if(!isTerminated()){
+		if(hook::extracting_wnd_handle!=NULL){
+			//CANCEL押下
+			HWND old_wnd=::GetLastActivePopup(hook::extracting_wnd_handle);
+			for(HWND msg_wnd=old_wnd;old_wnd==msg_wnd;msg_wnd=::GetLastActivePopup(hook::extracting_wnd_handle)){
+				//中断確認メッセージボックスが出るまでボタン押下
+				::SendDlgItemMessage(hook::extracting_wnd_handle,IDCANCEL,BM_CLICK,0,0);
+				::Sleep(100);
+			}
 		}
 	}
-	m_aborted=true;
+	terminateApp();
 }
 
 //ArcDll::callbackProcV()に投げるための準備

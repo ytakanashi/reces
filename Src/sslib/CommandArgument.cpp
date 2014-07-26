@@ -132,7 +132,7 @@ CommandArgument::CommandArgument(DWORD opt):
 			HANDLE h=NULL;
 			WIN32_FIND_DATA fd={};
 
-			if((h=::FindFirstFile(args()[i].c_str(),&fd))!=INVALID_HANDLE_VALUE){
+			if((h=::FindFirstFile(path::addLongPathPrefix(args()[i]).c_str(),&fd))!=INVALID_HANDLE_VALUE){
 				do{
 					if(lstrcmp(fd.cFileName,_T("."))==0||
 						lstrcmp(fd.cFileName,_T(".."))==0)continue;
@@ -141,6 +141,7 @@ CommandArgument::CommandArgument(DWORD opt):
 					dprintf(_T("file:%s\n"),(!dir.empty())?(dir+dlmtr+fd.cFileName).c_str():fd.cFileName);
 				}while(::FindNextFile(h,&fd));
 			}
+
 			::FindClose(h);
 		}else{
 			//ファイル追加
@@ -154,7 +155,7 @@ CommandArgument::CommandArgument(DWORD opt):
 	if(!GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),&mode)){
 		if(opt&READ_STDIN){
 			//標準入力から取得
-			std::vector<TCHAR> buffer(MAX_PATH);
+			std::vector<TCHAR> buffer(MAX_PATHW);
 
 			while(_fgetts(&buffer[0],buffer.size(),stdin)!=NULL){
 				if(TCHAR* p=_tcschr(&buffer[0],'\n'))*p='\0';

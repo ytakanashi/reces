@@ -98,9 +98,6 @@
     <ClCompile Include="sslib\VariableArgument.cpp">
       <Filter>sslib\ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="sslib\Window.cpp">
-      <Filter>sslib\ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="ArcB2e.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -112,9 +109,6 @@
     </ClCompile>
     <ClCompile Include="SpiBase.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="sslib\EnvironmentVariable.cpp">
-      <Filter>sslib\ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="sslib\ApiHook.cpp">
       <Filter>sslib\ソース ファイル</Filter>
@@ -205,9 +199,6 @@
     <ClInclude Include="sslib\VariableArgument.h">
       <Filter>sslib\ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="sslib\Window.h">
-      <Filter>sslib\ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="resources\resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -222,9 +213,6 @@
     </ClInclude>
     <ClInclude Include="SpiBase.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="sslib\EnvironmentVariable.h">
-      <Filter>sslib\ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="sslib\ApiHook.h">
       <Filter>sslib\ヘッダー ファイル</Filter>

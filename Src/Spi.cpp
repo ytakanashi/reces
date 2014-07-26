@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -17,13 +17,17 @@
 using namespace sslib;
 
 
-//spiである
-bool Spi::isSusiePlugin(){
+//spiである[戻り値はプラグインのタイプ]
+int Spi::isSusiePlugin(){
 	if(!isLoaded())load();
 
-	tstring supported_ext(256,'\0');
+	tstring type(12,'\0');
 
-	return getPluginInfo(SPI_GET_EXT,&supported_ext,256)!=0;
+	if(getPluginInfo(SPI_GET_VERSION,&type,12)==0){
+		return SPI_NOT;
+	}else{
+		return (type.substr(type.length()-2)==_T("IN"))?SPI_IN:SPI_AM;
+	}
 }
 
 //対応している書庫か
@@ -69,6 +73,11 @@ tstring Spi::getAboutStr(){
 	return about;
 }
 
+//設定ダイアログを表示
+bool Spi::configDialog(HWND wnd_handle){
+	return ConfigurationDlg(wnd_handle)==0;
+}
+
 int Spi::getFileCount(const TCHAR* arc_path){
 	if(!m_arc_info.empty())return m_arc_info.size();
 
@@ -95,8 +104,57 @@ int Spi::getFileCount(const TCHAR* arc_path){
 	return count;
 }
 
-bool Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned int progress_thread_id){
+//エラーメッセージを取得
+bool Spi::getErrorMessage(tstring* msg,int code){
+	if(msg==NULL)return false;
+
+	switch(code){
+		case SPI_ERROR_NOT_IMPLEMENT:
+			msg->assign(_T("その機能はインプリメントされていない"));
+			break;
+		case SPI_ERROR_SUCCESS:
+			msg->assign(_T("正常終了"));
+			break;
+		case SPI_ERROR_USER_CANCEL:
+			msg->assign(_T("コールバック関数が非0を返したので展開を中止した"));
+			break;
+		case SPI_ERROR_UNKNOWN_FORMAT:
+			msg->assign(_T("未知のフォーマット"));
+			break;
+		case SPI_ERROR_BROKEN_DATA:
+			msg->assign(_T("データが壊れている"));
+			break;
+		case SPI_ERROR_MALLOC:
+			msg->assign(_T("メモリーが確保出来ない"));
+			break;
+		case SPI_ERROR_MEMORY:
+			msg->assign(_T("メモリーエラー（Lock出来ない、等）"));
+			break;
+		case SPI_ERROR_FILE_READ:
+			msg->assign(_T("ファイルリードエラー"));
+			break;
+		case SPI_ERROR_WINDOW:
+			msg->assign(_T("窓が開けない （非公開）"));
+			break;
+		case SPI_ERROR_INTERNAL:
+			msg->assign(_T("内部エラー"));
+			break;
+		case SPI_ERROR_FILE_WRITE:
+			msg->assign(_T("ファイル書き込みエラー (非公開)"));
+			break;
+		case SPI_ERROR_EOF:
+			msg->assign(_T("ファイル終端を検出 (非公開)"));
+			break;
+		default:
+			break;
+	}
+	return true;
+}
+
+bool Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned int progress_thread_id,tstring* log_msg){
 	if(!isLoaded())load();
+
+	bool result=true;
 	tstring output_dir(path::addTailSlash(output_dir_orig));
 
 	HLOCAL h_info=NULL;
@@ -127,7 +185,12 @@ bool Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned in
 		m_arc_cfg.m_schedule_list.push_back(new fileoperation::scheduleDelete(output_dir.c_str()));
 	}
 
-	for(;arc_info->method[0]&&!m_aborted;++arc_info){
+	if(log_msg!=NULL&&
+	   !m_arc_cfg.cfg().no_display.no_log){
+		log_msg->append(_T("\n"));
+	}
+
+	for(;arc_info->method[0]&&!isTerminated()&&!m_arc_cfg.m_password_input_cancelled;++arc_info){
 		if(!matchFilters(fileinfo::FILEINFO(str::sjis2utf16(arc_info->path)+str::sjis2utf16(arc_info->filename),
 											arc_info->filesize,
 											0,
@@ -169,20 +232,14 @@ bool Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned in
 		}
 
 		if(progress_thread_id){
-			misc::Event update_progressbar_event;
 			ARC_PROCESSING_INFO spi_processing_info((arc_info-arc_info_header)+1,file_count,str::sjis2utf16(arc_info->path)+file_name);
-			ARC_UPDATE_PROGRESSBAR_PARAM update_progressbar_param(update_progressbar_event,&spi_processing_info);
 
-			::PostThreadMessage(progress_thread_id,
-						  WM_UPDATE_PROGRESSBAR,
-						  (WPARAM)0,
-						  (LPARAM)&update_progressbar_param);
-			//コピー待ち
-			update_progressbar_event.wait();
+			misc::thread::post(progress_thread_id,WM_UPDATE_PROGRESSBAR,reinterpret_cast<void*>(&spi_processing_info));
 		}
 
 		HLOCAL file;
 		File dest;
+		tstring err_msg;
 
 		if(!m_arc_cfg.cfg().general.ignore_directory_structures){
 			dest.open((output_dir+(str::sjis2utf16(arc_info->path)+file_name)).c_str(),OPEN_ALWAYS);
@@ -192,7 +249,18 @@ bool Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned in
 
 		if(!dest.isOpened())continue;
 
-		getFile(arc_path,arc_info->position,&file,SPI_INPUT_FILE|SPI_OUTPUT_MEMORY,NULL,0);
+
+		{
+			int ret_code=getFile(arc_path,arc_info->position,&file,SPI_INPUT_FILE|SPI_OUTPUT_MEMORY,NULL,0);
+
+			if(log_msg!=NULL&&
+			   !m_arc_cfg.cfg().no_display.no_log){
+				if(getErrorMessage(&err_msg,ret_code)){
+					log_msg->append(err_msg+_T("   ")+file_name+_T("\n"));
+				}
+			}
+			result=SPI_ERROR_SUCCESS==ret_code;
+		}
 
 		const void* data=::LocalLock(file);
 
@@ -229,7 +297,7 @@ bool Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned in
 	//ディレクトリのタイムスタンプを復元
 	if(!m_arc_cfg.cfg().general.ignore_directory_structures&&
 	   m_arc_cfg.cfg().extract.directory_timestamp){
-		for(arc_info=arc_info_header;arc_info->method[0]&&!m_aborted;++arc_info){
+		for(arc_info=arc_info_header;arc_info->method[0]&&!isTerminated();++arc_info){
 			tstring file_name=str::sjis2utf16(arc_info->filename);
 
 			if(file_name.rfind(_T("/"))==file_name.length()-1||
@@ -296,7 +364,7 @@ bool Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned in
 	::LocalFree(h_info);
 
 	m_arc_info.clear();
-	return true;
+	return result;
 }
 
 bool Spi::list(const TCHAR* arc_path){
@@ -319,7 +387,7 @@ bool Spi::list(const TCHAR* arc_path){
 		app()->stdOut().outputString(_T("---------- -------- ---------- ------------------------\n"));
 	}
 
-	for(;arc_info->method[0]&&!m_aborted;++arc_info){
+	for(;arc_info->method[0]&&!isTerminated();++arc_info){
 		tstring file_name=str::sjis2utf16(arc_info->filename);
 
 		if(!matchFilters(fileinfo::FILEINFO(str::sjis2utf16(arc_info->path)+file_name,

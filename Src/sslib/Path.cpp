@@ -14,12 +14,17 @@ namespace{
 	int isNumberOrSymbol(int c){
 		return str::isSymbol(c)||isdigit(c);
 	}
+
+	static const TCHAR long_path_prefix[]=_T("\\\\?\\");
+	bool hasLongPathPrefix(const tstring& file_path){
+		return file_path.substr(0,ARRAY_SIZEOF(long_path_prefix)-1)==long_path_prefix;
+	}
 }
 
-/*
 //MAX_PATHを超えるパスの為の接頭辞'\\?\'を追加
 tstring addLongPathPrefix(const tstring& file_path){
-	if(file_path.size()>MAX_PATH){
+	if(file_path.size()>MAX_PATH&&
+	   !hasLongPathPrefix(file_path)){
 		return long_path_prefix+file_path;
 	}else{
 		return file_path;
@@ -28,13 +33,12 @@ tstring addLongPathPrefix(const tstring& file_path){
 
 //MAX_PATHを超えるパスの為の接頭辞'\\?\'を削除
 tstring removeLongPathPrefix(const tstring& file_path){
-	if(file_path.substr(0,ARRAY_SIZEOF(long_path_prefix)-1)==long_path_prefix){
+	if(hasLongPathPrefix(file_path)){
 		return file_path.substr(ARRAY_SIZEOF(long_path_prefix)-1);
 	}else{
 		return file_path;
 	}
 }
-*/
 
 #ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
 //ディレクトリを再帰的に検索してlistに追加
@@ -43,12 +47,12 @@ template<class T>void recursiveSearch(T* path_list,const TCHAR* search_dir,const
 
 	FileSearch fs;
 
-	for(fs.first(search_dir,wildcard);fs.next();){
+	for(fs.first(addLongPathPrefix(search_dir).c_str(),wildcard);fs.next();){
 		if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
 			//ファイル
-			path_list->push_back(fs.filepath());
+			path_list->push_back(removeLongPathPrefix(fs.filepath()));
 		}else{
-			if(include_dir)path_list->push_back(fs.filepath());
+			if(include_dir)path_list->push_back(removeLongPathPrefix(fs.filepath()));
 			//サブディレクトリを検索
 			recursiveSearch(path_list,fs.filepath().c_str(),wildcard,include_dir);
 		}
@@ -58,26 +62,6 @@ template<class T>void recursiveSearch(T* path_list,const TCHAR* search_dir,const
 template void recursiveSearch(std::list<tstring>* path_list,const TCHAR* search_dir,const TCHAR* wildcard,bool include_dir);
 template void recursiveSearch(std::vector<tstring>* path_list,const TCHAR* search_dir,const TCHAR* wildcard,bool include_dir);
 
-//ディレクトリを再帰的に検索してlistに相対パスで追加
-template<class T>void makeRelativePathList(T* path_list,const TCHAR* base_dir,const TCHAR* search_dir){
-	if(path_list==NULL)return;
-
-	FileSearch fs;
-
-	for(fs.first(search_dir);fs.next();){
-		if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
-			//ファイル
-			//相対パスを取得
-			path_list->push_back(makeRelativePath(base_dir,FILE_ATTRIBUTE_DIRECTORY,fs.filepath().c_str(),FILE_ATTRIBUTE_NORMAL));
-		}else{
-			//サブディレクトリを検索
-			makeRelativePathList(path_list,base_dir,fs.filepath().c_str());
-		}
-	}
-	return;
-}
-template void makeRelativePathList(std::list<tstring>* path_list,const TCHAR* base_dir,const TCHAR* search_dir);
-template void makeRelativePathList(std::vector<tstring>* path_list,const TCHAR* base_dir,const TCHAR* search_dir);
 #endif
 
 //ファイル名に使えない文字が含まれるかどうか
@@ -267,6 +251,26 @@ tstring getExtension(const tstring& file_path){
 	return file_path;
 }
 
+//短いファイル名を取得
+tstring getShortPathName(const TCHAR* file_path){
+	if(!fileExists(file_path))return _T("");
+
+	std::vector<TCHAR> buffer(::GetShortPathName(path::addLongPathPrefix(file_path).c_str(),NULL,0));
+
+	::GetShortPathName(path::addLongPathPrefix(file_path).c_str(),&buffer[0],buffer.size());
+	return path::removeLongPathPrefix(&buffer[0]);
+}
+
+//長いファイル名を取得
+tstring getLongPathName(const TCHAR* file_path){
+	if(!fileExists(file_path))return _T("");
+
+	std::vector<TCHAR> buffer(::GetLongPathName(path::addLongPathPrefix(file_path).c_str(),NULL,0));
+
+	::GetLongPathName(path::addLongPathPrefix(file_path).c_str(),&buffer[0],buffer.size());
+	return path::removeLongPathPrefix(&buffer[0]);
+}
+
 //二重引用符を取り除く
 tstring removeQuotation(const tstring& file_path){
 	if(file_path.empty())return file_path;
@@ -313,10 +317,11 @@ tstring removeLastNumberAndSymbol(const tstring& file_path){
 }
 
 //一時ディレクトリのパスを取得(末尾に\有り)
-bool getTempDirPath(TCHAR* temp_dir,int buffer_size){
-	::GetTempPath(buffer_size,temp_dir);
-	::GetLongPathName(temp_dir,temp_dir,buffer_size);
-	return fileExists(temp_dir);
+tstring getTempDirPath(){
+	std::vector<TCHAR> buffer(::GetTempPath(0,NULL));
+
+	::GetTempPath(buffer.size(),&buffer[0]);
+	return getLongPathName(&buffer[0]);
 }
 
 //相対パスを取得する
@@ -443,12 +448,14 @@ bool isRelativePath(const TCHAR* file_path){
 
 //ディレクトリであるか否か
 bool isDirectory(const TCHAR* file_path){
-	return file_path&&fileExists(file_path)&&(::GetFileAttributes(file_path)&FILE_ATTRIBUTE_DIRECTORY)!=0;
+	return file_path&&
+		fileExists(file_path)&&
+			(::GetFileAttributes(addLongPathPrefix(file_path).c_str())&FILE_ATTRIBUTE_DIRECTORY)!=0;
 }
 
 //ファイルが存在するか否か
 bool fileExists(const TCHAR* file_path){
-	return file_path&&::GetFileAttributes(file_path)!=0xffffffff;
+	return file_path&&(::GetFileAttributes(addLongPathPrefix(file_path).c_str())!=0xffffffff);
 }
 
 #ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
@@ -465,7 +472,7 @@ bool isEmptyDirectory(const TCHAR* dir_path){
 }
 #endif
 
-//フルパスを取得
+//フルパスを取得(存在する保証は無し)
 bool getFullPath(TCHAR* full_path,unsigned int buffer_size,const TCHAR*relative_path,const TCHAR*base_dir){
 	bool result=false;
 	tstring cur_dir;
@@ -475,7 +482,6 @@ bool getFullPath(TCHAR* full_path,unsigned int buffer_size,const TCHAR*relative_
 		//勿論base_dirが存在することが条件
 		::SetCurrentDirectory(base_dir);
 	}
-
 	result=::GetFullPathName(relative_path,buffer_size,full_path,NULL)!=0;
 
 	if(base_dir)::SetCurrentDirectory(cur_dir.c_str());

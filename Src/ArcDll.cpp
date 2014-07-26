@@ -2,7 +2,7 @@
 //統合アーカイバDll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -215,7 +215,7 @@ bool ArcDll::test(const TCHAR* arc_path,tstring* log_msg){
 	return result;
 }
 
-bool ArcDll::sendCommands(const TCHAR* commands,tstring* log_msg){
+int ArcDll::sendCommands(const TCHAR* commands,tstring* log_msg){
 	int dll_ret=-1;
 
 	//実行
@@ -227,13 +227,11 @@ bool ArcDll::sendCommands(const TCHAR* commands,tstring* log_msg){
 		dll_ret=execute(NULL,commands,log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
-
-	return dll_ret==0;
+	return dll_ret;
 }
 
 bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info){
-	if(m_aborted){::Sleep(1000);return false;}
+	if(isTerminated()){return false;}
 	if(!info||m_disable_callback)return true;
 #if 0
 	switch(m_extracting_info_struct_size){
@@ -257,23 +255,15 @@ bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info){
 
 	if(m_processing_info.file_name.empty())return true;
 
-	if(m_aborted){::Sleep(1000);return false;}
+	if(isTerminated()){return false;}
 
 	//通知
-	if(!m_aborted){
+	if(!isTerminated()){
 		if(m_progress_thread_id){
-			misc::Event update_progressbar_event;
-			ARC_UPDATE_PROGRESSBAR_PARAM update_progressbar_param(update_progressbar_event,&m_processing_info);
-			::PostThreadMessage(m_progress_thread_id,
-						  WM_UPDATE_PROGRESSBAR,
-						  (WPARAM)state,
-						  (LPARAM)&update_progressbar_param);
-			//コピー待ち
-			update_progressbar_event.wait();
+			misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,&m_processing_info,reinterpret_cast<void*>(state));
 		}
 		return true;
 	}else{
-		::Sleep(100);
 		return false;
 	}
 }
@@ -594,7 +584,7 @@ bool ArcDll::outputFileList(const std::list<fileinfo::FILEINFO>& fileinfo_list,c
 
 //コンソールにファイルリストを出力
 bool ArcDll::outputFileListToConsole(const fileinfo::FILEINFO& fileinfo,int opt){
-	if(m_aborted){
+	if(isTerminated()){
 		return false;
 	}
 
@@ -625,7 +615,7 @@ bool ArcDll::outputFileListToConsole(const fileinfo::FILEINFO& fileinfo,int opt)
 bool ArcDll::outputFileList(const std::list<fileinfo::FILEINFO>& fileinfo_list,int opt){
 	for(std::list<fileinfo::FILEINFO>::const_iterator ite=fileinfo_list.begin(),
 		end=fileinfo_list.end();
-		ite!=end&&!m_aborted;
+		ite!=end&&!isTerminated();
 		++ite){
 		outputFileListToConsole(*ite,opt);
 	}

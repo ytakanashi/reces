@@ -1,7 +1,7 @@
 ﻿//Spi.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -33,17 +33,21 @@ private:
 private:
 	//書庫内のすべてのファイルの情報を取得
 	bool createFilesList(const TCHAR* arc_path);
+	//エラーメッセージを取得
+	bool getErrorMessage(tstring* msg,int code);
 
 public:
-	//spiである
-	bool isSusiePlugin();
+	//spiである[戻り値はプラグインのタイプ]
+	int isSusiePlugin();
 	//対応している書庫か
 	bool isSupportedArchive(const TCHAR* arc_path);
 	//プラグインに就いての情報を取得
 	tstring getAboutStr();
+	//設定ダイアログを表示
+	bool configDialog(HWND wnd_handle=NULL);
 	int getFileCount(const TCHAR* arc_path);
 	bool list(const TCHAR* arc_path);
-	bool extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned int progress_thread_id=0);
+	bool extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,unsigned int progress_thread_id=0,tstring* log_msg=NULL);
 
 	//作成しようとするディレクトリは不要であるかどうか
 	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file);

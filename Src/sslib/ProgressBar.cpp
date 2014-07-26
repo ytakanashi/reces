@@ -20,8 +20,7 @@ ProgressBar::ProgressBar(Console& stdOut):
 	m_progress_right_end_pos_x(0),
 	m_last_fraction_done(0),
 	m_last_dots(0),
-	m_last_msg_width(0),
-	m_last_filled_lines(0){
+	m_last_msg_width(0){
 		m_stdout.showCursor(false);
 
 		for(int i=0;i<m_progress_length;i++)m_progress[i]=_T('=');
@@ -95,7 +94,7 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 	m_last_dots=dots;
 
 	if(msg!=NULL){
-		int msg_width=0,filled_lines=0;
+		int msg_width=0;
 
 		//メッセージ表示
 		VariableArgument va(_T("   => \'%s\'"),msg);
@@ -128,10 +127,8 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 		m_begin_pos.Y--;
 
 		if(m_last_msg_width>msg_width){
-			//右端が半角文字か全角文字かの差異を潰すため行数分加える
-			m_stdout.clear((m_last_msg_width-msg_width)+m_last_filled_lines);
+			m_stdout.clear(m_last_msg_width-msg_width+1);
 		}
-		m_last_filled_lines=filled_lines;
 		m_last_msg_width=msg_width;
 	}
 

@@ -15,8 +15,8 @@
 //
 LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
 1 VERSIONINFO
-    FILEVERSION     0,0,0,20
-    PRODUCTVERSION  0,0,0,20
+    FILEVERSION     0,0,0,21
+    PRODUCTVERSION  0,0,0,21
     FILEOS          VOS_UNKNOWN
     FILETYPE        VFT_UNKNOWN
     FILESUBTYPE     VFT2_UNKNOWN
@@ -27,14 +27,14 @@ LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
     {
         BLOCK "041103A4"
         {
-            VALUE "Comments", "DlgHook.dll for reces Ver.0.00r20"
+            VALUE "Comments", "DlgHook.dll for reces Ver.0.00r21"
             VALUE "CompanyName", "Frost Moon Project"
-            VALUE "FileDescription", "DlgHook.dll for reces Ver.0.00r20"
-            VALUE "FileVersion", "0.00r20"
-            VALUE "InternalName", "DlgHook.dll for reces Ver.0.00r20"
+            VALUE "FileDescription", "DlgHook.dll for reces Ver.0.00r21"
+            VALUE "FileVersion", "0.00r21"
+            VALUE "InternalName", "DlgHook.dll for reces Ver.0.00r21"
             VALUE "LegalCopyright", "Coded by x@rgs"
             VALUE "OriginalFilename", "DlgHook.dll"
-            VALUE "ProductVersion", "0.00r20"
+            VALUE "ProductVersion", "0.00r21"
         }
     }
     BLOCK "VarFileInfo"

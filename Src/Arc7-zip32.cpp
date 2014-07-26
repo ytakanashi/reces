@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -69,7 +69,7 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
 	setDefaultPassword(NULL);
 
 #if 0
-	//CHECKARCHIVE_RAPIDにするとFindFirst()あたりでその引数の処理をすることになるので
+	//CHECKARCHIVE_RAPIDにするとFindFirst()で処理をすることになるので
 	//CHECKARCHIVE_BASICで。
 	if(mode==CHECKARCHIVE_RAPID){
 		bool rapid_result=checkArchive(arc_path.c_str(),CHECKARCHIVE_RAPID);
@@ -78,6 +78,7 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
 	}
 #endif
 
+#if SEVENZIP_OLD_VERSION
 	//7-zip32 v.9.20.00.02で
 	//ウインドウを持たないプロセスが暗号化書庫に対し
 	//CheckArchive(CHECKARCHIVE_BASIC)すると
@@ -86,6 +87,7 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
 
 	dummy_window.registerWindow(_T("_DUMMY_WINDOW_"),0);
 	dummy_window.createWindow(0,0,NULL,0,0,0,0);
+#endif
 
 	bool use_password=!m_arc_cfg.cfg().general.password_list.empty();
 
@@ -100,7 +102,7 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
 			m_arc_cfg.cfg().general.password.clear();
 		}
 		result=checkArchive(arc_path.c_str(),CHECKARCHIVE_BASIC);
-	}while(!m_aborted&&
+	}while(!isTerminated()&&
 		   !m_arc_cfg.m_password_input_cancelled&&
 		   //正しいパスワードが入力されるまで問い合わせる
 		   !result&&
@@ -158,11 +160,11 @@ bool Arc7zip32::test(const TCHAR* arc_path_orig,tstring* log_msg){
 		}else{
 			dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 		}
-	}while(!m_aborted&&
+	}while(!isTerminated()&&
 		   //正しいパスワードが入力されるまで問い合わせる
 		   dll_ret==ERROR_PASSWORD_FILE);
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	return dll_ret==0;
 }
@@ -351,7 +353,9 @@ ArcDll::ARCDLL_RESULT Arc7zip32::compress(const TCHAR* arc_path_orig,std::list<t
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+
+	unload();
 
 	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
 }
@@ -426,16 +430,16 @@ ArcDll::ARCDLL_RESULT Arc7zip32::extract(const TCHAR* arc_path_orig,const TCHAR*
 					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
 	}
 
-	cmd_line.add(_T("%s %s%s%s %s%s%s"),
+	cmd_line.add(_T("-o%s%s%s %s %s%s%s"),
+				 (str::containsWhiteSpace(output_dir))?_T("\""):_T(""),
+				 output_dir.c_str(),
+				 (str::containsWhiteSpace(output_dir))?_T("\""):_T(""),
+
 				 _T("--"),
 
 				 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
 				 arc_path.c_str(),
-				 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-
-				 (str::containsWhiteSpace(output_dir))?_T("\""):_T(""),
-				 output_dir.c_str(),
-				 (str::containsWhiteSpace(output_dir))?_T("\""):_T(""));
+				 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""));
 
 	if(use_filter&&
 	   m_arc_cfg.cfg().general.ignore_directory_structures){
@@ -477,7 +481,7 @@ ArcDll::ARCDLL_RESULT Arc7zip32::extract(const TCHAR* arc_path_orig,const TCHAR*
 		   dll_ret!=0&&
 		   (++ite_password_list)!=password_list_end);
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir,'/','\\');
@@ -492,6 +496,8 @@ ArcDll::ARCDLL_RESULT Arc7zip32::extract(const TCHAR* arc_path_orig,const TCHAR*
 		//ディレクトリの更新日時を復元
 		recoverDirectoryTimestamp(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.decode_uesc,true);
 	}
+
+	unload();
 
 	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
 		//共通パスを取り除く
@@ -576,7 +582,9 @@ ArcDll::ARCDLL_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+
+	unload();
 
 	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
 }
@@ -818,6 +826,7 @@ bool Arc7zip32::writeFormatedList(const File& list_file,File& exclude_list_file,
 			}
 		}
 	}else{
+
 		//full_pathはファイル
 		if(fileinfo::matchFilters(full_path.c_str(),m_arc_cfg.cfg().general.filefilter,m_arc_cfg.cfg().general.file_ex_filter,base_dir.c_str())){
 			if(!m_arc_cfg.cfg().general.ignore_directory_structures){

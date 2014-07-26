@@ -1,7 +1,7 @@
 ﻿//reces.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -23,7 +23,6 @@ public:
 	Reces():
 		m_arc_cfg(),
 		m_arcdll_list(),
-		m_arcdll_index(0),
 		m_b2e_dll(NULL),
 		m_cal_dll(NULL),
 		m_spi_list(),
@@ -39,10 +38,9 @@ public:
 		m_arc_thread(NULL),
 		m_arc_dll(NULL),
 		m_spi(NULL),
-		m_progressbar_thread(NULL),
-		m_progressbar_thread_id(0),
-		m_dialog_hook_thread(NULL),
-		m_dialog_hook_thread_id(0){}
+		m_progressbar_thread(),
+		m_update_progressbar_thread(),
+		m_dialog_hook_thread(){}
 	~Reces(){}
 
 private:
@@ -80,12 +78,11 @@ private:
 	ArcCfg m_arc_cfg;
 
 	std::vector<ArcDll*> m_arcdll_list;
-	size_t m_arcdll_index;
 
 	//B2e.dllは特別扱い
 	ArcB2e* m_b2e_dll;
 
-	//対応外のライブラリ(msでのみ対応)
+	//対応外のライブラリ(ms/Sでのみ対応)
 	ArcDll* m_cal_dll;
 
 	std::vector<Spi*> m_spi_list;
@@ -122,16 +119,18 @@ private:
 
 	struct ARC_THREAD_PARAM{
 		Reces* this_ptr;
-		std::list<tstring> file_list;
+		std::list<tstring>& file_list;
 		tstring file_name;
 		ARC_RESULT_MSG& result_msg;
 
-		ARC_THREAD_PARAM(Reces* this_ptr_,std::list<tstring> file_list_,ARC_RESULT_MSG& result_msg_):
+		std::list<tstring> dummy;
+
+		ARC_THREAD_PARAM(Reces* this_ptr_,std::list<tstring>& file_list_,ARC_RESULT_MSG& result_msg_):
 			this_ptr(this_ptr_),file_list(file_list_),result_msg(result_msg_){}
 		ARC_THREAD_PARAM(Reces* this_ptr_,const TCHAR* file_name_,ARC_RESULT_MSG& result_msg_):
-			this_ptr(this_ptr_),file_name(file_name_),result_msg(result_msg_){}
+			this_ptr(this_ptr_),file_list(dummy),file_name(file_name_),result_msg(result_msg_){}
 		ARC_THREAD_PARAM(Reces* this_ptr_,const tstring& file_name_,ARC_RESULT_MSG& result_msg_):
-			this_ptr(this_ptr_),file_name(file_name_),result_msg(result_msg_){}
+			this_ptr(this_ptr_),file_list(dummy),file_name(file_name_),result_msg(result_msg_){}
 	};
 
 	//書庫処理スレッド
@@ -142,59 +141,59 @@ private:
 	Spi* m_spi;
 
 	//クリティカルセクション
-	sslib::misc::CriticalSection m_arc_cs,m_progressbar_cs,m_dialog_hook_cs,m_cleanup_cs,m_ctrlc_event_cs;
+	sslib::misc::CriticalSection m_arc_cs,
+	m_progressbar_cs,
+	m_update_progressbar_cs,
+	m_dialog_hook_cs,
+	m_cleanup_cs,m_ctrlc_event_cs;
 
-	//書庫処理以外のスレッドに
-	struct THREAD_PARAM{
-		Reces* this_ptr;
-		sslib::misc::Event& ready_event;
-		bool* result;
-
-		THREAD_PARAM(Reces* this_ptr_,sslib::misc::Event& ready_event_,bool* result_=NULL):
-			this_ptr(this_ptr_),ready_event(ready_event_),result(result_){}
-	};
-
-	HANDLE m_progressbar_thread;
-	unsigned int m_progressbar_thread_id;
-	HANDLE m_dialog_hook_thread;
-	unsigned int m_dialog_hook_thread_id;
+	sslib::misc::thread::INFO m_progressbar_thread;
+	sslib::misc::thread::INFO m_update_progressbar_thread;
+	sslib::misc::thread::INFO m_dialog_hook_thread;
 
 private:
 	bool info(const TCHAR* msg,...);
 	void errmsg(const TCHAR* msg,...);
+	tstring getVersion(const TCHAR* file_path);
 	//パスワードの入力を求める
 	bool requirePassword();
 	//入力されたコマンドを実行する
 	bool runCommand();
-	//拡張子を削除(tar系考慮)
-	tstring removeExtensionEx(const tstring& file_path);
 	//ファイルを削除(設定依存)
 	bool removeFile(const TCHAR* file_path);
+	//ライブラリリストの7-zip32とLMZIP32を入れ替える
+	bool swap7ZLMZIP(bool sort_by_name=true);
 	//'od'と'of'を反映した作成する書庫のパスを作成
-	ARC_RESULT makeArcFileName(tstring* p_new_arc_path,const tstring& arc_path,tstring& err_msg);
+	ARC_RESULT arcFileName(tstring* p_new_arc_path,const tstring& arc_path,tstring& err_msg);
 	//書庫にタイムスタンプをコピー
 	bool copyArcTimestamp(const tstring& dest_file_path,FILETIME* source_arc_timestamp);
+	//ファイルのフルパスリストを作成
+	bool fullPathList(std::list<tstring>& list,std::vector<tstring>& filepaths,bool received=true);
 
-	//ax*.spiを検索、リストに追加
+	//*.spiを検索、リストに追加
 	bool searchSpi(const TCHAR* search_dir);
 
 	bool parseOptions(sslib::CommandArgument& cmd_arg);
 
 	//プログレスバーを管理
 	static unsigned __stdcall manageProgressBar(void* param);
+	static unsigned __stdcall updateProgressBar(void* param);
 
 	//パスワードダイアログのフックを処理する
 	static unsigned __stdcall dialogHookProc(void* param);
+
 	static unsigned __stdcall callCompress(void* param);
 	static unsigned __stdcall callExtract(void* param);
 	static unsigned __stdcall callList(void* param);
 	static unsigned __stdcall callSendCommands(void* param);
 	static unsigned __stdcall callTest(void* param);
+	static unsigned __stdcall callSettings(void* param);
 	ARC_RESULT compress(std::list<tstring>& compress_file_list,tstring& err_msg);
 	ARC_RESULT extract(const tstring& arc_path,tstring& err_msg);
 	ARC_RESULT list(const tstring& arc_path,tstring& err_msg);
 	ARC_RESULT sendCommands(std::list<tstring>& commands_list,tstring& err_msg);
 	ARC_RESULT test(const tstring& arc_path,tstring& err_msg);
+	ARC_RESULT settings(tstring& err_msg);
 
 public:
 	bool init();

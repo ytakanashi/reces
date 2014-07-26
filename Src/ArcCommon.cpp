@@ -2,7 +2,7 @@
 //書庫操作共通
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -237,4 +237,11 @@ bool ArcCommon::excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_di
 	fileoperation::moveDirToDir(common_dir.c_str(),output_dir);
 
 	return true;
+}
+
+//処理を中止する
+void ArcCommon::abort(){
+	if(!isTerminated()){
+		terminateApp();
+	}
 }

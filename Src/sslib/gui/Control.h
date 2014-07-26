@@ -30,6 +30,9 @@ protected:
 public:
 	virtual LRESULT handleMessage(HWND dlg_handle,UINT message,WPARAM wparam,LPARAM lparam);
 
+	LRESULT sendMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0);
+	bool postMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0);
+
 	UINT resource_id()const{return m_resource_id;}
 	HWND parent_handle()const{return m_parent_handle;}
 	HWND handle()const{return m_handle;}

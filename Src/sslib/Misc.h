@@ -66,6 +66,29 @@ public:
 	void addCtrlCEvent(CtrlCEvent* event);
 };
 
+namespace thread{
+	struct INFO{
+		HANDLE handle;
+		unsigned int id;
+
+		INFO():handle(NULL),id(0){}
+		INFO(HANDLE h,unsigned int i):handle(h),id(i){}
+	};
+
+	struct PARAM{
+		void* this_ptr;
+		Event& ready;
+		void* data;
+
+		PARAM(void* this_ptr_,Event& ready_,void* data_=NULL):
+			this_ptr(this_ptr_),ready(ready_),data(data_){}
+	};
+
+	HANDLE create(unsigned (__stdcall*func)(void*),unsigned*addr,void* this_ptr=NULL,void* data=NULL);
+	bool post(DWORD id,UINT msg,void* this_ptr=NULL,void* data1=NULL,void* data2=NULL);
+	bool close(INFO& info);
+};
+
 class StopWatch{
 public:
 	StopWatch():m_running(false),m_time(0),m_freq(),m_begin(){}

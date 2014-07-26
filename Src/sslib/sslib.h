@@ -1,12 +1,41 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.32
+//                  sslib ver.1.33
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
 #ifndef _SSLIB_H_A4D33CA0_5DAF_4b2c_8C16_B956229BC4AD
 #define _SSLIB_H_A4D33CA0_5DAF_4b2c_8C16_B956229BC4AD
+
+
+#ifndef MAX_PATHW
+	#define	MAX_PATHW 32768
+#endif
+
+//数値が範囲内にあるかどうか
+template<typename T>T clamp(T value,T low,T high){
+	return (value<low)?low:((value>high)?high:value);
+}
+
+//文字列がNULLでも空でもない
+template<typename T>bool strvalid(T str){
+	return str!=NULL&&*str!='\0';
+}
+
+//配列の要素数
+#define ARRAY_SIZEOF(array) (sizeof(array)/sizeof(array[0]))
+//メンバの要素数
+#define member_sizeof(type,member) ARRAY_SIZEOF(((type*)0)->member)
+
+
+#define MAKEQWORD(high,low) (((long long)high<<32)|low)
+
+#ifdef _DEBUG
+	#define dprintf(...) _tprintf(__VA_ARGS__)
+#else
+	#define dprintf(...)
+#endif
 
 #include"Misc.h"
 
@@ -65,6 +94,9 @@
 #include"gui/Tab.h"
 #include"gui/ListView.h"
 #endif
+
+//Ver.1.33(140727)
+//reces Ver.0.00r21/gui4reces Ver.0.0.0.9で使用
 
 //Ver.1.32(140426)
 //reces Ver.0.00r20で使用

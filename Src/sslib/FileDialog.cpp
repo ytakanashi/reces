@@ -50,7 +50,7 @@ template<class T>bool FileDialog::doModalOpen(T* file_list,HWND wnd_handle,bool 
 				if(file.length()==0)break;
 
 				//dir+file_name
-				file_list->push_back(path::addTailSlash(parent_dir)+file);
+				if(file_list!=NULL)file_list->push_back(path::addTailSlash(parent_dir)+file);
 
 				//次のファイルへ
 				i+=file.length()+1;
@@ -83,14 +83,14 @@ bool FileDialog::doModalOpen(tstring* file_path,HWND wnd_handle,const TCHAR* fil
 	std::list<tstring> file_list;
 
 	result=doModalOpen(&file_list,wnd_handle,false,filter,title,init_dir);
-	if(result)file_path->assign(*file_list.begin());
+	if(result&&file_path!=NULL)file_path->assign(*file_list.begin());
 	return result;
 }
 
 //「ファイルを保存」ダイアログ表示
 bool FileDialog::doModalSave(tstring* file_path,HWND wnd_handle,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name){
 	bool result=false;
-	std::vector<TCHAR> file_buffer(MAX_PATH);
+	std::vector<TCHAR> file_buffer(MAX_PATHW);
 
 	if(init_name!=NULL){
 		lstrcpyn(&file_buffer[0],init_name,file_buffer.size()-2);
@@ -120,7 +120,7 @@ bool FileDialog::doModalSave(tstring* file_path,HWND wnd_handle,const TCHAR* fil
 			::MessageBox(wnd_handle,va.get(),NULL,MB_ICONWARNING);
 		}
 	}else{
-		file_path->assign(&file_buffer[0]);
+		if(file_path!=NULL)file_path->assign(&file_buffer[0]);
 		result=true;
 	}
 	return result;

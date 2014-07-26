@@ -11,7 +11,6 @@ public:
 		RESET_LAST_FRACTION_DONE=1<<0,
 		RESET_LAST_DOTS=1<<1,
 		RESET_LAST_MSG_WIDTH=1<<2,
-		RESET_LAST_FILLED_LINES=1<<3
 	};
 
 public:
@@ -35,8 +34,6 @@ private:
 	int m_last_dots;
 	//最後に表示した文字列の幅
 	int m_last_msg_width;
-	//文字列で埋められた行数
-	int m_last_filled_lines;
 
 public:
 	//値を更新
@@ -51,9 +48,6 @@ public:
 		}
 		if(opt&RESET_LAST_MSG_WIDTH){
 			m_last_msg_width=value;
-		}
-		if(opt&RESET_LAST_FILLED_LINES){
-			m_last_filled_lines=value;
 		}
 	}
 };

@@ -72,7 +72,7 @@ public:
 		std::vector<TCHAR> buffer(128);
 
 		::GetPrivateProfileString(section,NULL,NULL,&buffer[0],buffer.size(),filepath().c_str());
-		return lstrcmp(&buffer[0],_T(""))==0;
+		return !strvalid(&buffer[0]);
 	}
 
 	inline const tstring filepath()const{return m_cfg_path;}

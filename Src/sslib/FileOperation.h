@@ -31,18 +31,20 @@ bool createDirectory(const TCHAR* dir_path_orig,LPSECURITY_ATTRIBUTES security_a
 //ファイル/ディレクトリをリネーム
 bool renameFile(const TCHAR* src_orig,const TCHAR* dest_orig);
 
-//ディレクトリやファイルをごみ箱に送る
-bool moveToRecycleBin(const TCHAR* dir_path_orig);
+//ディレクトリやファイルをごみ箱に送る(MAX_PATH制限有)
+bool moveToRecycleBinSH(const TCHAR* dir_path_orig);
 
-//ファイルやディレクトリを移動
-bool moveFile(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag=FOF_SILENT|FOF_NOERRORUI|FOF_NOCONFIRMATION);
+//ファイルやディレクトリを移動(MAX_PATH制限有)
+bool moveFileSH(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag=FOF_SILENT|FOF_NOERRORUI|FOF_NOCONFIRMATION);
 
-//ファイルやディレクトリをコピー
-bool copyFile(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag=FOF_SILENT|FOF_NOERRORUI|FOF_NOCONFIRMATION);
+//ファイルやディレクトリをコピー(MAX_PATH制限有)
+bool copyFileSH(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag=FOF_SILENT|FOF_NOERRORUI|FOF_NOCONFIRMATION);
 
 //ディレクトリをディレクトリへ移動
 void moveDirToDir(const TCHAR* src_path_orig,const TCHAR* dest_path_orig);
 
+//ファイルやディレクトリを削除(MAX_PATH制限有)
+bool removeFileSH(const TCHAR* file_path_orig);
 //ファイルやディレクトリを削除
 bool removeFile(const TCHAR* file_path_orig);
 
@@ -60,7 +62,7 @@ public:
 		if(path::fileExists(m_file_path.c_str())){
 			if(path::isDirectory(m_file_path.c_str())){
 				deleteContents(m_file_path.c_str());
-				if(!::RemoveDirectory(m_file_path.c_str())){
+				if(!::RemoveDirectory(path::addLongPathPrefix(m_file_path).c_str())){
 					removeFile(m_file_path.c_str());
 				}
 			}else{

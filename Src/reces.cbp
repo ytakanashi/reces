@@ -93,8 +93,6 @@
 		<Unit filename="sslib\Console.h" />
 		<Unit filename="sslib\ConsoleApp.cpp" />
 		<Unit filename="sslib\ConsoleApp.h" />
-		<Unit filename="sslib\EnvironmentVariable.cpp" />
-		<Unit filename="sslib\EnvironmentVariable.h" />
 		<Unit filename="sslib\File.cpp" />
 		<Unit filename="sslib\File.h" />
 		<Unit filename="sslib\FileOperation.cpp" />
@@ -113,8 +111,6 @@
 		<Unit filename="sslib\String.h" />
 		<Unit filename="sslib\VariableArgument.cpp" />
 		<Unit filename="sslib\VariableArgument.h" />
-		<Unit filename="sslib\Window.cpp" />
-		<Unit filename="sslib\Window.h" />
 		<Unit filename="sslib\sslib.h" />
 		<Extensions>
 			<code_completion />

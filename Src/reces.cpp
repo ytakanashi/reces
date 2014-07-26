@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -31,6 +31,7 @@ using namespace sslib;
 namespace{
 	const UINT WM_HOOKDIALOG=::RegisterWindowMessage(_T("_WM_HOOKDIALOG_"));
 	const UINT WM_CREATE_PROGRESSBAR=::RegisterWindowMessage(_T("WM_CREATE_PROGRESSBAR"));
+	const UINT WM_UPDATE_PROGRESSBAR_MAIN=::RegisterWindowMessage(_T("WM_UPDATE_PROGRESSBAR_MAIN"));
 	const UINT WM_DESTROY_PROGRESSBAR=::RegisterWindowMessage(_T("WM_DESTROY_PROGRESSBAR"));
 }
 
@@ -80,6 +81,34 @@ namespace reces{
 			::AttachThreadInput(target_thread_id,foreground_thread_id,false);
 		}
 		return result;
+	}
+
+	//拡張子を取得(tar系考慮)、含まれなければ""を返す
+	tstring getExtensionEx(const tstring& file_path){
+		if(file_path.empty())return file_path;
+
+		tstring modified_path(path::removeExtension(file_path));
+
+		if(modified_path==file_path)return _T("");
+
+		//拡張子が'.tar.xz'等の場合、二度removeExtension()する
+		if(path::getExtension(modified_path)==_T("tar")){
+			modified_path=path::removeExtension(modified_path);
+		}
+		return file_path.substr(modified_path.length()+1);
+	}
+
+	//拡張子を削除(tar系考慮)
+	tstring removeExtensionEx(const tstring& file_path){
+		if(file_path.empty())return file_path;
+
+		tstring modified_path(path::removeExtension(file_path));
+
+		//拡張子が'.tar.xz'等の場合、二度removeExtension()する
+		if(path::getExtension(modified_path)==_T("tar")){
+			return path::removeExtension(modified_path);
+		}
+		return modified_path;
 	}
 }
 
@@ -146,14 +175,14 @@ bool Reces::init(){
 
 	//spiの読み込みはrun()で行う
 
-	m_hook_dll_path=path::addTailSlash(path::getExeDirectory());
-	m_hook_dll_path+=_T("DlgHook.dll");
-	::DeleteFile(m_hook_dll_path.c_str());
+	m_hook_dll_path=path::addTailSlash(path::getTempDirPath());
+	m_hook_dll_path+=tstring(_T("rcsDlgHook"))+SOFTWARE_VERSION+_T(".tmp");
 
 	m_pInstallHook=NULL;
 	m_pUninstallHook=NULL;
 
-	if(fileoperation::extractFromResource(NULL,IDR_HOOK_LIB,_T("BINARY"),m_hook_dll_path.c_str())&&
+	if(((!path::fileExists(m_hook_dll_path.c_str())&&fileoperation::extractFromResource(NULL,IDR_HOOK_LIB,_T("BINARY"),m_hook_dll_path.c_str()))||
+	   path::fileExists(m_hook_dll_path.c_str()))&&
 		(m_hook_dll_module=::LoadLibrary(m_hook_dll_path.c_str()))!=NULL){
 		m_pInstallHook=(INSTALLHOOK_PTR)::GetProcAddress(m_hook_dll_module,"installPasswordDialogHook");
 		m_pUninstallHook=(UNINSTALLHOOK_PTR)::GetProcAddress(m_hook_dll_module,"uninstallPasswordDialogHook");
@@ -171,30 +200,16 @@ void Reces::cleanup(){
 	static bool done=false;
 	if(done)return;
 
-	DWORD exit_code=0;
-
-	if(!m_stdout.isRedirected()){
-		if(!m_arc_cfg.cfg().no_display.no_information){
-			::GetExitCodeThread(m_progressbar_thread,&exit_code);
-			if(exit_code==STILL_ACTIVE){
-				//プログレスバー更新通知を受け取るスレッドを閉じる
-				::PostThreadMessage(m_progressbar_thread_id,WM_QUIT,0,0);
-				::WaitForSingleObject(m_progressbar_thread,INFINITE);
-				::CloseHandle(m_progressbar_thread);
-			}
-		}
+	if(!m_stdout.isRedirected()&&
+	   !m_arc_cfg.cfg().no_display.no_information){
+		//プログレスバー更新を行うスレッドを閉じる
+		misc::thread::close(m_update_progressbar_thread);
+		//プログレスバー更新通知を受け取るスレッドを閉じる
+		misc::thread::close(m_progressbar_thread);
 	}
 
-	exit_code=0;
-
-	::GetExitCodeThread(m_dialog_hook_thread,&exit_code);
-
-	if(exit_code==STILL_ACTIVE){
-		//ダイアログのフック通知を受け取るスレッドを閉じる
-		::PostThreadMessage(m_dialog_hook_thread_id,WM_QUIT,0,0);
-		::WaitForSingleObject(m_dialog_hook_thread,INFINITE);
-		::CloseHandle(m_dialog_hook_thread);
-	}
+	//ダイアログのフック通知を受け取るスレッドを閉じる
+	misc::thread::close(m_dialog_hook_thread);
 
 	//作成に失敗したファイルは削除
 	if(m_arc_cfg.cfg().mode==MODE_RECOMPRESS||m_arc_cfg.cfg().mode==MODE_COMPRESS){
@@ -254,14 +269,14 @@ void Reces::cleanup(){
 
 void Reces::usage(){
 	m_stdout.outputString(_T("`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n")
-						  _T("              reces %s by x@rgs\n")
+						  _T("              reces Ver.%s by x@rgs\n")
 						  _T("              under NYSL Version 0.9982\n")
-						  _T("\n`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n\n"),RECES_VERSION);
+						  _T("\n`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n\n"),SOFTWARE_VERSION);
 
 	m_stdout.outputString(_T("usage:\n"));
 	m_stdout.outputString(_T("\treces [/<options>...] [/@<listfiles>...] [<files>...]\n\n"));
 	m_stdout.outputString(_T("options:\n")
-						  _T("\t/m<r|R|c|C|e|E|l|L|s|v>\t\t #動作モード\n")
+						  _T("\t/m<r|R|c|C|e|E|l|L|s|S|v>\t #動作モード\n")
 						  _T("\t/mr[type|@[option]][:library]\t #再圧縮\n")
 						  _T("\t/mR[type|@[option]][:library]\t #再圧縮 (ディレクトリ階層を無視)\n")
 						  _T("\t\t\t  ('@'を指定すると入力書庫と同じ形式で、\n")
@@ -277,6 +292,7 @@ void Reces::usage(){
 						  _T("\t/mt[library]\t #テスト\n")
 						  _T("\t/ms[lib][:prefix]#ライブラリ直接操作\n")
 						  _T("\t\t\t  prefixの指定で非対応のライブラリも使用可能\n")
+						  _T("\t/mS<lib>[:prefix]#設定ダイアログ表示\n")
 						  _T("\t/mv \t\t #バージョン表示\n\n"));
 
 	int item_count=0;
@@ -320,7 +336,7 @@ void Reces::usage(){
 						  _T("\t/eb[level]\t ;共通パスを指定の数だけ除外して解凍\n")
 						  _T("\t/ebx\t\t ;共通パスを全て除外して解凍\n")
 						  _T("\n")
-						  _T("\t/D<b|s><directory> #特殊なディレクトリを指定\n")
+						  _T("\t/D<b|s><dir>\t #特殊なディレクトリを指定\n")
 						  _T("\t/Db<directory>\t ;b2eのあるディレクトリを指定 {ms}\n")
 						  _T("\t/Ds<directory>\t ;spiのあるディレクトリを指定 {mr/me/ml/mv}\n")
 						  _T("\n")
@@ -435,7 +451,7 @@ void Reces::ctrlCEvent(){
 	}
 
 	dprintf(_T("terminate()\n"));
-	m_terminated=true;
+	terminateApp();
 	m_stdout.showCursor(true);
 
 	if(m_arc_dll){
@@ -463,11 +479,7 @@ void Reces::ctrlCEvent(){
 
 	if(!m_stdout.isRedirected()&&
 	   !m_arc_cfg.cfg().no_display.no_information){
-		misc::Event destroyed_progressbar_event;
-
-		::PostThreadMessage(m_progressbar_thread_id,WM_DESTROY_PROGRESSBAR,(WPARAM)&destroyed_progressbar_event,0);
-		//削除待ち
-		destroyed_progressbar_event.wait();
+		misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 	}
 
 	//コールバック関数の登録を解除
@@ -493,7 +505,8 @@ bool Reces::info(const TCHAR* msg,...){
 }
 
 void Reces::errmsg(const TCHAR* msg,...){
-	if(m_arc_cfg.cfg().no_display.no_errmsg)return;
+	if(!strvalid(msg)||
+	   m_arc_cfg.cfg().no_display.no_errmsg)return;
 
 	Console std_err_handle(STD_ERROR_HANDLE);
 	DWORD written_chars=0;
@@ -512,6 +525,21 @@ void Reces::errmsg(const TCHAR* msg,...){
 	//文字色を元に戻す
 	std_err_handle.resetColors();
 	return;
+}
+
+tstring Reces::getVersion(const TCHAR* file_path){
+	DWORD major_ver=0;
+	DWORD minor_ver=0;
+
+	if(fileoperation::getFileVersion(file_path,&major_ver,&minor_ver)){
+		VariableArgument version(_T("%d.%02d.%02d.%02d"),
+									   major_ver>>16,
+									   major_ver&0xffff,
+									   minor_ver>>16,
+									   minor_ver&0xffff);
+		return version.get();
+	}
+	return _T("");
 }
 
 //パスワードの入力を求める
@@ -591,7 +619,7 @@ bool Reces::runCommand(){
 				//Enterで抜ける
 				break;
 			}
-		}while(!m_terminated&&
+		}while(!isTerminated()&&
 			   line!=NULL);
 	}else{
 		if(!m_arc_cfg.cfg().recompress.run_command.command.empty()){
@@ -607,19 +635,6 @@ bool Reces::runCommand(){
 	return result;
 }
 
-//拡張子を削除(tar系考慮)
-tstring Reces::removeExtensionEx(const tstring& file_path){
-	if(file_path.empty())return file_path;
-
-	tstring modified_path(path::removeExtension(file_path));
-
-	//拡張子が'.tar.xz'等の場合、二度removeExtension()する
-	if(path::getExtension(modified_path)==_T("tar")){
-		return path::removeExtension(modified_path);
-	}
-	return modified_path;
-}
-
 //ファイルを削除(設定依存)
 bool Reces::removeFile(const TCHAR* file_path){
 	if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
@@ -627,7 +642,7 @@ bool Reces::removeFile(const TCHAR* file_path){
 			 file_path,
 			 (m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)?_T("ごみ箱に送って"):_T("削除して"));
 		if(m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN){
-			return fileoperation::moveToRecycleBin(file_path);
+			return fileoperation::moveToRecycleBinSH(file_path);
 		}else{
 			if(path::isDirectory(file_path)){
 				fileoperation::deleteDirectory(file_path);
@@ -641,7 +656,7 @@ bool Reces::removeFile(const TCHAR* file_path){
 }
 
 //'od'と'of'を反映した作成する書庫のパスを作成
-Reces::ARC_RESULT Reces::makeArcFileName(tstring* new_arc_path,const tstring& arc_path,tstring& err_msg){
+Reces::ARC_RESULT Reces::arcFileName(tstring* new_arc_path,const tstring& arc_path,tstring& err_msg){
 	//オプションの有無にかかわらず、出力先ディレクトリをoutput_dirに代入
 	tstring output_dir(path::getParentDirectory(arc_path));
 	new_arc_path->assign(arc_path);
@@ -652,7 +667,7 @@ Reces::ARC_RESULT Reces::makeArcFileName(tstring* new_arc_path,const tstring& ar
 		if(path::isRelativePath(m_arc_cfg.cfg().general.output_dir.c_str())||
 		   !path::isAbsolutePath(m_arc_cfg.cfg().compress.output_file.c_str())){
 			//相対パスであれば絶対パスを作成
-			std::vector<TCHAR> buffer(MAX_PATH);
+			std::vector<TCHAR> buffer(MAX_PATHW);
 
 			path::getFullPath(&buffer[0],
 							  buffer.size(),
@@ -686,7 +701,7 @@ Reces::ARC_RESULT Reces::makeArcFileName(tstring* new_arc_path,const tstring& ar
 		if(path::isRelativePath(m_arc_cfg.cfg().compress.output_file.c_str())||
 		   !path::isAbsolutePath(m_arc_cfg.cfg().compress.output_file.c_str())){
 			//相対パスであれば絶対パスを作成
-			std::vector<TCHAR> buffer(MAX_PATH);
+			std::vector<TCHAR> buffer(MAX_PATHW);
 
 			path::getFullPath(&buffer[0],
 							  buffer.size(),
@@ -712,6 +727,7 @@ Reces::ARC_RESULT Reces::makeArcFileName(tstring* new_arc_path,const tstring& ar
 	}
 
 	bool need_ext=true;
+	tstring ext;
 
 	if(!m_arc_cfg.cfg().compress.raw_file_name){
 		//new_arc_pathに圧縮形式の拡張子があれば追加しない
@@ -729,13 +745,28 @@ Reces::ARC_RESULT Reces::makeArcFileName(tstring* new_arc_path,const tstring& ar
 		need_ext=false;
 	}
 
+	if(need_ext){
+		ext=m_arc_dll->getMethod().ext;
+	}
+
 	if(m_arc_cfg.cfg().general.auto_rename){
-		//既に存在する様であればリネーム(readme.txt->readme_1.txt)
-		if(path::fileExists((*new_arc_path+((need_ext)?m_arc_dll->getMethod().ext:_T(""))).c_str())){
+		//既に存在する様であればリネーム(arc.zip->arc_1.zip)
+		if(m_arc_cfg.cfg().compress.raw_file_name){
+			tstring e=reces::getExtensionEx(m_arc_cfg.cfg().compress.output_file);
+
+			if(!e.empty()&&
+			   new_arc_path->rfind(str::toLower(e))!=tstring::npos){
+				//oorだと拡張子が付加されてしまう
+				ext=tstring(_T("."))+reces::getExtensionEx(m_arc_cfg.cfg().compress.output_file);
+				*new_arc_path=reces::removeExtensionEx(*new_arc_path);
+				need_ext=true;
+			}
+		}
+		if(path::fileExists((*new_arc_path+((need_ext)?ext:_T(""))).c_str())){
 			for(unsigned long long i=1;i<ULLONG_MAX;++i){
 				VariableArgument n(_T("_%I64u"),i);
 
-				if(!path::fileExists((*new_arc_path+n.get()+((need_ext)?m_arc_dll->getMethod().ext:_T(""))).c_str())){
+				if(!path::fileExists((*new_arc_path+n.get()+((need_ext)?ext:_T(""))).c_str())){
 					*new_arc_path+=n.get();
 					break;
 				}
@@ -749,6 +780,26 @@ Reces::ARC_RESULT Reces::makeArcFileName(tstring* new_arc_path,const tstring& ar
 	}
 
 	return ARC_SUCCESS;
+}
+
+//ライブラリリストの7-zip32とLMZIP32を入れ替える
+bool Reces::swap7ZLMZIP(bool sort_by_name){
+	for(size_t i=0,ii=0,list_size=m_arcdll_list.size();i<list_size;){
+		if(m_arcdll_list[i]!=NULL&&m_arcdll_list[ii]!=NULL){
+			if(m_arcdll_list[i]->name()!=_T("7-zip32"))++i;
+			if(m_arcdll_list[ii]->name()!=_T("LMZip32"))++ii;
+
+			if(m_arcdll_list[i]->name()==_T("7-zip32")&&
+			   m_arcdll_list[ii]->name()==_T("LMZip32")){
+				if((i>ii&&sort_by_name)||
+				   (i<ii&&!sort_by_name)){
+					std::swap(m_arcdll_list[i],m_arcdll_list[ii]);
+				}
+				break;
+			}
+		}
+	}
+	return true;
 }
 
 //書庫にタイムスタンプをコピー
@@ -771,15 +822,52 @@ bool Reces::copyArcTimestamp(const tstring& dest_file_path,FILETIME* source_arc_
 	return result;
 }
 
-//ax*.spiを検索、リストに追加
+//ファイルのフルパスリストを作成
+bool Reces::fullPathList(std::list<tstring>& list,std::vector<tstring>& filepaths,bool recursive){
+	for(std::vector<tstring>::size_type i=0,size=filepaths.size();!isTerminated()&&i<size;++i){
+		std::vector<TCHAR> buffer(MAX_PATHW);
+
+		//フルパスを取得
+		if(path::getFullPath(&buffer[0],buffer.size(),filepaths[i].c_str())&&
+		   path::fileExists(&buffer[0])){
+			tstring buffer_str(&buffer[0]);
+
+			if(recursive){
+				//ディレクトリなら再帰的検索してリストに追加
+				if(path::isDirectory(&buffer[0])){
+					path::recursiveSearch(&list,&buffer[0]);
+					continue;
+				}
+			}
+
+			if(find(list.begin(),list.end(),buffer_str)==list.end()){
+				//リストに追加
+				list.push_back(buffer_str);
+			}
+		}
+	}
+	return !list.empty();
+}
+
+//*.spiを検索、リストに追加
 bool Reces::searchSpi(const TCHAR* search_dir){
 	FileSearch fs;
 
-	for(fs.first(search_dir,_T("*.spi"));fs.next();){
-		if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)&&
-		   str::matchWildcards(path::getFileName(fs.filepath()).c_str(),_T("ax*.spi"))){
-			dprintf(_T("spi: %s\n"),fs.filepath().c_str());
-			m_spi_list.push_back(new Spi(fs.filepath().c_str(),m_arc_cfg));
+	std::vector<TCHAR> full_path(MAX_PATH);
+
+	if(path::getFullPath(&full_path[0],full_path.size(),search_dir)&&
+	   path::fileExists(&full_path[0])){
+		for(fs.first(&full_path[0],_T("*.spi"));fs.next();){
+			if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
+				dprintf(_T("spi: %s\n"),fs.filepath().c_str());
+				Spi* spi=new Spi(fs.filepath().c_str(),m_arc_cfg);
+
+				if(spi->isSusiePlugin()==Spi::SPI_AM){
+					m_spi_list.push_back(spi);
+				}else{
+					delete spi;
+				}
+			}
 		}
 	}
 	return m_spi_list.size()!=0;
@@ -829,7 +917,8 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 		switch(options[i].c_str()[0]){
 			case '{':{
 				//cfgファイルを読み込む
-				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())){
+				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())&&
+				   path::fileExists(&cfg_path[0])){
 					cfg_file.setFileName(&cfg_path[0]);
 					if(cfg_file.load()){
 						break;
@@ -841,7 +930,8 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 
 			case '}':{
 				//cfgファイルに書き出す[オプション解析後]
-				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())){
+				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())&&
+				   path::fileExists(&cfg_path[0])){
 					cfg_file.setFileName(&cfg_path[0]);
 					save_cfg=true;
 					dprintf(_T("save_cfg=true\n"));
@@ -955,30 +1045,45 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 						break;
 					}
 
-					case 's':{
-						//ライブラリ直接操作
-						m_arc_cfg.cfg().mode=MODE_SENDCOMMANDS;
-						dprintf(_T("mode : send_commands\n"));
+					case 's':
+					case 'S':{
+						if(options[i].c_str()[1]=='s'){
+							//ライブラリ直接操作
+							m_arc_cfg.cfg().mode=MODE_SENDCOMMANDS;
+							dprintf(_T("mode : send_commands\n"));
+						}else{
+							//ライブラリの設定
+							m_arc_cfg.cfg().mode=MODE_SETTINGS;
+							dprintf(_T("mode : settings\n"));
+						}
 
 						if(options[i].c_str()[2]!='\0'){
 							//ライブラリ名を直接指定した場合
 							m_arc_cfg.cfg().general.selected_library_name=options[i].substr(2);
 
-							tstring::size_type pos=m_arc_cfg.cfg().general.selected_library_name.find(_T(":"));
+							tstring::size_type pos=m_arc_cfg.cfg().general.selected_library_name.rfind(_T(":"));
 							if(pos!=tstring::npos){
-								//プレフィックス名が指定されている
 								m_arc_cfg.cfg().general.selected_library_prefix=m_arc_cfg.cfg().general.selected_library_name.substr(pos+1);
-								dprintf(_T("prefix: %s\n"),m_arc_cfg.cfg().general.selected_library_prefix.c_str());
-								m_arc_cfg.cfg().general.selected_library_name=m_arc_cfg.cfg().general.selected_library_name.substr(0,pos);
+
+								if(m_arc_cfg.cfg().general.selected_library_prefix.find(_T("/"))!=tstring::npos||
+								   m_arc_cfg.cfg().general.selected_library_prefix.find(_T("\\"))!=tstring::npos){
+									m_arc_cfg.cfg().general.selected_library_prefix.clear();
+								}else{
+									//プレフィックス名が指定されている
+									dprintf(_T("prefix: %s\n"),m_arc_cfg.cfg().general.selected_library_prefix.c_str());
+									m_arc_cfg.cfg().general.selected_library_name=m_arc_cfg.cfg().general.selected_library_name.substr(0,pos);
+								}
 							}
 						}
 
-						//拡張子を取り除く
-						m_arc_cfg.cfg().general.selected_library_name=path::removeExtension(m_arc_cfg.cfg().general.selected_library_name);
+						//spiでなければ拡張子を取り除く
+						if(path::getExtension(m_arc_cfg.cfg().general.selected_library_name)!=_T("spi")){
+							m_arc_cfg.cfg().general.selected_library_name=path::removeExtension(m_arc_cfg.cfg().general.selected_library_name);
+						}
 
 						dprintf(_T("select library: %s\n"),m_arc_cfg.cfg().general.selected_library_name.c_str());
 
-						{
+						if(options[i].c_str()[0]=='s'){
 							//'ms'以降はライブラリに送る文字列とする
 							//再割り当て
 							cmd_arg.filepaths().clear();
@@ -991,12 +1096,14 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 						break;
 					}
 
+
 					case 'v':{
 						//バージョン確認
 						m_arc_cfg.cfg().mode=MODE_VERSION;
 						dprintf(_T("mode : version\n"));
 						break;
 					}
+
 				}
 				break;
 			}//case 'm'
@@ -1625,35 +1732,32 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 unsigned __stdcall Reces::manageProgressBar(void* param){
 	{
 		MSG msg;
-		static Reces* this_ptr=reinterpret_cast<THREAD_PARAM*>(param)->this_ptr;
+		static Reces* this_ptr=reinterpret_cast<Reces*>(reinterpret_cast<misc::thread::PARAM*>(param)->this_ptr);
 
 		misc::Lock lock(this_ptr->m_progressbar_cs);
 
 		::PeekMessage(&msg,NULL,0,0,PM_NOREMOVE);
 
 		//メインスレッドの処理再開
-		reinterpret_cast<THREAD_PARAM*>(param)->ready_event.signal();
+		reinterpret_cast<misc::thread::PARAM*>(param)->ready.signal();
 
 		while(::GetMessage(&msg,NULL,0,0)>0){
 			if(msg.message==WM_CREATE_PROGRESSBAR){
 				this_ptr->m_progressbar=new ProgressBar(this_ptr->m_stdout);
 				if(msg.wParam){
-					reinterpret_cast<misc::Event*>(msg.wParam)->signal();
+					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}
 			}else if(msg.message==ArcDll::WM_UPDATE_PROGRESSBAR){
-				if(!this_ptr->m_terminated&&
+				if(!this_ptr->isTerminated()&&
 				   this_ptr->m_progressbar&&
-				   msg.lParam){
-					ArcDll::ARC_PROCESSING_INFO arc_processing_info=
-						*(reinterpret_cast<ArcDll::ARC_UPDATE_PROGRESSBAR_PARAM*>(msg.lParam)->info);
+				   msg.wParam){
+					misc::thread::post(this_ptr->m_update_progressbar_thread.id,
+									   WM_UPDATE_PROGRESSBAR_MAIN,
+									   reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->data);
 
-					reinterpret_cast<ArcDll::ARC_UPDATE_PROGRESSBAR_PARAM*>(msg.lParam)->ready_event.signal();
-
-					this_ptr->m_progressbar->update(arc_processing_info.done,
-										   arc_processing_info.total,
-										   arc_processing_info.file_name.c_str());
+					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}else{
-					reinterpret_cast<ArcDll::ARC_UPDATE_PROGRESSBAR_PARAM*>(msg.lParam)->ready_event.signal();
+					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}
 			}else if(msg.message==WM_DESTROY_PROGRESSBAR){
 				if(this_ptr->m_progressbar){
@@ -1661,11 +1765,44 @@ unsigned __stdcall Reces::manageProgressBar(void* param){
 					this_ptr->m_progressbar=NULL;
 				}
 				if(msg.wParam){
-					reinterpret_cast<misc::Event*>(msg.wParam)->signal();
+					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}
 			}
 		}
+	}
 
+	_endthreadex(0);
+	return 0;
+}
+
+unsigned __stdcall Reces::updateProgressBar(void* param){
+	{
+		MSG msg;
+		static Reces* this_ptr=reinterpret_cast<Reces*>(reinterpret_cast<misc::thread::PARAM*>(param)->this_ptr);
+
+		misc::Lock lock(this_ptr->m_update_progressbar_cs);
+
+		::PeekMessage(&msg,NULL,0,0,PM_NOREMOVE);
+
+		//メインスレッドの処理再開
+		reinterpret_cast<misc::thread::PARAM*>(param)->ready.signal();
+
+		while(::GetMessage(&msg,NULL,0,0)>0){
+			if(msg.message==WM_UPDATE_PROGRESSBAR_MAIN){
+				if(!this_ptr->isTerminated()&&
+				   this_ptr->m_progressbar&&
+				   msg.wParam){
+					ArcDll::ARC_PROCESSING_INFO arc_processing_info=
+						*(reinterpret_cast<ArcDll::ARC_PROCESSING_INFO*>(reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->data));
+
+					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
+
+					this_ptr->m_progressbar->update(arc_processing_info.done,
+										   arc_processing_info.total,
+										   arc_processing_info.file_name.c_str());
+				}
+			}
+		}
 	}
 
 	_endthreadex(0);
@@ -1675,14 +1812,14 @@ unsigned __stdcall Reces::manageProgressBar(void* param){
 unsigned __stdcall Reces::dialogHookProc(void* param){
 	{
 		MSG msg;
-		static Reces* this_ptr=reinterpret_cast<THREAD_PARAM*>(param)->this_ptr;
+		static Reces* this_ptr=reinterpret_cast<Reces*>(reinterpret_cast<misc::thread::PARAM*>(param)->this_ptr);
 
 		misc::Lock lock(this_ptr->m_dialog_hook_cs);
 
 		::PeekMessage(&msg,NULL,0,0,PM_NOREMOVE);
 
 		//メインスレッドの処理再開
-		reinterpret_cast<THREAD_PARAM*>(param)->ready_event.signal();
+		reinterpret_cast<misc::thread::PARAM*>(param)->ready.signal();
 
 		while(::GetMessage(&msg,NULL,0,0)>0){
 			if(msg.message==WM_HOOKDIALOG){
@@ -1716,7 +1853,7 @@ unsigned __stdcall Reces::dialogHookProc(void* param){
 						}
 					}
 
-					if(this_ptr->m_terminated){
+					if(this_ptr->isTerminated()){
 						//OK押下
 						::SendMessage(::GetDlgItem(::GetParent(target_handle),IDOK),BM_CLICK,0,0);
 					}else{
@@ -1792,10 +1929,19 @@ unsigned __stdcall Reces::callTest(void* param){
 	return 0;
 }
 
+unsigned __stdcall Reces::callSettings(void* param){
+	{
+		((ARC_THREAD_PARAM*)param)->result_msg.result=
+			((ARC_THREAD_PARAM*)param)->this_ptr->settings(((ARC_THREAD_PARAM*)param)->result_msg.err_msg);
+	}
+	_endthreadex(0);
+	return 0;
+}
+
 Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring& err_msg){
 	misc::Lock lock(this->m_arc_cs);
 
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	m_arc_dll=NULL;
 	m_spi=NULL;
@@ -1817,13 +1963,14 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 		return ARC_NOT_SUPPORTED_METHOD;
 	}
 
-	if(m_arc_dll->getMethod().opt&ArcDll::MHD_SFX&&
+	if((m_arc_cfg.cfg().mode==MODE_RECOMPRESS||m_arc_cfg.cfg().mode==MODE_COMPRESS)&&
+	   m_arc_dll->getMethod().opt&ArcDll::MHD_SFX&&
 	   !m_arc_cfg.cfg().compress.split_value.empty()){
 		err_msg=_T("オプションの組み合わせが正しくありません。(sfx+/s)\n");
 		return ARC_INCORRECT_OPTION_SFX_S;
 	}
 
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	if(!m_arc_dll->isLoaded()&&!m_arc_dll->load()){
 		m_stdout.outputString(_T("\n"));
@@ -1845,11 +1992,11 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 			}
 		}
 
-		if(m_terminated)return ARC_USER_CANCEL;
+		if(isTerminated())return ARC_USER_CANCEL;
 
 		{
 			//'od'と'of'を反映した作成する書庫のパスを作成
-			if(makeArcFileName(&m_arc_path,m_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+			if(arcFileName(&m_arc_path,m_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 				return ARC_CANNOT_CREATE_DIRECTORY;
 			}
 
@@ -1857,7 +2004,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 			   m_arc_cfg.cfg().compress.raw_file_name){
 				//作成する書庫と同名のディレクトリが存在する場合oFを無効にして再度パス作成
 				m_arc_cfg.cfg().compress.raw_file_name=false;
-				if(makeArcFileName(&m_arc_path,m_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+				if(arcFileName(&m_arc_path,m_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 					return ARC_CANNOT_CREATE_DIRECTORY;
 				}
 			}
@@ -1872,7 +2019,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 			m_arc_path=m_split_temp_dir+_T("\\")+path::getFileName(m_arc_path);
 		}
 
-		if(m_terminated)return ARC_USER_CANCEL;
+		if(isTerminated())return ARC_USER_CANCEL;
 
 		if(m_arc_cfg.cfg().general.ignore_directory_structures){
 			//ディレクトリ階層を無視する場合/ebを無効に
@@ -1881,17 +2028,13 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 
 		if(!m_stdout.isRedirected()&&
 		   !m_arc_cfg.cfg().no_display.no_information){
-			misc::Event created_progressbar_event;
-
-			::PostThreadMessage(m_progressbar_thread_id,WM_CREATE_PROGRESSBAR,(WPARAM)&created_progressbar_event,0);
-			//作成待ち
-			created_progressbar_event.wait();
+			misc::thread::post(m_progressbar_thread.id,WM_CREATE_PROGRESSBAR);
 		}
 		//コールバック関数を登録
-		m_arc_dll->setCallbackProc(m_progressbar_thread_id,
+		m_arc_dll->setCallbackProc(m_progressbar_thread.id,
 									 m_arc_cfg.cfg().no_display.no_information);
 
-		if(m_terminated)return ARC_USER_CANCEL;
+		if(isTerminated())return ARC_USER_CANCEL;
 
 		//圧縮
 		tstring log;
@@ -1915,11 +2058,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 
 		if(!m_stdout.isRedirected()&&
 		   !m_arc_cfg.cfg().no_display.no_information){
-			misc::Event destroyed_progressbar_event;
-
-			::PostThreadMessage(m_progressbar_thread_id,WM_DESTROY_PROGRESSBAR,(WPARAM)&destroyed_progressbar_event,0);
-			//削除待ち
-			destroyed_progressbar_event.wait();
+			misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 		}
 		//コールバック関数の登録を解除
 		m_arc_dll->clearCallbackProc();
@@ -1986,7 +2125,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 	misc::Lock lock(this->m_arc_cs);
 
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	bool split_file=false;
 	tstring join_file_name;
@@ -2027,6 +2166,9 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 	}
 
 	info(_T("ライブラリを読み込んでいます..."));
+
+	//7-zip32とLMZIP32を入れ替える
+	swap7ZLMZIP(arc_path.length()>=MAX_PATH);
 
 	{
 		bool loaded_library=false;
@@ -2085,31 +2227,36 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 		if(!m_arc_dll){
 			if(!m_arc_cfg.cfg().general.selected_library_name.empty()){
 				//ライブラリが指定されている場合
-				if(!m_spi_list.size()){
-					m_spi_list.push_back(new Spi(m_arc_cfg.cfg().general.selected_library_name.c_str(),m_arc_cfg));
-					if(!m_spi_list[0]->isSusiePlugin()){
-						delete m_spi_list[0];
-						m_spi_list[0]=NULL;
-						m_spi_list.erase(m_spi_list.begin());
-					}
-				}
-
 				//フルパスを取得
 				std::vector<TCHAR> full_path(MAX_PATH);
 
-				if(path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str())){
-					for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
-						if(str::isEqualStringIgnoreCase(m_spi_list[i]->name(),&full_path[0])){
-							if(m_spi_list[i]->isLoaded()||
-							   (!m_spi_list[i]->isLoaded()&&
-								m_spi_list[i]->load(&full_path[0],NULL))){
-								loaded_library=true;
-								if(m_spi_list[i]->isSupportedArchive(arc_path.c_str())){
-									m_spi=m_spi_list[i];
-									break;
-								}else{
-									break;
-								}
+				if(path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str())&&
+				   path::fileExists(&full_path[0])){
+					Spi* spi=new Spi(&full_path[0],m_arc_cfg);
+
+					if(m_spi_list[0]->isSusiePlugin()==Spi::SPI_AM){
+						m_spi_list.insert(m_spi_list.begin(),spi);
+					}else{
+						delete spi;
+					}
+				}else{
+					//spiディレクトリ以下にあると仮定
+					if(!m_arc_cfg.cfg().general.spi_dir.empty()&&
+						path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str(),m_arc_cfg.cfg().general.spi_dir.c_str())){
+					}
+				}
+
+				for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
+					if(str::isEqualStringIgnoreCase(m_spi_list[i]->name(),&full_path[0])){
+						if(m_spi_list[i]->isLoaded()||
+						   (!m_spi_list[i]->isLoaded()&&
+							m_spi_list[i]->load(&full_path[0],NULL))){
+							loaded_library=true;
+							if(m_spi_list[i]->isSupportedArchive(arc_path.c_str())){
+								m_spi=m_spi_list[i];
+								break;
+							}else{
+								break;
 							}
 						}
 					}
@@ -2149,7 +2296,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 		}
 	}
 
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	if(m_arc_dll){
 		info(_T(" %s.dll ver.%s\n"),m_arc_dll->name().c_str(),m_arc_dll->getVersionStr().c_str());
@@ -2201,13 +2348,13 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 			}
 		}
 
-		if(m_terminated)return ARC_USER_CANCEL;
+		if(isTerminated())return ARC_USER_CANCEL;
 
 		tstring output_dir(path::getParentDirectory(arc_path));
 		bool created_dir=false;
 
 		if(!m_arc_cfg.cfg().general.output_dir.empty()){
-			std::vector<TCHAR> buffer(MAX_PATH);
+			std::vector<TCHAR> buffer(MAX_PATHW);
 
 			path::getFullPath(&buffer[0],
 							  buffer.size(),
@@ -2248,10 +2395,10 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 
 					if(str::isEqualStringIgnoreCase(path::getExtension(old_arc_path),_T("exe"))){
 						//拡張子がexeなら削る
-						new_arc_path=old_arc_path=removeExtensionEx(old_arc_path);
+						new_arc_path=old_arc_path=reces::removeExtensionEx(old_arc_path);
 					}
 
-					if(makeArcFileName(&new_arc_path,old_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+					if(arcFileName(&new_arc_path,old_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 						return ARC_CANNOT_CREATE_DIRECTORY;
 					}
 
@@ -2330,7 +2477,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 				tstring new_dir_name(path::getFileName((!split_file)?arc_path:join_file_name));
 
 				//tar系を考慮しつつ拡張子削除
-				new_dir_name=removeExtensionEx(new_dir_name);
+				new_dir_name=reces::removeExtensionEx(new_dir_name);
 
 				if(m_arc_cfg.cfg().extract.create_dir_optimization.omit_number_and_symbol.number&&
 				   m_arc_cfg.cfg().extract.create_dir_optimization.omit_number_and_symbol.symbol){
@@ -2364,19 +2511,15 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 
 		if(!m_stdout.isRedirected()&&
 		   !m_arc_cfg.cfg().no_display.no_information){
-			misc::Event created_progressbar_event;
-
-			::PostThreadMessage(m_progressbar_thread_id,WM_CREATE_PROGRESSBAR,(WPARAM)&created_progressbar_event,0);
-			//作成待ち
-			created_progressbar_event.wait();
+			misc::thread::post(m_progressbar_thread.id,WM_CREATE_PROGRESSBAR);
 		}
 		//コールバック関数を登録
 		if(m_arc_dll){
-			m_arc_dll->setCallbackProc(m_progressbar_thread_id,
+			m_arc_dll->setCallbackProc(m_progressbar_thread.id,
 									 m_arc_cfg.cfg().no_display.no_information);
 		}
 
-		if(m_terminated)return ARC_USER_CANCEL;
+		if(isTerminated())return ARC_USER_CANCEL;
 
 		//解凍
 		tstring log;
@@ -2403,16 +2546,16 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 		}else{
 			result=m_spi->extract((!split_file)?arc_path.c_str():join_file_name.c_str(),
 								  output_dir.c_str(),
-								  m_progressbar_thread_id);
+								  m_progressbar_thread.id,
+								  &log);
+			if(!result){
+				err_msg=_T("エラーが発生しました。\n");
+			}
 		}
 
 		if(!m_stdout.isRedirected()&&
 		   !m_arc_cfg.cfg().no_display.no_information){
-			misc::Event destroyed_progressbar_event;
-
-			::PostThreadMessage(m_progressbar_thread_id,WM_DESTROY_PROGRESSBAR,(WPARAM)&destroyed_progressbar_event,0);
-			//削除待ち
-			destroyed_progressbar_event.wait();
+			misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 		}
 		//コールバック関数の登録を解除
 		if(m_arc_dll){
@@ -2458,7 +2601,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 }
 
 Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	bool split_file=false;
 	tstring join_file_name;
@@ -2469,7 +2612,7 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 				split_file=true;
 				m_stdout.outputString(_T("ファイルを結合しました。\n"));
 				join_file_name=path::addTailSlash(m_split_temp_dir.c_str());
-				join_file_name+=removeExtensionEx(path::getFileName(arc_path));
+				join_file_name+=reces::removeExtensionEx(path::getFileName(arc_path));
 				break;
 			}
 			case fileoperation::JFRET_NOT_SPLIT:
@@ -2487,6 +2630,9 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 	m_spi=NULL;
 
 	info(_T("ライブラリを読み込んでいます..."));
+
+	//7-zip32とLMZIP32を入れ替える
+	swap7ZLMZIP(arc_path.length()>=MAX_PATH);
 
 	{
 		bool loaded_library=false;
@@ -2545,31 +2691,36 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 		if(!m_arc_dll){
 			if(!m_arc_cfg.cfg().general.selected_library_name.empty()){
 				//ライブラリが指定されている場合
-				if(!m_spi_list.size()){
-					m_spi_list.push_back(new Spi(m_arc_cfg.cfg().general.selected_library_name.c_str(),m_arc_cfg));
-					if(!m_spi_list[0]->isSusiePlugin()){
-						delete m_spi_list[0];
-						m_spi_list[0]=NULL;
-						m_spi_list.erase(m_spi_list.begin());
-					}
-				}
-
 				//フルパスを取得
 				std::vector<TCHAR> full_path(MAX_PATH);
 
-				if(path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str())){
-					for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
-						if(str::isEqualStringIgnoreCase(m_spi_list[i]->name(),&full_path[0])){
-							if(m_spi_list[i]->isLoaded()||
-							   (!m_spi_list[i]->isLoaded()&&
-								m_spi_list[i]->load(&full_path[0],NULL))){
-								loaded_library=true;
-								if(m_spi_list[i]->isSupportedArchive(arc_path.c_str())){
-									m_spi=m_spi_list[i];
-									break;
-								}else{
-									break;
-								}
+				if(path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str())&&
+				   path::fileExists(&full_path[0])){
+					Spi* spi=new Spi(&full_path[0],m_arc_cfg);
+
+					if(m_spi_list[0]->isSusiePlugin()==Spi::SPI_AM){
+						m_spi_list.insert(m_spi_list.begin(),spi);
+					}else{
+						delete spi;
+					}
+				}else{
+					//spiディレクトリ以下にあると仮定
+					if(!m_arc_cfg.cfg().general.spi_dir.empty()&&
+						path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str(),m_arc_cfg.cfg().general.spi_dir.c_str())){
+					}
+				}
+
+				for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
+					if(str::isEqualStringIgnoreCase(m_spi_list[i]->name(),&full_path[0])){
+						if(m_spi_list[i]->isLoaded()||
+						   (!m_spi_list[i]->isLoaded()&&
+							m_spi_list[i]->load(&full_path[0],NULL))){
+							loaded_library=true;
+							if(m_spi_list[i]->isSupportedArchive(arc_path.c_str())){
+								m_spi=m_spi_list[i];
+								break;
+							}else{
+								break;
 							}
 						}
 					}
@@ -2609,7 +2760,7 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 		}
 	}
 
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	if(m_arc_dll){
 		info(_T(" %s.dll ver.%s\n"),m_arc_dll->name().c_str(),m_arc_dll->getVersionStr().c_str());
@@ -2644,7 +2795,7 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 }
 
 Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring& err_msg){
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	m_arc_dll=NULL;
 
@@ -2656,11 +2807,16 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 
 		if(!m_arc_cfg.cfg().general.selected_library_prefix.empty()){
 			//対応外の統合アーカイバライブラリ
-			m_arc_dll=new ArcCAL(m_arc_cfg,
+			m_cal_dll=new ArcCAL(m_arc_cfg,
 								 m_arc_cfg.cfg().general.selected_library_name.c_str(),
 								 m_arc_cfg.cfg().general.selected_library_prefix.c_str());
-			if(m_arc_dll){
-				m_arc_dll->load();
+			if(m_cal_dll){
+				if(m_cal_dll->load()){
+					m_arc_dll=m_cal_dll;
+				}else{
+					delete m_cal_dll;
+					m_cal_dll=NULL;
+				}
 			}
 		}
 
@@ -2737,33 +2893,30 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 
 		if(!m_stdout.isRedirected()&&
 		   !m_arc_cfg.cfg().no_display.no_information){
-			misc::Event created_progressbar_event;
-
-			::PostThreadMessage(m_progressbar_thread_id,WM_CREATE_PROGRESSBAR,(WPARAM)&created_progressbar_event,0);
-			//作成待ち
-			created_progressbar_event.wait();
+			misc::thread::post(m_progressbar_thread.id,WM_CREATE_PROGRESSBAR);
 		}
 		//コールバック関数を登録
-		m_arc_dll->setCallbackProc(m_progressbar_thread_id);
+		m_arc_dll->setCallbackProc(m_progressbar_thread.id);
 
 		//ライブラリにコマンドを直接渡す
-		bool result=false;
-		if(!m_arc_cfg.cfg().no_display.no_log){
-			tstring log;
+		int result=-1;
+		tstring log;
 
+		if(!m_arc_cfg.cfg().no_display.no_log){
 			result=m_arc_dll->sendCommands(cmd.c_str(),&log);
-			m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 		}else{
 			result=m_arc_dll->sendCommands(cmd.c_str());
 		}
 
+		if(!m_arc_cfg.cfg().no_display.no_information){
+			app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),result,result);
+		}
+
+		if(!log.empty())m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+
 		if(!m_stdout.isRedirected()&&
 		   !m_arc_cfg.cfg().no_display.no_information){
-			misc::Event destroyed_progressbar_event;
-
-			::PostThreadMessage(m_progressbar_thread_id,WM_DESTROY_PROGRESSBAR,(WPARAM)&destroyed_progressbar_event,0);
-			//削除待ち
-			destroyed_progressbar_event.wait();
+			misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 		}
 		//コールバック関数の登録を解除
 		m_arc_dll->clearCallbackProc();
@@ -2773,7 +2926,7 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 }
 
 Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	bool split_file=false;
 	tstring join_file_name;
@@ -2784,7 +2937,7 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 				split_file=true;
 				m_stdout.outputString(_T("ファイルを結合しました。\n"));
 				join_file_name=path::addTailSlash(m_split_temp_dir.c_str());
-				join_file_name+=removeExtensionEx(path::getFileName(arc_path));
+				join_file_name+=reces::removeExtensionEx(path::getFileName(arc_path));
 				break;
 			}
 			case fileoperation::JFRET_NOT_SPLIT:
@@ -2802,6 +2955,9 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 	m_spi=NULL;
 
 	info(_T("ライブラリを読み込んでいます..."));
+
+	//7-zip32とLMZIP32を入れ替える
+	swap7ZLMZIP(arc_path.length()>=MAX_PATH);
 
 	{
 		bool loaded_library=false;
@@ -2875,7 +3031,7 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 		}
 	}
 
-	if(m_terminated)return ARC_USER_CANCEL;
+	if(isTerminated())return ARC_USER_CANCEL;
 
 	info(_T(" %s.dll ver.%s\n"),m_arc_dll->name().c_str(),m_arc_dll->getVersionStr().c_str());
 
@@ -2891,12 +3047,142 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 
 		//リスト出力
 		tstring log;
+		bool result=true;
 
-		m_arc_dll->test((!split_file)?arc_path.c_str():join_file_name.c_str(),&log);
+		result=m_arc_dll->test((!split_file)?arc_path.c_str():join_file_name.c_str(),&log);
 
-		m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+		if(!m_arc_cfg.cfg().no_display.no_log){
+			m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+		}
+
+		return (result)?ARC_SUCCESS:ARC_FAILURE;
 	}
-	return ARC_SUCCESS;
+	return ARC_FAILURE;
+}
+
+Reces::ARC_RESULT Reces::settings(tstring& err_msg){
+	if(isTerminated())return ARC_USER_CANCEL;
+
+	m_arc_dll=NULL;
+	m_spi=NULL;
+	m_cal_dll=NULL;
+
+	if(m_arc_cfg.cfg().general.selected_library_name.empty()){
+		err_msg=(_T("ライブラリが指定されていません。\n"));
+		return ARC_CANNOT_LOAD_LIBRARY;
+	}
+
+	info(_T("ライブラリを読み込んでいます..."));
+
+	{
+		//フルパスを取得
+		std::vector<TCHAR> full_path(MAX_PATH);
+
+		if(path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str())&&
+		   path::fileExists(&full_path[0])){
+			Spi* spi=new Spi(&full_path[0],m_arc_cfg);
+
+			if(m_spi_list[0]->isSusiePlugin()==Spi::SPI_AM){
+				m_spi=spi;
+				m_spi_list.insert(m_spi_list.begin(),spi);
+			}else{
+				delete spi;
+			}
+		}else{
+			//spiディレクトリ以下にあると仮定
+			if(!m_arc_cfg.cfg().general.spi_dir.empty()&&
+				path::getFullPath(&full_path[0],full_path.size(),m_arc_cfg.cfg().general.selected_library_name.c_str(),m_arc_cfg.cfg().general.spi_dir.c_str())){
+				for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
+					if(str::isEqualStringIgnoreCase(m_spi_list[i]->name(),&full_path[0])){
+						m_spi=m_spi_list[i];
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	if(!m_spi){
+
+		tstring library_name=path::getFileName(m_arc_cfg.cfg().general.selected_library_name);
+
+		if(!m_arc_cfg.cfg().general.selected_library_prefix.empty()){
+			//対応外の統合アーカイバライブラリ
+			m_cal_dll=new ArcCAL(m_arc_cfg,
+								 m_arc_cfg.cfg().general.selected_library_name.c_str(),
+								 m_arc_cfg.cfg().general.selected_library_prefix.c_str());
+			if(m_cal_dll){
+				if(m_cal_dll->load()){
+					m_arc_dll=m_cal_dll;
+				}else{
+					delete m_cal_dll;
+					m_cal_dll=NULL;
+				}
+			}
+		}
+
+		if(!m_arc_dll){
+			for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
+				if(str::isEqualStringIgnoreCase(m_arcdll_list[i]->name(),library_name)){
+					if(m_arcdll_list[i]->isLoaded()||
+					   (!m_arcdll_list[i]->isLoaded()&&
+						 m_arcdll_list[i]->load(m_arc_cfg.cfg().general.selected_library_name.c_str(),NULL))){
+						m_arc_dll=m_arcdll_list[i];
+						break;
+					}
+				}
+			}
+		}
+
+		if(!m_arc_dll&&m_b2e_dll){
+			if(str::isEqualStringIgnoreCase(m_b2e_dll->name(),library_name)){
+				if(m_b2e_dll->isLoaded()||
+				   (!m_b2e_dll->isLoaded()&&
+					 m_b2e_dll->load(m_arc_cfg.cfg().general.selected_library_name.c_str(),NULL))){
+					m_arc_dll=m_b2e_dll;
+					if(!m_arc_cfg.cfg().general.b2e_dir.empty()){
+						//b2eスクリプトのあるディレクトリを指定
+						m_b2e_dll->setScriptDirectory(m_arc_cfg.cfg().general.b2e_dir.c_str());
+					}
+				}
+			}
+		}
+	}
+
+	if(!m_arc_dll&&!m_spi){
+		m_stdout.outputString(_T("\n"));
+		VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),m_arc_cfg.cfg().general.selected_library_name.c_str());
+		err_msg=error_message.get();
+		return ARC_CANNOT_LOAD_LIBRARY;
+	}
+
+	if(m_arc_dll){
+		info(_T(" %s.dll ver.%s\n"),m_arc_dll->name().c_str(),m_arc_dll->getVersionStr().c_str());
+	}else{
+		info(_T(" %s\n"),m_spi->getAboutStr().c_str());
+	}
+
+	if(m_arc_dll&&
+	   m_arc_dll->getRunning()){
+		err_msg=_T("他のプロセスで使用中です。\n");
+		return ARC_LIBRARY_IS_BUSY;
+	}else{
+		if(m_arc_dll&&
+		   m_arc_cfg.cfg().general.background_mode&&!m_arc_dll->getBackGroundMode()){
+			if(m_arc_dll->setBackGroundMode(true)){
+				info(_T("'%s.dll' をバックグラウンドモードに設定しました。\n"),m_arc_dll->name().c_str());
+			}
+		}
+
+		//ライブラリの設定ダイアログ呼び出し
+		if((m_arc_dll)?m_arc_dll->configDialog(wnd()):m_spi->configDialog(wnd())){
+			return ARC_SUCCESS;
+		}else{
+			err_msg=_T("設定に失敗したか、設定ダイアログが用意されていません。\n");
+			return ARC_FAILURE;
+		}
+	}
+	return ARC_FAILURE;
 }
 
 bool Reces::run(CommandArgument& cmd_arg){
@@ -2906,13 +3192,16 @@ bool Reces::run(CommandArgument& cmd_arg){
 		return false;
 	}
 
-	if(m_arc_cfg.cfg().mode!=MODE_VERSION&&!cmd_arg.filepaths().size()){
+	if(m_arc_cfg.cfg().mode!=MODE_VERSION&&
+	   m_arc_cfg.cfg().mode!=MODE_SETTINGS&&
+	   !cmd_arg.filepaths().size()){
 		errmsg(_T("引数が不足しています。\n"));
 		return false;
 	}
 
 	//mr@ /N /oF /e
-	if(m_arc_cfg.cfg().compress.compression_type.c_str()[0]=='@'&&
+	if(m_arc_cfg.cfg().mode==MODE_RECOMPRESS&&
+	   m_arc_cfg.cfg().compress.compression_type.c_str()[0]=='@'&&
 	   m_arc_cfg.cfg().compress.create_new&&
 	   m_arc_cfg.cfg().compress.raw_file_name&&
 	   m_arc_cfg.cfg().compress.each_file){
@@ -2925,26 +3214,16 @@ bool Reces::run(CommandArgument& cmd_arg){
 			  m_arc_cfg.cfg().general.spi_dir.c_str():
 			  path::getExeDirectory().c_str());
 
-	if(!m_stdout.isRedirected()){
-		if(!m_arc_cfg.cfg().no_display.no_information){
-			//プログレスバーを管理するスレッドを作成
-			misc::Event init_progressbar_event;
-			THREAD_PARAM thread_param(this,init_progressbar_event);
-
-			m_progressbar_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::manageProgressBar,reinterpret_cast<void*>(&thread_param),0,&m_progressbar_thread_id);
-			//準備待ち
-			init_progressbar_event.wait();
-		}
+	if(!m_stdout.isRedirected()&&
+	   !m_arc_cfg.cfg().no_display.no_information){
+		//プログレスバーを管理するスレッドを作成
+		m_progressbar_thread.handle=misc::thread::create(&Reces::manageProgressBar,&m_progressbar_thread.id,this);
+		//プログレスバーを更新するスレッドを作成
+		m_update_progressbar_thread.handle=misc::thread::create(&Reces::updateProgressBar,&m_update_progressbar_thread.id,this);
 	}
 
 	//ダイアログのフック通知を受け取るスレッドを作成
-	misc::Event dialog_hook_event;
-	THREAD_PARAM thread_param(this,dialog_hook_event);
-
-	m_dialog_hook_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::dialogHookProc,reinterpret_cast<void*>(&thread_param),0,&m_dialog_hook_thread_id);
-	//準備待ち
-	dialog_hook_event.wait();
-
+	m_dialog_hook_thread.handle=misc::thread::create(&Reces::dialogHookProc,&m_dialog_hook_thread.id,this);
 
 	std::vector<tstring>& filepaths=cmd_arg.filepaths();
 
@@ -2952,41 +3231,14 @@ bool Reces::run(CommandArgument& cmd_arg){
 		case MODE_RECOMPRESS:{
 			//パスワードダイアログのフックを開始
 			if(m_pInstallHook){
-				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread_id,WM_HOOKDIALOG)){
+				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread.id,WM_HOOKDIALOG)){
 					errmsg(_T("フック用ライブラリの設定に失敗しました。\n"));
 				}
 			}
 
 			std::list<tstring> extract_file_list;
 
-			for(std::vector<tstring>::size_type i=0,size=filepaths.size();!m_terminated&&i<size;++i){
-				std::vector<TCHAR> buffer(MAX_PATH);
-
-				//フルパスを取得
-				if(path::getFullPath(&buffer[0],buffer.size(),filepaths[i].c_str())){
-					tstring buffer_str(&buffer[0]);
-
-					if(!path::fileExists(buffer_str.c_str()))continue;
-
-					if(buffer_str.length()>MAX_PATH){
-						errmsg(_T("ファイルパスがMAX_PATHを超えています。\n"));
-						continue;
-					}
-
-					//ディレクトリなら再帰的検索してリストに追加
-					if(path::isDirectory(&buffer[0])){
-						path::recursiveSearch(&extract_file_list,&buffer[0]);
-						continue;
-					}
-
-					if(find(extract_file_list.begin(),extract_file_list.end(),buffer_str)==extract_file_list.end()){
-						//リストに追加
-						extract_file_list.push_back(buffer_str);
-					}
-				}
-			}
-
-			if(extract_file_list.empty()){
+			if(!fullPathList(extract_file_list,filepaths)){
 				errmsg(_T("そのようなファイルは存在しません。\n"));
 				return false;
 			}else if(extract_file_list.size()==1){
@@ -2996,42 +3248,35 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			info(_T("\n"));
 
-			bool first_time=true;
 			//元書庫のタイムスタンプ
 			FILETIME orig_arc_timestamp;
 
-			if(m_arc_cfg.cfg().compress.copy_timestamp){
-				//元書庫のタイムスタンプを保存
-				File orig_arc(extract_file_list.begin()->c_str(),
-							  OPEN_EXISTING,
-							  GENERIC_READ,
-							  FILE_SHARE_READ);
+			//処理後削除対象リスト
+			std::list<std::pair<tstring,tstring> > remove_list;
 
-				orig_arc.getFileTime(&orig_arc_timestamp);
-			}
+			m_arc_cfg.m_password_input_cancelled=false;
+			ARC_RESULT result=ARC_FAILURE;
+			tstring err_msg;
+			ARC_RESULT_MSG result_msg(result,err_msg);
 
-			for(std::list<tstring>::iterator ite=extract_file_list.begin(),
-				end=extract_file_list.end();
-				ite!=end&&!m_terminated;
-				++ite){
+			for(std::list<tstring>::iterator ite_list=extract_file_list.begin(),
+				list_begin=extract_file_list.begin(),
+				list_end=extract_file_list.end();
+				ite_list!=list_end;
+				++ite_list){
+				ARC_THREAD_PARAM thread_param(this,*ite_list,result_msg);
 
-				if(m_arc_cfg.cfg().compress.each_file&&
+				if(((!m_arc_cfg.cfg().compress.each_file&&ite_list==list_begin)||
+					   m_arc_cfg.cfg().compress.each_file)&&
 				   m_arc_cfg.cfg().compress.copy_timestamp){
 					//元書庫のタイムスタンプを保存
-					File orig_arc(ite->c_str(),
+					File orig_arc(ite_list->c_str(),
 								  OPEN_EXISTING,
 								  GENERIC_READ,
 								  FILE_SHARE_READ);
 
 					orig_arc.getFileTime(&orig_arc_timestamp);
 				}
-
-				//解凍
-				m_arc_cfg.m_password_input_cancelled=false;
-				ARC_RESULT result=ARC_FAILURE;
-				tstring err_msg;
-				ARC_RESULT_MSG result_msg(result,err_msg);
-				ARC_THREAD_PARAM thread_param(this,*ite,result_msg);
 
 				m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callExtract,&thread_param,0,NULL);
 
@@ -3041,13 +3286,13 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 				switch(result){
 					case ARC_SUCCESS:{
-						if((first_time&&!m_arc_cfg.cfg().compress.each_file)||
+						if((!m_arc_cfg.cfg().compress.each_file&&ite_list==list_begin)||
 						   m_arc_cfg.cfg().compress.each_file){
-							if(fileoperation::isSplitFile(ite->c_str())){
+							if(fileoperation::isSplitFile(ite_list->c_str())){
 								//分割ファイル
-								m_arc_path=path::removeExtension(*ite);
+								m_arc_path=path::removeExtension(*ite_list);
 							}else{
-								m_arc_path=*ite;
+								m_arc_path=*ite_list;
 							}
 
 							if(!m_arc_cfg.cfg().compress.raw_file_name){
@@ -3075,69 +3320,83 @@ bool Reces::run(CommandArgument& cmd_arg){
 								   str::isEqualStringIgnoreCase(path::getExtension(m_arc_path),_T("exe"))){
 									//元書庫の拡張子が対応している書庫のものかexeであれば
 									//tar系を考慮しつつ拡張子削除
-									m_arc_path=removeExtensionEx(m_arc_path);
+									m_arc_path=reces::removeExtensionEx(m_arc_path);
 								}
 							}
-							first_time=false;
 						}
 
-						if(m_arc_cfg.cfg().compress.each_file){
-							//コマンド実行
-							if(!m_arc_cfg.cfg().recompress.run_command.disable())runCommand();
+						if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
+							remove_list.push_back(std::make_pair(m_arc_path,*ite_list));
+						}
 
-							if(m_terminated)break;
+						if(!m_arc_cfg.cfg().compress.each_file){
+							if(++ite_list!=list_end){
+								--ite_list;
+								continue;
+							}
+							--ite_list;
+						}
 
-							::SetCurrentDirectory(m_arc_cfg.m_recmp_temp_dir.c_str());
+						//コマンド実行
+						if(!m_arc_cfg.cfg().recompress.run_command.disable())runCommand();
 
-							std::list<tstring> dummy_list;
-							ARC_RESULT result=ARC_FAILURE;
-							tstring err_msg;
-							ARC_RESULT_MSG result_msg(result,err_msg);
-							ARC_THREAD_PARAM thread_param(this,dummy_list,result_msg);
+						if(isTerminated())break;
 
-							m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callCompress,&thread_param,0,NULL);
+						::SetCurrentDirectory(m_arc_cfg.m_recmp_temp_dir.c_str());
 
-							::WaitForSingleObject(m_arc_thread,INFINITE);
+						std::list<tstring> dummy_list;
+						ARC_RESULT result=ARC_FAILURE;
+						tstring err_msg;
+						ARC_RESULT_MSG result_msg(result,err_msg);
+						ARC_THREAD_PARAM thread_param(this,dummy_list,result_msg);
 
-							::CloseHandle(m_arc_thread);
+						m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callCompress,&thread_param,0,NULL);
 
-							switch(result){
-								case ARC_SUCCESS:{
-									if(!m_terminated){
-										if(m_arc_cfg.cfg().compress.copy_timestamp){
-											//タイムスタンプを設定
-											copyArcTimestamp(
-												(!m_arc_cfg.cfg().compress.split_value.empty())?
-												//分割ファイル
-												(path::getParentDirectory(*ite)+
-												 _T("\\")+
-												 path::getFileName(m_arc_path)+
-												 _T(".")+
-												 path::createPartExtension(1)):
-												//通常ファイル
-												 m_arc_path,
-												&orig_arc_timestamp);
-										}
+						::WaitForSingleObject(m_arc_thread,INFINITE);
 
-										if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
-											if(!str::isEqualStringIgnoreCase(m_arc_path,*ite)&&
-											   !fileoperation::removeSplitFile(ite->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
-												removeFile(ite->c_str());
+						::CloseHandle(m_arc_thread);
+
+						switch(result){
+							case ARC_SUCCESS:{
+								if(!isTerminated()){
+									if(m_arc_cfg.cfg().compress.copy_timestamp){
+										//タイムスタンプを設定
+										copyArcTimestamp(
+											(!m_arc_cfg.cfg().compress.split_value.empty())?
+											//分割ファイル
+											(path::getParentDirectory(*ite_list)+
+											 _T("\\")+
+											 path::getFileName(m_arc_path)+
+											 _T(".")+
+											 path::createPartExtension(1)):
+											//通常ファイル
+											 m_arc_path,
+											&orig_arc_timestamp);
+									}
+
+									if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
+										for(std::list<std::pair<tstring,tstring> >::iterator ite=remove_list.begin(),
+											end=remove_list.end();
+											ite!=end;
+											++ite){
+											if(!str::isEqualStringIgnoreCase(ite->first,ite->second)&&
+											   !fileoperation::removeSplitFile(ite->second.c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
+												removeFile(ite->second.c_str());
 											}
 										}
+										remove_list.clear();
 									}
-									break;
 								}
+								break;
+							}//ARC_SUCCESS(Compress)
 
-								default:
-									if(!err_msg.empty())errmsg(err_msg.c_str());
-									break;
-							}
-							//一時ディレクトリ内のファイル/ディレクトリを削除
-							fileoperation::deleteContents(m_arc_cfg.m_recmp_temp_dir.c_str());
-						}
+							default:
+								errmsg(err_msg.c_str());
+								setExitCode(EXIT_FAILURE);
+								break;
+						}//switch
 						break;
-					}//ARC_SUCCESS
+					}//ARC_SUCCESS(Extract)
 
 					case ARC_DELETE_COMMAND:{
 						//再圧縮ではなく削除コマンドで対応
@@ -3146,7 +3405,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 							copyArcTimestamp(
 								(!m_arc_cfg.cfg().compress.split_value.empty())?
 								//分割ファイル
-								(path::getParentDirectory(*ite)+
+								(path::getParentDirectory(*ite_list)+
 								 _T("\\")+
 								 path::getFileName(m_arc_path)+
 								 _T(".")+
@@ -3157,89 +3416,32 @@ bool Reces::run(CommandArgument& cmd_arg){
 						}
 
 						if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
-							if(!str::isEqualStringIgnoreCase(m_arc_path,*ite)&&
-								!fileoperation::removeSplitFile(ite->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
-								removeFile(ite->c_str());
+							if(!str::isEqualStringIgnoreCase(m_arc_path,*ite_list)&&
+								!fileoperation::removeSplitFile(ite_list->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
+								removeFile(ite_list->c_str());
 							}
 						}
 						break;
 					}//ARC_DELETE_COMMAND
 
 					default:
-						if(!err_msg.empty())errmsg(err_msg.c_str());
+						errmsg(err_msg.c_str());
+						setExitCode(EXIT_FAILURE);
 						break;
 				}
+
+				//一時ディレクトリ内のファイル/ディレクトリを削除
+				fileoperation::deleteContents(m_arc_cfg.m_recmp_temp_dir.c_str());
+
 			}
 
-			if(!m_arc_cfg.cfg().compress.each_file){
-				//一括再圧縮
-				//コマンド実行
-				if(!m_arc_cfg.cfg().recompress.run_command.disable())runCommand();
-
-				if(m_terminated)break;
-
-				::SetCurrentDirectory(m_arc_cfg.m_recmp_temp_dir.c_str());
-
-				std::list<tstring> dummy_list;
-				ARC_RESULT result=ARC_FAILURE;
-				tstring err_msg;
-				ARC_RESULT_MSG result_msg(result,err_msg);
-				ARC_THREAD_PARAM thread_param(this,dummy_list,result_msg);
-
-				m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callCompress,&thread_param,0,NULL);
-
-				::WaitForSingleObject(m_arc_thread,INFINITE);
-
-				::CloseHandle(m_arc_thread);
-
-				switch(result){
-					case ARC_SUCCESS:{
-						if(!m_terminated){
-							if(m_arc_cfg.cfg().compress.copy_timestamp){
-								//タイムスタンプを設定
-								copyArcTimestamp(
-									(!m_arc_cfg.cfg().compress.split_value.empty())?
-									//分割ファイル
-									(path::getParentDirectory(*extract_file_list.begin())+
-									 _T("\\")+
-									 path::getFileName(m_arc_path)+
-									 _T(".")+
-									 path::createPartExtension(1)):
-									//通常ファイル
-									 m_arc_path,
-									&orig_arc_timestamp);
-							}
-
-							for(std::list<tstring>::iterator ite=extract_file_list.begin(),
-								end=extract_file_list.end();
-								ite!=end;
-								++ite){
-								if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
-									if(!str::isEqualStringIgnoreCase(m_arc_path,*ite)&&
-									   !fileoperation::removeSplitFile(ite->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
-										removeFile(ite->c_str());
-									}
-								}
-							}
-						}
-						break;
-					}//ARC_SUCCESS
-
-					default:
-						if(!err_msg.empty())errmsg(err_msg.c_str());
-						break;
-				}
-			}
-			if(m_pUninstallHook){
-				m_pUninstallHook();
-			}
 			break;
 		}
 
 		case MODE_COMPRESS:{
 			//パスワードダイアログのフックを開始
 			if(m_pInstallHook){
-				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread_id,WM_HOOKDIALOG)){
+				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread.id,WM_HOOKDIALOG)){
 					errmsg(_T("フック用ライブラリの設定に失敗しました。\n"));
 				}
 			}
@@ -3249,107 +3451,28 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			std::list<tstring> compress_file_list;
 
-			for(std::vector<tstring>::size_type i=0,size=filepaths.size();!m_terminated&&i<size;++i){
-				std::vector<TCHAR> buffer(MAX_PATH);
-
-				//フルパスを取得
-				if(path::getFullPath(&buffer[0],buffer.size(),filepaths[i].c_str())){
-					tstring buffer_str(&buffer[0]);
-
-					if(!path::fileExists(buffer_str.c_str()))continue;
-
-					if(buffer_str.length()>MAX_PATH){
-						errmsg(_T("ファイルパスがMAX_PATHを超えています。\n"));
-						setExitCode(EXIT_FAILURE);
-						continue;
-					}
-
-					//初回なら拡張子を削除して出力ファイル名として追加
-					if(compress_file_list.empty()){
-						if(!m_arc_cfg.cfg().compress.raw_file_name&&
-						   !m_arc_cfg.cfg().compress.output_file.empty()){
-							m_arc_path=buffer_str;
-						}else{
-							if(path::isDirectory(&buffer[0])){
-								m_arc_path=path::removeTailSlash(buffer_str);
-							}else{
-								m_arc_path=path::removeExtension(buffer_str);
-							}
-						}
-					}
-
-					if(find(compress_file_list.begin(),compress_file_list.end(),buffer_str)==compress_file_list.end()){
-						//リストに追加
-						compress_file_list.push_back(buffer_str);
-					}
-
-					if(m_arc_cfg.cfg().compress.each_file){
-						if(compress_file_list.empty()){
-							errmsg(_T("そのようなファイルは存在しません。\n"));
-							return false;
-						}
-						info(_T("\n"));
-
-						if(m_arc_cfg.cfg().compress.copy_timestamp){
-							//元書庫のタイムスタンプを保存
-							File orig_arc(compress_file_list.begin()->c_str(),
-										  OPEN_EXISTING,
-										  GENERIC_READ,
-										  FILE_SHARE_READ);
-
-							orig_arc.getFileTime(&orig_arc_timestamp);
-						}
-
-						ARC_RESULT result=ARC_FAILURE;
-						tstring err_msg;
-						ARC_RESULT_MSG result_msg(result,err_msg);
-						ARC_THREAD_PARAM thread_param(this,compress_file_list,result_msg);
-
-						m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callCompress,&thread_param,0,NULL);
-
-						::WaitForSingleObject(m_arc_thread,INFINITE);
-
-						::CloseHandle(m_arc_thread);
-
-						switch(result){
-							case ARC_SUCCESS:
-								if(!m_terminated){
-									if(m_arc_cfg.cfg().compress.copy_timestamp){
-										//タイムスタンプを設定
-										copyArcTimestamp(
-											(!m_arc_cfg.cfg().compress.split_value.empty())?
-											//分割ファイル
-											(path::getParentDirectory(*compress_file_list.begin())+
-											 _T("\\")+
-											 path::getFileName(m_arc_path)+
-											 _T(".")+
-											 path::createPartExtension(1)):
-											//通常ファイル
-											 m_arc_path,
-											&orig_arc_timestamp);
-									}
-									removeFile(compress_file_list.begin()->c_str());
-								}
-								break;
-
-							default:
-								if(!err_msg.empty())errmsg(err_msg.c_str());
-								setExitCode(EXIT_FAILURE);
-								break;
-						}
-
-						compress_file_list.clear();
-					}
-				}
+			if(!fullPathList(compress_file_list,filepaths,false)){
+				errmsg(_T("そのようなファイルは存在しません。\n"));
+				return false;
 			}
+			info(_T("\n"));
 
-			if(!m_arc_cfg.cfg().compress.each_file){
-				if(compress_file_list.empty()){
-					errmsg(_T("そのようなファイルは存在しません。\n"));
-					return false;
+			std::list<tstring> compress_file_list_bak=compress_file_list;
+
+			std::list<tstring>::iterator ite_list=compress_file_list_bak.begin();
+			std::list<tstring>::iterator list_end=compress_file_list_bak.end();
+
+			ARC_RESULT result=ARC_FAILURE;
+			tstring err_msg;
+			ARC_RESULT_MSG result_msg(result,err_msg);
+			ARC_THREAD_PARAM thread_param(this,compress_file_list,result_msg);
+
+			do{
+				if(m_arc_cfg.cfg().compress.each_file){
+					//リストの保持するアイテムを常に一つにする
+					compress_file_list.clear();
+					compress_file_list.push_back(*ite_list);
 				}
-
-				info(_T("\n"));
 
 				if(m_arc_cfg.cfg().compress.copy_timestamp){
 					//元書庫のタイムスタンプを保存
@@ -3361,10 +3484,16 @@ bool Reces::run(CommandArgument& cmd_arg){
 					orig_arc.getFileTime(&orig_arc_timestamp);
 				}
 
-				ARC_RESULT result=ARC_FAILURE;
-				tstring err_msg;
-				ARC_RESULT_MSG result_msg(result,err_msg);
-				ARC_THREAD_PARAM thread_param(this,compress_file_list,result_msg);
+				if(!m_arc_cfg.cfg().compress.raw_file_name&&
+				   !m_arc_cfg.cfg().compress.output_file.empty()){
+					m_arc_path=*compress_file_list.begin();
+				}else{
+					if(path::isDirectory(compress_file_list.begin()->c_str())){
+						m_arc_path=path::removeTailSlash(*compress_file_list.begin());
+					}else{
+						m_arc_path=path::removeExtension(*compress_file_list.begin());
+					}
+				}
 
 				m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callCompress,&thread_param,0,NULL);
 
@@ -3374,7 +3503,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 				switch(result){
 					case ARC_SUCCESS:
-						if(!m_terminated){
+						if(!isTerminated()){
 							if(m_arc_cfg.cfg().compress.copy_timestamp){
 								//タイムスタンプを設定
 								copyArcTimestamp(
@@ -3383,28 +3512,24 @@ bool Reces::run(CommandArgument& cmd_arg){
 									(path::getParentDirectory(*compress_file_list.begin())+
 									 _T("\\")+
 									 path::getFileName(m_arc_path)+
-									 _T(".")+
+										 _T(".")+
 									 path::createPartExtension(1)):
 									//通常ファイル
 									 m_arc_path,
 									&orig_arc_timestamp);
 							}
-
-							for(std::list<tstring>::iterator ite=compress_file_list.begin(),
-								end=compress_file_list.end();
-								ite!=end;
-								++ite){
-								removeFile(ite->c_str());
-							}
+							removeFile(compress_file_list.begin()->c_str());
 						}
 						break;
 
 					default:
-						if(!err_msg.empty())errmsg(err_msg.c_str());
+						errmsg(err_msg.c_str());
 						setExitCode(EXIT_FAILURE);
 						break;
 				}
-			}
+			}while(m_arc_cfg.cfg().compress.each_file&&
+				   (++ite_list)!=list_end);
+
 			if(m_pUninstallHook){
 				m_pUninstallHook();
 			}
@@ -3414,41 +3539,13 @@ bool Reces::run(CommandArgument& cmd_arg){
 		case MODE_EXTRACT:{
 			//パスワードダイアログのフックを開始
 			if(m_pInstallHook){
-				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread_id,WM_HOOKDIALOG)){
+				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread.id,WM_HOOKDIALOG)){
 					errmsg(_T("フック用ライブラリの設定に失敗しました。\n"));
 				}
 			}
 			std::list<tstring> extract_file_list;
 
-			for(std::vector<tstring>::size_type i=0,size=filepaths.size();!m_terminated&&i<size;++i){
-				std::vector<TCHAR> buffer(MAX_PATH);
-
-				//フルパスを取得
-				if(path::getFullPath(&buffer[0],buffer.size(),filepaths[i].c_str())){
-					tstring buffer_str(&buffer[0]);
-
-					if(!path::fileExists(buffer_str.c_str()))continue;
-
-					if(buffer_str.length()>MAX_PATH){
-						errmsg(_T("ファイルパスがMAX_PATHを超えています。\n"));
-						setExitCode(EXIT_FAILURE);
-						continue;
-					}
-
-					//ディレクトリなら再帰的検索してリストに追加
-					if(path::isDirectory(&buffer[0])){
-						path::recursiveSearch(&extract_file_list,&buffer[0]);
-						continue;
-					}
-
-					if(find(extract_file_list.begin(),extract_file_list.end(),buffer_str)==extract_file_list.end()){
-						//リストに追加
-						extract_file_list.push_back(buffer_str);
-					}
-				}
-			}
-
-			if(extract_file_list.empty()){
+			if(!fullPathList(extract_file_list,filepaths)){
 				errmsg(_T("そのようなファイルは存在しません。\n"));
 				return false;
 			}
@@ -3456,7 +3553,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			for(std::list<tstring>::iterator ite=extract_file_list.begin(),
 				end=extract_file_list.end();
-				ite!=end&&!m_terminated;
+				ite!=end&&!isTerminated();
 				++ite){
 
 				m_arc_cfg.m_password_input_cancelled=false;
@@ -3473,7 +3570,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 				switch(result){
 					case ARC_SUCCESS:
-						if(!m_terminated){
+						if(!isTerminated()){
 							if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
 								if(!fileoperation::removeSplitFile(ite->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
 									removeFile(ite->c_str());
@@ -3483,7 +3580,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 						break;
 
 					default:
-						if(!err_msg.empty())errmsg(err_msg.c_str());
+						errmsg(err_msg.c_str());
 						setExitCode(EXIT_FAILURE);
 						break;
 				}
@@ -3497,41 +3594,13 @@ bool Reces::run(CommandArgument& cmd_arg){
 		case MODE_LIST:{
 			//パスワードダイアログのフックを開始
 			if(m_pInstallHook){
-				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread_id,WM_HOOKDIALOG)){
+				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread.id,WM_HOOKDIALOG)){
 					errmsg(_T("フック用ライブラリの設定に失敗しました。\n"));
 				}
 			}
 			std::list<tstring> list_file_list;
 
-			for(std::vector<tstring>::size_type i=0,size=filepaths.size();!m_terminated&&i<size;++i){
-				std::vector<TCHAR> buffer(MAX_PATH);
-
-				//フルパスを取得
-				if(path::getFullPath(&buffer[0],buffer.size(),filepaths[i].c_str())){
-					tstring buffer_str(&buffer[0]);
-
-					if(!path::fileExists(buffer_str.c_str()))continue;
-
-					if(buffer_str.length()>MAX_PATH){
-						errmsg(_T("ファイルパスがMAX_PATHを超えています。\n"));
-						setExitCode(EXIT_FAILURE);
-						continue;
-					}
-
-					//ディレクトリなら再帰的検索してリストに追加
-					if(path::isDirectory(&buffer[0])){
-						path::recursiveSearch(&list_file_list,&buffer[0]);
-						continue;
-					}
-
-					if(find(list_file_list.begin(),list_file_list.end(),buffer_str)==list_file_list.end()){
-						//リストに追加
-						list_file_list.push_back(buffer_str);
-					}
-				}
-			}
-
-			if(list_file_list.empty()){
+			if(!fullPathList(list_file_list,filepaths)){
 				errmsg(_T("そのようなファイルは存在しません。\n"));
 				return false;
 			}
@@ -3539,7 +3608,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			for(std::list<tstring>::iterator ite=list_file_list.begin(),
 				end=list_file_list.end();
-				ite!=end&&!m_terminated;
+				ite!=end&&!isTerminated();
 				++ite){
 
 				m_arc_cfg.m_password_input_cancelled=false;
@@ -3559,7 +3628,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 						break;
 
 					default:
-						if(!err_msg.empty())errmsg(err_msg.c_str());
+						errmsg(err_msg.c_str());
 						setExitCode(EXIT_FAILURE);
 						break;
 				}
@@ -3573,49 +3642,21 @@ bool Reces::run(CommandArgument& cmd_arg){
 		case MODE_TEST:{
 			//パスワードダイアログのフックを開始
 			if(m_pInstallHook){
-				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread_id,WM_HOOKDIALOG)){
+				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread.id,WM_HOOKDIALOG)){
 					errmsg(_T("フック用ライブラリの設定に失敗しました。\n"));
 				}
 			}
-			std::list<tstring> list_file_list;
+			std::list<tstring> test_file_list;
 
-			for(std::vector<tstring>::size_type i=0,size=filepaths.size();!m_terminated&&i<size;++i){
-				std::vector<TCHAR> buffer(MAX_PATH);
-
-				//フルパスを取得
-				if(path::getFullPath(&buffer[0],buffer.size(),filepaths[i].c_str())){
-					tstring buffer_str(&buffer[0]);
-
-					if(!path::fileExists(buffer_str.c_str()))continue;
-
-					if(buffer_str.length()>MAX_PATH){
-						errmsg(_T("ファイルパスがMAX_PATHを超えています。\n"));
-						setExitCode(EXIT_FAILURE);
-						continue;
-					}
-
-					//ディレクトリなら再帰的検索してリストに追加
-					if(path::isDirectory(&buffer[0])){
-						path::recursiveSearch(&list_file_list,&buffer[0]);
-						continue;
-					}
-
-					if(find(list_file_list.begin(),list_file_list.end(),buffer_str)==list_file_list.end()){
-						//リストに追加
-						list_file_list.push_back(buffer_str);
-					}
-				}
-			}
-
-			if(list_file_list.empty()){
+			if(!fullPathList(test_file_list,filepaths)){
 				errmsg(_T("そのようなファイルは存在しません。\n"));
 				return false;
 			}
 			info(_T("\n"));
 
-			for(std::list<tstring>::iterator ite=list_file_list.begin(),
-				end=list_file_list.end();
-				ite!=end&&!m_terminated;
+			for(std::list<tstring>::iterator ite=test_file_list.begin(),
+				end=test_file_list.end();
+				ite!=end&&!isTerminated();
 				++ite){
 
 				m_arc_cfg.m_password_input_cancelled=false;
@@ -3635,7 +3676,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 						break;
 
 					default:
-						if(!err_msg.empty())errmsg(err_msg.c_str());
+						errmsg(err_msg.c_str());
 						setExitCode(EXIT_FAILURE);
 						break;
 				}
@@ -3654,8 +3695,9 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			ARC_RESULT result=ARC_FAILURE;
 			tstring err_msg;
+			std::list<tstring> arg_list(cmd_arg.filepaths().begin(),cmd_arg.filepaths().end());
 			ARC_RESULT_MSG result_msg(result,err_msg);
-			ARC_THREAD_PARAM thread_param(this,std::list<tstring>(cmd_arg.filepaths().begin(),cmd_arg.filepaths().end()),result_msg);
+			ARC_THREAD_PARAM thread_param(this,arg_list,result_msg);
 
 			m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callSendCommands,&thread_param,0,NULL);
 
@@ -3668,7 +3710,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 					break;
 
 				default:
-					if(!err_msg.empty())errmsg(err_msg.c_str());
+					errmsg(err_msg.c_str());
 					setExitCode(EXIT_FAILURE);
 					break;
 			}
@@ -3680,41 +3722,72 @@ bool Reces::run(CommandArgument& cmd_arg){
 				//対応するライブラリ全てのバージョンを表示
 				for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 					if(m_arcdll_list[i]!=NULL){
-						m_stdout.outputString(_T("%-12s %s\n"),
-											  m_arcdll_list[i]->name().c_str(),
-											  m_arcdll_list[i]->getVersionStr().c_str());
+#if 0
+							m_stdout.outputString(_T("%-12s %s\n"),
+												  m_arcdll_list[i]->name().c_str(),
+												  getVersion(m_arcdll_list[i]->name().c_str()).c_str());
+#else
+							m_stdout.outputString(_T("%-12s %s\n"),
+												  m_arcdll_list[i]->name().c_str(),
+												  m_arcdll_list[i]->getVersionStr().c_str());
+#endif
 					}
 				}
 
 				if(m_b2e_dll){
-					m_stdout.outputString(_T("%-12s %s\n"),
-										  m_b2e_dll->name().c_str(),
-										  m_b2e_dll->getVersionStr().c_str());
+#if 0
+						m_stdout.outputString(_T("%-12s %s\n"),
+											  m_b2e_dll->name().c_str(),
+											  getVersion(m_b2e_dll->name().c_str()).c_str());
+#else
+						m_stdout.outputString(_T("%-12s %s\n"),
+											  m_b2e_dll->name().c_str(),
+											  m_b2e_dll->getVersionStr().c_str());
+#endif
 				}
 
 				for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
 					if(m_spi_list[i]!=NULL){
-						m_stdout.outputString(_T("%s\n"),
-											  m_spi_list[i]->getAboutStr().c_str());
+#if 0
+							m_stdout.outputString(_T("%-12s %s\n"),
+												  m_spi_list[i]->name().c_str(),
+												  getVersion(m_spi_list[i]->name().c_str()).c_str());
+#else
+							m_stdout.outputString(_T("%s\n"),
+												  m_spi_list[i]->getAboutStr().c_str());
+#endif
 					}
 				}
 			}else{
-				for(std::vector<tstring>::size_type i=0,size=filepaths.size();!m_terminated&&i<size;++i){
-					DWORD major_ver=0;
-					DWORD minor_ver=0;
-
-					if(fileoperation::getFileVersion(filepaths[i].c_str(),&major_ver,&minor_ver)){
-						VariableArgument version(_T("%d.%02d.%02d.%02d"),
-												   major_ver>>16,
-												   major_ver&0xffff,
-												   minor_ver>>16,
-												   minor_ver&0xffff);
-
+				for(std::vector<tstring>::size_type i=0,size=filepaths.size();!isTerminated()&&i<size;++i){
 						m_stdout.outputString(_T("%-12s %s\n"),
 											  filepaths[i].c_str(),
-											  version.get());
-					}
+											  getVersion(filepaths[i].c_str()));
 				}
+			}
+			break;
+		}
+
+		case MODE_SETTINGS:{
+			ARC_RESULT result=ARC_FAILURE;
+			tstring err_msg;
+			ARC_RESULT_MSG result_msg(result,err_msg);
+			ARC_THREAD_PARAM thread_param(this,_T(""),result_msg);
+
+			m_arc_thread=(HANDLE)_beginthreadex(NULL,0,&Reces::callSettings,&thread_param,0,NULL);
+
+			::WaitForSingleObject(m_arc_thread,INFINITE);
+
+			::CloseHandle(m_arc_thread);
+
+			switch(result){
+				case ARC_SUCCESS:
+					break;
+
+				default:
+					errmsg(err_msg.c_str());
+					setExitCode(EXIT_FAILURE);
+					break;
 			}
 			break;
 		}
@@ -3723,7 +3796,6 @@ bool Reces::run(CommandArgument& cmd_arg){
 	if(!m_arc_cfg.cfg().general.quit){
 		system("pause");
 	}
-
 
 	return true;
 }

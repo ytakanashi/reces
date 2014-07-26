@@ -1,6 +1,11 @@
 ﻿//StdAfx.h
 //共通ヘッダファイル
 
+//`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
+//              reces Ver.0.00r21 by x@rgs
+//              under NYSL Version 0.9982
+//
+//`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
 
 #ifndef _STDAFX_H_B6023879_CF6F_45f4_A1D4_7DBAC5E430F2
@@ -62,30 +67,10 @@ typedef std::basic_string<TCHAR>tstring;
 #endif //_tcstoll
 
 #ifdef _DEBUG
-	#define RECES_VERSION _T("Ver.0.00r20 <Debug>")
+	#define SOFTWARE_VERSION _T("0.00r21_Debug")
 #else
-	#define RECES_VERSION _T("Ver.0.00r20")
+	#define SOFTWARE_VERSION _T("0.00r21")
 #endif
-
-//数値が範囲内にあるかどうか
-template<typename T>T clamp(T value,T low,T high){
-	return (value<low)?low:((value>high)?high:value);
-}
-
-//配列の要素数
-#define ARRAY_SIZEOF(array) (sizeof(array)/sizeof(array[0]))
-//メンバの要素数
-#define member_sizeof(type,member) ARRAY_SIZEOF(((type*)0)->member)
-
-
-#define MAKEQWORD(high,low) (((long long)high<<32)|low)
-
-#ifdef _DEBUG
-	#define dprintf(s,...) _tprintf(s,__VA_ARGS__)
-#else
-	#define dprintf(s,...)
-#endif
-
 
 #include"sslib/sslib.h"
 

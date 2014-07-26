@@ -2,7 +2,7 @@
 //Unrar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -158,7 +158,7 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 			m_arc_cfg.cfg().general.password.clear();
 		}
 		result=checkArchive(arc_path.c_str(),mode);
-	}while(!m_aborted&&
+	}while(!isTerminated()&&
 		   !m_arc_cfg.m_password_input_cancelled&&
 		   !result&&
 		   m_arc_cfg.m_hook_dialog_type==HOOK_UNRAR32_PASSWORD);
@@ -198,7 +198,7 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 		tstring dummy(1,'\0');
 
 		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
-	}while(!m_aborted&&
+	}while(!isTerminated()&&
 		   dll_ret==ERROR_HEADER_BROKEN);
 
 	return dll_ret==0;
@@ -338,9 +338,9 @@ ArcDll::ARCDLL_RESULT ArcUnrar32::extract(const TCHAR* arc_path_orig,const TCHAR
 		   dll_ret>=ERROR_START&&
 		   (++ite_password_list)!=password_list_end);
 
-	hook::uninstall();
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	hook::uninstall();
 
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir,'/','\\');
@@ -355,6 +355,8 @@ ArcDll::ARCDLL_RESULT ArcUnrar32::extract(const TCHAR* arc_path_orig,const TCHAR
 		//ディレクトリの更新日時を復元
 		recoverDirectoryTimestamp(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.decode_uesc,true);
 	}
+
+	unload();
 
 	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
 		//共通パスを取り除く
@@ -437,7 +439,7 @@ void ArcUnrar32::abort(){
 		::SendDlgItemMessage(hook::extracting_wnd_handle,IDCANCEL,BM_CLICK,0,0);
 		::Sleep(100);
 	}
-	m_aborted=true;
+	terminateApp();
 }
 
 //ArcDll::callbackProcV()に投げるための準備

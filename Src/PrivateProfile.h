@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -20,6 +20,7 @@ enum MODE{
 	MODE_TEST=1<<4,
 	MODE_SENDCOMMANDS=1<<5,
 	MODE_VERSION=1<<6,
+	MODE_SETTINGS=1<<7,
 };
 
 struct NODISPLAY{
@@ -200,10 +201,6 @@ struct OUTPUTFILELIST{
 	OUTPUTFILELIST():api_mode(true){}
 };
 
-struct SENDCOMMANDS{
-	SENDCOMMANDS(){}
-};
-
 struct CONFIG{
 	MODE mode;
 	GENERAL general;
@@ -217,8 +214,6 @@ struct CONFIG{
 	EXTRACT extract;
 	//一覧出力
 	OUTPUTFILELIST output_file_list;
-	//ライブラリにコマンドを直接渡す
-	SENDCOMMANDS send_commands;
 
 	CONFIG():
 		mode(MODE_RECOMPRESS),
@@ -227,8 +222,7 @@ struct CONFIG{
 		recompress(),
 		compress(),
 		extract(),
-		output_file_list(),
-		send_commands(){}
+		output_file_list(){}
 };
 
 class Config:public sslib::CfgFile{

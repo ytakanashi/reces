@@ -12,6 +12,16 @@ ConsoleApp* app(){
 	return ConsoleApp::this_ptr;
 }
 
+bool ConsoleApp::m_terminated=false;
+
+bool isTerminated(){
+	return ConsoleApp::m_terminated;
+}
+
+void terminateApp(){
+	ConsoleApp::m_terminated=true;
+}
+
 bool ConsoleApp::init(){
 	return true;
 }

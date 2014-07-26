@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -213,6 +213,35 @@ bool ArcDllBase::queryFunctionList(const int function){
 			querySupport(function)&&
 			//ライブラリ側
 			p_queryFunctionList(function)!=0;
+	}
+	return result;
+}
+
+//オプション指定ダイアログの表示
+bool ArcDllBase::configDialog(HWND wnd_handle,tstring* result_buffer,const int mode){
+	typedef BOOL(WINAPI*CONFIGDIALOG_PTR)(HWND,char*,const int);
+	CONFIGDIALOG_PTR p_configDialog;
+	bool result=false;
+
+	if(queryFunctionList(ISARC_CONFIG_DIALOG)){
+		if((p_configDialog=(CONFIGDIALOG_PTR)getAddress(_T("ConfigDialog")))!=NULL){
+			//API.TXT(unlha32.dll)より
+			//レジストリーに書き込まれる内容と同様の動作を行う為
+			//のコマンド文字列を得るためのバッファのポインタ。用
+			//意するバッファは 513 バイト (Unicode 版では 513 文
+			//字) 以上を確保してください。
+			std::vector<char> buffer_multibyte(513);
+
+			result=p_configDialog(wnd_handle,&buffer_multibyte[0],mode)!=0;
+
+			if(result_buffer!=NULL){
+				if(isUnicodeMode()){
+					str::utf82utf16(result_buffer,&buffer_multibyte[0]);
+				}else{
+					str::sjis2utf16(result_buffer,&buffer_multibyte[0]);
+				}
+			}
+		}
 	}
 	return result;
 }

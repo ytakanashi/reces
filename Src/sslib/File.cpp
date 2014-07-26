@@ -51,7 +51,7 @@ bool File::open(const TCHAR* file_path,DWORD creation_disposition,DWORD desired_
 	if(lstrcmpi(file_path,_T("CONIN$"))==0&&share_mode==0)share_mode=FILE_SHARE_READ;
 	if(lstrcmpi(file_path,_T("CONOUT$"))==0&&share_mode==0)share_mode=FILE_SHARE_WRITE;
 
-	m_file_handle=::CreateFile(file_path,
+	m_file_handle=::CreateFile(path::addLongPathPrefix(file_path).c_str(),
 							   desired_access,
 							   share_mode,
 							   NULL,

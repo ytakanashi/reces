@@ -29,6 +29,43 @@ void CtrlCEvent::addCtrlCEvent(CtrlCEvent* event){
 	m_ctrlc_event_list.push_back(event);
 }
 
+//汎用性に乏しいスレッド関係関数たち
+namespace thread{
+	HANDLE create(unsigned (__stdcall*func)(void*),unsigned*addr,void* this_ptr,void* data){
+		Event ready;
+		PARAM thread_param(this_ptr,ready,data);
+
+		HANDLE handle=(HANDLE)_beginthreadex(NULL,0,func,reinterpret_cast<void*>(&thread_param),0,addr);
+
+		//スレッド側はready.signal()で応えること
+		ready.wait();
+		return handle;
+	}
+
+	bool post(DWORD id,UINT msg,void* data1,void* data2,void* this_ptr){
+		Event ready;
+		PARAM thread_param(this_ptr,ready,data1);
+
+		bool result=::PostThreadMessage(id,msg,(WPARAM)&thread_param,(LPARAM)data2)!=0;
+
+		//スレッド側はready.signal()で応えること
+		ready.wait();
+		return result;
+	}
+
+	bool close(INFO& info){
+		DWORD exit_code=0;
+
+		::GetExitCodeThread(info.handle,&exit_code);
+		if(exit_code==STILL_ACTIVE){
+			::PostThreadMessage(info.id,WM_QUIT,0,0);
+			::WaitForSingleObject(info.handle,INFINITE);
+			return ::CloseHandle(info.handle)!=0;
+		}
+		return true;
+	}
+}//namespace thread
+
 //namespace misc
 }
 //namespace sslib

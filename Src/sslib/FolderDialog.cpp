@@ -35,7 +35,7 @@ LRESULT CALLBACK OpenDialogProc(HWND wnd_handle,UINT msg,WPARAM wparam,LPARAM lp
 	   HIWORD(wparam)==BN_CLICKED&&
 	   LOWORD(wparam)==IDOK){
 		if(folder_dialog){
-			std::vector<TCHAR> dir_path(MAX_PATH);
+			std::vector<TCHAR> dir_path(MAX_PATHW);
 
 			::SendMessage(wnd_handle,CDM_GETFILEPATH,dir_path.size(),(LPARAM)&dir_path[0]);
 			folder_dialog->m_dir_path.assign(&dir_path[0]);
@@ -63,7 +63,7 @@ UINT CALLBACK OpenHookProc(HWND wnd_handle,UINT message,WPARAM wparam,LPARAM lpa
 		HWND parent_handle=::GetParent(wnd_handle);
 
 		if(hdr->code==CDN_INITDONE){
-			std::vector<TCHAR> dir_path(MAX_PATH);
+			std::vector<TCHAR> dir_path(MAX_PATHW);
 
 			::SendMessage(parent_handle,
 						  CDM_GETFILEPATH,
@@ -99,7 +99,7 @@ UINT CALLBACK OpenHookProc(HWND wnd_handle,UINT message,WPARAM wparam,LPARAM lpa
 
 			return true;
 		}else if(hdr->code==CDN_FILEOK){
-			std::vector<TCHAR> dir_path(MAX_PATH);
+			std::vector<TCHAR> dir_path(MAX_PATHW);
 
 			::SendMessage(parent_handle,
 						  CDM_GETFILEPATH,
@@ -112,7 +112,7 @@ UINT CALLBACK OpenHookProc(HWND wnd_handle,UINT message,WPARAM wparam,LPARAM lpa
 				}
 			}
 		}else if(hdr->code==CDN_SELCHANGE){
-			std::vector<TCHAR> dir_path(MAX_PATH);
+			std::vector<TCHAR> dir_path(MAX_PATHW);
 
 			::SendMessage(parent_handle,
 						  CDM_GETFILEPATH,
@@ -148,7 +148,7 @@ bool FolderDialog::doModalOpen(tstring* file_path,HWND wnd_handle,const TCHAR* f
 		m_ofn_open.lpTemplateName=MAKEINTRESOURCE(m_template_id);
 	}
 
-	result=FileDialog::doModalOpen(NULL,wnd_handle,false,filter,title,init_dir);
+	result=FileDialog::doModalOpen<std::list<tstring> >(NULL,wnd_handle,false,filter,title,init_dir);
 	*file_path=m_dir_path;
 	return result;
 }

@@ -64,7 +64,7 @@ bool CfgFile::getStringData(const TCHAR* section,const TCHAR* key,TCHAR* result,
 
 //GetPrivateProfileString()でデータを取得
 bool CfgFile::getStringData(const TCHAR* section,const TCHAR* key,tstring* result,const TCHAR* default_value){
-	std::vector<TCHAR> buffer(MAX_PATH);
+	std::vector<TCHAR> buffer(MAX_PATHW);
 
 	::GetPrivateProfileString(section,key,default_value,&buffer[0],buffer.size(),filepath().c_str());
 	result->assign(&buffer[0]);
@@ -82,7 +82,7 @@ bool CfgFile::getStringDataEx(const TCHAR* section,const TCHAR* key,TCHAR* resul
 //存在するならGetPrivateProfileString()でデータを取得
 bool CfgFile::getStringDataEx(const TCHAR* section,const TCHAR* key,tstring* result,const TCHAR* default_value){
 	if(keyExists(section,key)){
-		std::vector<TCHAR> buffer(MAX_PATH);
+		std::vector<TCHAR> buffer(MAX_PATHW);
 
 		::GetPrivateProfileString(section,key,default_value,&buffer[0],buffer.size(),filepath().c_str());
 		result->assign(&buffer[0]);

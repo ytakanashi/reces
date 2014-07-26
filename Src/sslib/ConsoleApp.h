@@ -9,12 +9,13 @@ extern int main();
 namespace sslib{
 class ConsoleApp:public misc::CtrlCEvent{
 	friend ConsoleApp* app();
+	friend bool isTerminated();
+	friend void terminateApp();
 	friend int ::main();
 
 protected:
 	ConsoleApp():
 		m_stdout(),
-		m_terminated(false),
 		m_wnd_handle(::GetConsoleWindow()),
 		m_exit_code(EXIT_SUCCESS),
 		m_show_usage(true){
@@ -25,7 +26,7 @@ protected:
 	}
 
 	Console m_stdout;
-	bool m_terminated;
+	static bool m_terminated;
 
 private:
 	static ConsoleApp* this_ptr;
@@ -51,6 +52,8 @@ public:
 };
 
 ConsoleApp* app();
+bool isTerminated();
+void terminateApp();
 
 //namespace sslib
 }

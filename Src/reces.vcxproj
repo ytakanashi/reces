@@ -33,7 +33,6 @@
     <ClCompile Include="sslib\CommandArgument.cpp" />
     <ClCompile Include="sslib\Console.cpp" />
     <ClCompile Include="sslib\ConsoleApp.cpp" />
-    <ClCompile Include="sslib\EnvironmentVariable.cpp" />
     <ClCompile Include="sslib\File.cpp" />
     <ClCompile Include="sslib\FileOperation.cpp" />
     <ClCompile Include="sslib\FileSearch.cpp" />
@@ -43,7 +42,6 @@
     <ClCompile Include="sslib\ProgressBar.cpp" />
     <ClCompile Include="sslib\String.cpp" />
     <ClCompile Include="sslib\VariableArgument.cpp" />
-    <ClCompile Include="sslib\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arc7-zip32.h" />
@@ -70,7 +68,6 @@
     <ClInclude Include="sslib\CommandArgument.h" />
     <ClInclude Include="sslib\Console.h" />
     <ClInclude Include="sslib\ConsoleApp.h" />
-    <ClInclude Include="sslib\EnvironmentVariable.h" />
     <ClInclude Include="sslib\File.h" />
     <ClInclude Include="sslib\FileOperation.h" />
     <ClInclude Include="sslib\FileSearch.h" />
@@ -81,7 +78,6 @@
     <ClInclude Include="sslib\sslib.h" />
     <ClInclude Include="sslib\String.h" />
     <ClInclude Include="sslib\VariableArgument.h" />
-    <ClInclude Include="sslib\Window.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>

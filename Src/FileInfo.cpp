@@ -2,7 +2,7 @@
 //ファイル情報の操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -76,7 +76,7 @@ bool getFileInfo(FILEINFO* fileinfo,const TCHAR* file_path_orig){
 	WIN32_FIND_DATA file_data;
 	tstring file_path=path::removeTailSlash(file_path_orig);
 
-	if((handle=::FindFirstFileEx(file_path.c_str(),FindExInfoStandard,&file_data,FindExSearchNameMatch,NULL,0))!=INVALID_HANDLE_VALUE){
+	if((handle=::FindFirstFileEx(path::addLongPathPrefix(file_path).c_str(),FindExInfoStandard,&file_data,FindExSearchNameMatch,NULL,0))!=INVALID_HANDLE_VALUE){
 		fileinfo->size=(long long)MAKEQWORD(file_data.nFileSizeHigh,file_data.nFileSizeLow);
 		fileinfo->attr=file_data.dwFileAttributes;
 
@@ -87,7 +87,7 @@ bool getFileInfo(FILEINFO* fileinfo,const TCHAR* file_path_orig){
 		::FileTimeToSystemTime(&ft,&st);
 		fileinfo->date_time=str::SYSTEMTIME2longlong(st);
 
-		fileinfo->name=file_path;
+		fileinfo->name=path::removeLongPathPrefix(file_path);
 
 		::FindClose(handle);
 		result=true;
@@ -100,7 +100,7 @@ bool getFileInfo(FILEINFO* fileinfo,const WIN32_FIND_DATA& file_data,const TCHAR
 	bool result=false;
 	tstring file_path=path::removeTailSlash(file_path_orig);
 
-	if(lstrcmp(file_data.cFileName,_T(""))!=0){
+	if(strvalid(file_data.cFileName)){
 		fileinfo->size=(long long)MAKEQWORD(file_data.nFileSizeHigh,file_data.nFileSizeLow);
 		fileinfo->attr=file_data.dwFileAttributes;
 

@@ -2,7 +2,7 @@
 //Uniso32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -44,7 +44,7 @@ bool ArcUniso32::test(const TCHAR* arc_path_orig,tstring* log_msg){
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
 	int dll_ret=-1;
-//TODO:必要か?
+
 	if(!m_arc_cfg.cfg().no_display.no_information&&
 	   !app()->stdOut().isRedirected()){
 		m_processing_info.clear();
@@ -175,7 +175,7 @@ ArcDll::ARCDLL_RESULT ArcUniso32::extract(const TCHAR* arc_path_orig,const TCHAR
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir,'/','\\');
@@ -190,6 +190,8 @@ ArcDll::ARCDLL_RESULT ArcUniso32::extract(const TCHAR* arc_path_orig,const TCHAR
 		//ディレクトリの更新日時を復元
 		recoverDirectoryTimestamp(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.decode_uesc,true);
 	}
+
+	unload();
 
 	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
 		//共通パスを取り除く

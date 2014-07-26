@@ -2,7 +2,7 @@
 //Unlha32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -170,7 +170,9 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::compress(const TCHAR* arc_path_orig,std::list<
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+
+	unload();
 
 	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
 }
@@ -269,7 +271,7 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::extract(const TCHAR* arc_path_orig,const TCHAR
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir,'/','\\');
@@ -284,6 +286,8 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::extract(const TCHAR* arc_path_orig,const TCHAR
 		//ディレクトリの更新日時を復元
 		recoverDirectoryTimestamp(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.decode_uesc,true);
 	}
+
+	unload();
 
 	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
 		//共通パスを取り除く
@@ -366,7 +370,9 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_ms
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+
+	unload();
 
 	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
 }

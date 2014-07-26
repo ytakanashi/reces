@@ -1,7 +1,7 @@
 ﻿//SpiBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -32,6 +32,12 @@ public:
 		SPI_GET_ABOUT,
 		SPI_GET_EXT,
 		SPI_GET_TYPE,
+	};
+
+	enum SPI_TYPE{
+		SPI_NOT=0,
+		SPI_IN,
+		SPI_AM,
 	};
 
 	enum SPI_INPUT_TYPE{
@@ -74,6 +80,9 @@ public:
 #endif
 	//アーカイブ内のファイルを取得する
 	SPI_ERROR getFile(const TCHAR* file_path,long buffer_length,void* dest,unsigned int flag,SPI_CALLBACK callback,long data);
+
+	//Plug-in設定ダイアログの表示 
+	int ConfigurationDlg(HWND wnd_handle=NULL,int fnc=1);
 };
 
 #endif //_SPIBASE_H_D89DCC07_6B0E_47f3_A2DB_FA78710F5EC3

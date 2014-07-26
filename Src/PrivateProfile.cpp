@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -78,6 +78,7 @@ bool Config::save(){
 	//書庫新規作成
 	write(_T("Compress"),_T("CreateNew"),m_cfg.compress.create_new,m_cfg.compress.create_new!=m_default_cfg.compress.create_new);
 	//基底ディレクトリを含まない
+	if(m_cfg.compress.exclude_base_dir<-1)m_cfg.compress.exclude_base_dir=-1;
 	write(_T("Compress"),_T("ExcludeBaseDir"),m_cfg.compress.exclude_base_dir,m_cfg.compress.exclude_base_dir!=m_default_cfg.compress.exclude_base_dir);
 	//圧縮率
 	write(_T("Compress"),_T("Level"),m_cfg.compress.compression_level,m_cfg.compress.compression_level!=m_default_cfg.compress.compression_level);
@@ -270,6 +271,7 @@ bool Config::load(){
 	getDataEx(_T("Compress"),_T("CreateNew"),&m_cfg.compress.create_new);
 	//基底ディレクトリを含まない
 	getDataEx(_T("Compress"),_T("ExcludeBaseDir"),&m_cfg.compress.exclude_base_dir);
+	if(m_cfg.compress.exclude_base_dir<-1)m_cfg.compress.exclude_base_dir=-1;
 	//圧縮率
 	getDataEx(_T("Compress"),_T("Level"),&m_cfg.compress.compression_level);
 	//書庫分割数値

@@ -65,6 +65,18 @@ public:
 	LRESULT sendItemMessage(int item,UINT message,WPARAM wparam=0,LPARAM lparam=0);
 	bool postMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0);
 
+	inline bool getCheck(UINT message){
+		return sendItemMessage(message,BM_GETCHECK,0,0)!=0;
+	}
+
+	inline bool setCheck(UINT message,int check){
+		return sendItemMessage(message,
+							   BM_SETCHECK,
+							   (WPARAM)(check)?BST_CHECKED:BST_UNCHECKED,
+							   0
+							   )!=0;
+	}
+
 	virtual INT_PTR handleMessage(HWND dlg_handle,UINT message,WPARAM wparam,LPARAM lparam);
 
 	inline void setParam(void* param){m_param=param;}

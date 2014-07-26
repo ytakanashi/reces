@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -77,5 +77,18 @@ SpiBase::SPI_ERROR SpiBase::getFile(const TCHAR* file_path,long buffer_length,vo
 	if((GetFile=(SPI_GETFILE)getAddress(_T("GetFile")))!=NULL){
 		result=static_cast<SPI_ERROR>(GetFile(str::utf162sjis(file_path).c_str(),buffer_length,dest,flag,callback,data));
 	}
+	return result;
+}
+
+//Plug-in設定ダイアログの表示 
+int SpiBase::ConfigurationDlg(HWND wnd_handle,int fnc){
+	typedef int(WINAPI*SPI_CONFIGURATIONDLG)(HWND,int);
+	SPI_CONFIGURATIONDLG ConfigurationDlg;
+	int result=0;
+
+	if((ConfigurationDlg=(SPI_CONFIGURATIONDLG)getAddress(_T("ConfigurationDlg")))!=NULL){
+		result=ConfigurationDlg(wnd_handle,fnc);
+	}
+
 	return result;
 }

@@ -35,7 +35,7 @@ bool createDirectory(const TCHAR* dir_path_orig,LPSECURITY_ATTRIBUTES security_a
 		if(dir_path.c_str()[i]=='\\'||dir_path.c_str()[i]=='/'){
 			//同一名称のファイルやフォルダが存在しなければフォルダ作成
 			if(!path::fileExists(current_path.c_str())){
-				if(!::CreateDirectory(current_path.c_str(),security_attributes)){
+				if(!::CreateDirectory(path::addLongPathPrefix(current_path).c_str(),security_attributes)){
 					return false;
 				}else{
 					::SHChangeNotify(SHCNE_MKDIR,SHCNF_PATH,(const void*)current_path.c_str(),NULL);
@@ -76,7 +76,7 @@ bool renameFile(const TCHAR* src_orig,const TCHAR* dest_orig){
 			tstring tmp(cur_path+*ite_src);
 			cur_path+=*ite_dest;
 			if(!path::isRoot(cur_path.c_str())){
-				result=::MoveFileEx(tmp.c_str(),cur_path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)!=0;
+				result=::MoveFileEx(path::addLongPathPrefix(tmp).c_str(),path::addLongPathPrefix(cur_path).c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)!=0;
 			}
 			cur_path+=_T("\\");
 		}
@@ -84,11 +84,11 @@ bool renameFile(const TCHAR* src_orig,const TCHAR* dest_orig){
 	return result;
 }
 
-//ディレクトリやファイルをごみ箱に送る
-bool moveToRecycleBin(const TCHAR* dir_path_orig){
+//ディレクトリやファイルをごみ箱に送る(MAX_PATH制限有)
+bool moveToRecycleBinSH(const TCHAR* dir_path_orig){
 	if(!path::fileExists(dir_path_orig))return false;
 
-	std::vector<TCHAR> dir_path(MAX_PATH);
+	std::vector<TCHAR> dir_path(MAX_PATHW);
 	SHFILEOPSTRUCT fop={};
 
 	lstrcpyn(&dir_path[0],path::removeTailSlash(dir_path_orig).c_str(),dir_path.size());
@@ -105,17 +105,27 @@ bool moveToRecycleBin(const TCHAR* dir_path_orig){
 	return SHFileOperation(&fop)==0;
 }
 
-//ファイルやディレクトリを移動
-bool moveFile(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag){
-	std::vector<TCHAR> src_path(MAX_PATH);
-	std::vector<TCHAR> dest_path(MAX_PATH);
+//ファイルやディレクトリを移動(MAX_PATH制限有)
+bool moveFileSH(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag){
+	std::vector<TCHAR> src_path(MAX_PATHW);
+	std::vector<TCHAR> dest_path(MAX_PATHW);
+	tstring tmp;
 	SHFILEOPSTRUCT fop={};
 
-	lstrcpyn(&src_path[0],src_path_orig,src_path.size());
+	tmp.assign(path::removeTailSlash(src_path_orig));
+	lstrcpyn(&src_path[0],
+			 (tmp.length()<MAX_PATH)?tmp.c_str():path::getShortPathName(tmp.c_str()).c_str(),
+			 src_path.size());
 	lstrcat(&src_path[0],_T("\0\0"));
 
-	lstrcpyn(&dest_path[0],dest_path_orig,dest_path.size());
+	tmp.assign(path::removeTailSlash(dest_path_orig));
+	lstrcpyn(&dest_path[0],
+			 (tmp.length()<MAX_PATH)?tmp.c_str():path::getShortPathName(tmp.c_str()).c_str(),
+			 dest_path.size());
 	lstrcat(&dest_path[0],_T("\0\0"));
+
+	if(lstrcmp(&src_path[0],_T(""))==0||
+	   lstrcmp(&dest_path[0],_T(""))==0)return false;
 
 	fop.pFrom=&src_path[0];
 	fop.hwnd=NULL;
@@ -128,17 +138,27 @@ bool moveFile(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAG
 		fop.fAnyOperationsAborted==0;
 }
 
-//ファイルやディレクトリをコピー
-bool copyFile(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag){
-	std::vector<TCHAR> src_path(MAX_PATH);
-	std::vector<TCHAR> dest_path(MAX_PATH);
+//ファイルやディレクトリをコピー(MAX_PATH制限有)
+bool copyFileSH(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAGS flag){
+	std::vector<TCHAR> src_path(MAX_PATHW);
+	std::vector<TCHAR> dest_path(MAX_PATHW);
+	tstring tmp;
 	SHFILEOPSTRUCT fop={};
 
-	lstrcpyn(&src_path[0],src_path_orig,src_path.size());
+	tmp.assign(path::removeTailSlash(src_path_orig));
+	lstrcpyn(&src_path[0],
+			 (tmp.length()<MAX_PATH)?tmp.c_str():path::getShortPathName(tmp.c_str()).c_str(),
+			 src_path.size());
 	lstrcat(&src_path[0],_T("\0\0"));
 
-	lstrcpyn(&dest_path[0],dest_path_orig,dest_path.size());
+	tmp.assign(path::removeTailSlash(dest_path_orig));
+	lstrcpyn(&dest_path[0],
+			 (tmp.length()<MAX_PATH)?tmp.c_str():path::getShortPathName(tmp.c_str()).c_str(),
+			 dest_path.size());
 	lstrcat(&dest_path[0],_T("\0\0"));
+
+	if(lstrcmp(&src_path[0],_T(""))==0||
+	   lstrcmp(&dest_path[0],_T(""))==0)return false;
 
 	fop.pFrom=&src_path[0];
 	fop.hwnd=NULL;
@@ -151,15 +171,21 @@ bool copyFile(const TCHAR* src_path_orig,const TCHAR* dest_path_orig,FILEOP_FLAG
 		fop.fAnyOperationsAborted==0;
 }
 
-//ファイルやディレクトリを削除
-bool removeFile(const TCHAR* file_path_orig){
+//ファイルやディレクトリを削除(MAX_PATH制限有)
+bool removeFileSH(const TCHAR* file_path_orig){
 	if(!path::fileExists(file_path_orig))return false;
 
-	std::vector<TCHAR> file_path(MAX_PATH);
+	std::vector<TCHAR> file_path(MAX_PATHW);
+	tstring tmp;
 	SHFILEOPSTRUCT fop={};
 
-	lstrcpyn(&file_path[0],path::removeTailSlash(file_path_orig).c_str(),file_path.size());
+	tmp.assign(path::removeTailSlash(file_path_orig));
+	lstrcpyn(&file_path[0],
+			 (tmp.length()<MAX_PATH)?tmp.c_str():path::getShortPathName(tmp.c_str()).c_str(),
+			 file_path.size());
 	lstrcat(&file_path[0],_T("\0\0"));
+
+	if(lstrcmp(&file_path[0],_T(""))==0)return false;
 
 	fop.pFrom=&file_path[0];
 	fop.hwnd=NULL;
@@ -171,6 +197,23 @@ bool removeFile(const TCHAR* file_path_orig){
 	return SHFileOperation(&fop)==0&&
 		fop.fAnyOperationsAborted==0;
 }
+
+#ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
+//ファイルやディレクトリを削除
+bool removeFile(const TCHAR* file_path_orig){
+	if(!path::fileExists(file_path_orig))return false;
+
+	if(path::isDirectory(file_path_orig)){
+		deleteDirectory(file_path_orig);
+	}else{
+		//読み込み専用属性削除
+		::SetFileAttributes(file_path_orig,
+						  ::GetFileAttributes(file_path_orig)&~FILE_ATTRIBUTE_READONLY);
+		return ::DeleteFile(file_path_orig)!=0;
+	}
+	return true;
+}
+#endif
 
 //ディレクトリをディレクトリへ移動
 void moveDirToDir(const TCHAR* src_path_orig,const TCHAR* dest_path_orig){
@@ -194,10 +237,10 @@ void moveDirToDir(const TCHAR* src_path_orig,const TCHAR* dest_path_orig){
 		file.replace(0,src_path.length(),dest_path);
 
 		if(file!=dest_path){
-			if(::MoveFileEx(fs.filepath().c_str(),file.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)==0){
+			if(::MoveFileEx(path::addLongPathPrefix(fs.filepath()).c_str(),path::addLongPathPrefix(file).c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)==0){
 				//移動に失敗した場合、取り敢えずコピー
 				tstring dest((fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)?path::getParentDirectory(file):file));
-				fileoperation::copyFile(fs.filepath().c_str(),dest.c_str());
+				fileoperation::copyFileSH(fs.filepath().c_str(),path::addLongPathPrefix(dest).c_str());
 				if(!fileoperation::removeFile(fs.filepath().c_str())){
 					//削除は後に行う
 					schedule_list.push_back(new scheduleDelete(fs.filepath().c_str()));
@@ -243,9 +286,15 @@ void deleteDirectory(const TCHAR* dir_path_orig){
 	::SetFileAttributes(dir_path.c_str(),
 					  ::GetFileAttributes(dir_path.c_str())&~FILE_ATTRIBUTE_READONLY);
 
-	if(!::RemoveDirectory(dir_path.c_str())){
-		removeFile(dir_path.c_str());
+	tstring cur_dir(path::getCurrentDirectory());
+
+	::SetCurrentDirectory(path::getParentDirectory(cur_dir.c_str()).c_str());
+
+	if(!::RemoveDirectory(path::addLongPathPrefix(dir_path).c_str())){
+		removeFileSH(dir_path.c_str());
 	}
+
+	::SetCurrentDirectory(cur_dir.c_str());
 }
 #endif
 
@@ -260,11 +309,11 @@ void deleteContents(const TCHAR* dir_path){
 						  ::GetFileAttributes(fs.filepath().c_str())&~FILE_ATTRIBUTE_READONLY);
 		if(fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
 			deleteContents(fs.filepath().c_str());
-			if(!::RemoveDirectory(fs.filepath().c_str())){
+			if(!::RemoveDirectory(path::addLongPathPrefix(fs.filepath()).c_str())){
 				removeFile(fs.filepath().c_str());
 			}
 		}else{
-			::DeleteFile(fs.filepath().c_str());
+			::DeleteFile(path::addLongPathPrefix(fs.filepath()).c_str());
 		}
 	}
 }
@@ -272,22 +321,18 @@ void deleteContents(const TCHAR* dir_path){
 
 //一意の名前を持つディレクトリ名を取得
 tstring generateTempDirName(const TCHAR* prefix,const TCHAR* base_dir){
-	std::vector<TCHAR> temp_dir(MAX_PATH);
+	std::vector<TCHAR> temp_dir(MAX_PATHW);
 
 	if(base_dir!=NULL){
-		lstrcpyn(&temp_dir[0],base_dir,temp_dir.size());
 		if(!path::fileExists(base_dir)){
 			if(!createDirectory(base_dir))return _T("");
 		}
-	}else{
-		if(!path::getTempDirPath(&temp_dir[0],temp_dir.size())){
-			return _T("");
-		}
 	}
 
-	::GetTempFileName(&temp_dir[0],prefix,0,&temp_dir[0]);
+	::GetTempFileName(path::getTempDirPath().c_str(),prefix,0,&temp_dir[0]);
 	::DeleteFile(&temp_dir[0]);
-	return &temp_dir[0];
+
+	return (base_dir!=NULL)?path::addTailSlash(base_dir)+path::getFileName(&temp_dir[0]):&temp_dir[0];
 }
 
 //一意の名前を持つディレクトリを作成
@@ -317,9 +362,7 @@ tstring createTempFile(const TCHAR* prefix,const TCHAR* base_dir){
 			if(!createDirectory(base_dir))return _T("");
 		}
 	}else{
-		if(!path::getTempDirPath(&temp_dir[0],temp_dir.size())){
-			return _T("");
-		}
+		lstrcpyn(&temp_dir[0],path::getTempDirPath().c_str(),temp_dir.size());
 	}
 
 	return (::GetTempFileName(&temp_dir[0],prefix,0,&temp_dir[0])!=0)?&temp_dir[0]:_T("");
@@ -631,7 +674,7 @@ bool removeSplitFile(const TCHAR* file_name,bool recycle_bin){
 		ite!=end;
 		++ite){
 		if(recycle_bin){
-			result=moveToRecycleBin(ite->c_str());
+			result=moveToRecycleBinSH(ite->c_str());
 		}else{
 			result=::DeleteFile(ite->c_str())!=0;
 		}

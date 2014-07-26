@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r20 by x@rgs
+//              reces Ver.0.00r21 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -250,7 +250,7 @@ public:
 	virtual ARCDLL_RESULT del(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
 	virtual bool test(const TCHAR* arc_path,tstring* log_msg=NULL);
 
-	virtual bool sendCommands(const TCHAR* commands,tstring* log_msg=NULL);
+	virtual int sendCommands(const TCHAR* commands,tstring* log_msg=NULL);
 
 
 protected:
