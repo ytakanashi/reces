@@ -25,7 +25,6 @@
  [Ver.0.00r21]
      ・何故か再圧縮時のみ戻り値を設定していなかった。
      ・テスト時も戻り値を設定していなかった。
-     ・プログレスバー高速化と思いきや殆ど変わらず。
      ・Nobuyuki Honda氏のamzip.spi/Yak!氏の7z.dllとax7z_s.spiでお馴染みMac文字化けzipの解凍を確認。
        amzip.spiで処理が出来る一方、ax7z_s.spiで処理が出来ない書庫もある?
      ・/mSを実装したものの、Susie Plug-in位でしか役に立たないかも。統合アーカイバライブラリのszOptionBufferとかiModeとかは見ないふり。

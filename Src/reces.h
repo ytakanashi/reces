@@ -33,13 +33,11 @@ public:
 		m_pInstallHook(NULL),
 		m_pUninstallHook(NULL),
 		m_progressbar(NULL),
-		m_arc_path(),
-		m_recompress_mhd(),
+		m_cur_file(),
 		m_arc_thread(NULL),
 		m_arc_dll(NULL),
 		m_spi(NULL),
 		m_progressbar_thread(),
-		m_update_progressbar_thread(),
 		m_dialog_hook_thread(){}
 	~Reces(){}
 
@@ -104,6 +102,18 @@ private:
 	//プログレスバー
 	sslib::ProgressBar* m_progressbar;
 
+	//処理中ファイルの諸々の情報
+	struct CUR_FILE{
+		tstring arc_path;
+		bool auto_renamed;
+		tstring recompress_mhd;
+
+		CUR_FILE():arc_path(),auto_renamed(false),recompress_mhd(){}
+		CUR_FILE(const tstring& path,bool renamed=false,const tstring& mhd=_T("")):arc_path(path),auto_renamed(renamed),recompress_mhd(mhd){}
+	};
+
+	CUR_FILE m_cur_file;
+
 	//cleanup()で削除できる様保存
 	tstring m_arc_path;
 
@@ -143,12 +153,10 @@ private:
 	//クリティカルセクション
 	sslib::misc::CriticalSection m_arc_cs,
 	m_progressbar_cs,
-	m_update_progressbar_cs,
 	m_dialog_hook_cs,
 	m_cleanup_cs,m_ctrlc_event_cs;
 
 	sslib::misc::thread::INFO m_progressbar_thread;
-	sslib::misc::thread::INFO m_update_progressbar_thread;
 	sslib::misc::thread::INFO m_dialog_hook_thread;
 
 private:
@@ -161,10 +169,14 @@ private:
 	bool runCommand();
 	//ファイルを削除(設定依存)
 	bool removeFile(const TCHAR* file_path);
+	//m_arcdll_list読み込み
+	void loadLib();
+	//m_arcdll_list解放
+	void freeLib();
 	//ライブラリリストの7-zip32とLMZIP32を入れ替える
 	bool swap7ZLMZIP(bool sort_by_name=true);
 	//'od'と'of'を反映した作成する書庫のパスを作成
-	ARC_RESULT arcFileName(tstring* p_new_arc_path,const tstring& arc_path,tstring& err_msg);
+	ARC_RESULT arcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg);
 	//書庫にタイムスタンプをコピー
 	bool copyArcTimestamp(const tstring& dest_file_path,FILETIME* source_arc_timestamp);
 	//ファイルのフルパスリストを作成
@@ -177,7 +189,6 @@ private:
 
 	//プログレスバーを管理
 	static unsigned __stdcall manageProgressBar(void* param);
-	static unsigned __stdcall updateProgressBar(void* param);
 
 	//パスワードダイアログのフックを処理する
 	static unsigned __stdcall dialogHookProc(void* param);

@@ -162,16 +162,8 @@ bool Reces::init(){
 		return false;
 	}
 
-	m_arcdll_list.push_back(new ArcLMZip32(m_arc_cfg));
-	m_arcdll_list.push_back(new ArcUnlha32(m_arc_cfg));
-	m_arcdll_list.push_back(new ArcUnrar32(m_arc_cfg));
-	m_arcdll_list.push_back(new ArcTar32(m_arc_cfg));
-	m_arcdll_list.push_back(new ArcUniso32(m_arc_cfg));
-	m_arcdll_list.push_back(new Arc7zip32(m_arc_cfg));
-	m_arcdll_list.push_back(new ArcXacrett(m_arc_cfg));
-
-	//B2e.dllは特別扱い
-	m_b2e_dll=new ArcB2e(m_arc_cfg);
+	//*.dll読み込み
+	loadLib();
 
 	//spiの読み込みはrun()で行う
 
@@ -202,8 +194,6 @@ void Reces::cleanup(){
 
 	if(!m_stdout.isRedirected()&&
 	   !m_arc_cfg.cfg().no_display.no_information){
-		//プログレスバー更新を行うスレッドを閉じる
-		misc::thread::close(m_update_progressbar_thread);
 		//プログレスバー更新通知を受け取るスレッドを閉じる
 		misc::thread::close(m_progressbar_thread);
 	}
@@ -213,7 +203,7 @@ void Reces::cleanup(){
 
 	//作成に失敗したファイルは削除
 	if(m_arc_cfg.cfg().mode==MODE_RECOMPRESS||m_arc_cfg.cfg().mode==MODE_COMPRESS){
-		if(fileoperation::getFileSize(m_arc_path.c_str())==0)::DeleteFile(m_arc_path.c_str());
+		if(fileoperation::getFileSize(m_cur_file.arc_path.c_str())==0)::DeleteFile(m_cur_file.arc_path.c_str());
 	}
 
 	//パスワードダイアログのフックを終了
@@ -228,23 +218,13 @@ void Reces::cleanup(){
 		m_hook_dll_module=NULL;
 	}
 
-	for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
-		if(m_arcdll_list[i]!=NULL){
-			delete m_arcdll_list[i];
-			m_arcdll_list[i]=NULL;
-		}
-	}
+	freeLib();
 
 	for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
 		if(m_spi_list[i]!=NULL){
 			delete m_spi_list[i];
 			m_spi_list[i]=NULL;
 		}
-	}
-
-	if(m_b2e_dll!=NULL){
-		delete m_b2e_dll;
-		m_b2e_dll=NULL;
 	}
 
 	if(m_cal_dll!=NULL){
@@ -656,11 +636,10 @@ bool Reces::removeFile(const TCHAR* file_path){
 }
 
 //'od'と'of'を反映した作成する書庫のパスを作成
-Reces::ARC_RESULT Reces::arcFileName(tstring* new_arc_path,const tstring& arc_path,tstring& err_msg){
+Reces::ARC_RESULT Reces::arcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg){
 	//オプションの有無にかかわらず、出力先ディレクトリをoutput_dirに代入
 	tstring output_dir(path::getParentDirectory(arc_path));
-	new_arc_path->assign(arc_path);
-
+	new_cur_file->arc_path.assign(arc_path);
 
 	if(!m_arc_cfg.cfg().general.output_dir.empty()){
 		//'od'
@@ -692,7 +671,7 @@ Reces::ARC_RESULT Reces::arcFileName(tstring* new_arc_path,const tstring& arc_pa
 		if(m_arc_cfg.cfg().compress.output_file.empty()){
 			//'of'が無効であればarc_pathを作成
 			output_dir=path::addTailSlash(output_dir);
-			*new_arc_path=output_dir+path::getFileName(arc_path);
+			new_cur_file->arc_path=output_dir+path::getFileName(arc_path);
 		}
 	}
 
@@ -709,10 +688,10 @@ Reces::ARC_RESULT Reces::arcFileName(tstring* new_arc_path,const tstring& arc_pa
 							  ((!m_arc_cfg.cfg().general.default_base_dir)?
 							   output_dir.c_str():
 							   m_original_cur_dir.c_str()));
-			new_arc_path->assign(&buffer[0]);
+			new_cur_file->arc_path.assign(&buffer[0]);
 		}else{
 			//絶対パス[\Dir含む]であればそのまま
-			*new_arc_path=m_arc_cfg.cfg().compress.output_file;
+			new_cur_file->arc_path=m_arc_cfg.cfg().compress.output_file;
 		}
 		//修正したパスから親ディレクトリを取得
 		output_dir=path::getParentDirectory(arc_path);
@@ -730,8 +709,8 @@ Reces::ARC_RESULT Reces::arcFileName(tstring* new_arc_path,const tstring& arc_pa
 	tstring ext;
 
 	if(!m_arc_cfg.cfg().compress.raw_file_name){
-		//new_arc_pathに圧縮形式の拡張子があれば追加しない
-		if(m_arc_dll->isSupportedExtension(path::getExtension(*new_arc_path).c_str())){
+		//new_cur_file->arc_pathに圧縮形式の拡張子があれば追加しない
+		if(m_arc_dll->isSupportedExtension(path::getExtension(new_cur_file->arc_path).c_str())){
 			need_ext=false;
 		}
 
@@ -755,19 +734,20 @@ Reces::ARC_RESULT Reces::arcFileName(tstring* new_arc_path,const tstring& arc_pa
 			tstring e=reces::getExtensionEx(m_arc_cfg.cfg().compress.output_file);
 
 			if(!e.empty()&&
-			   new_arc_path->rfind(str::toLower(e))!=tstring::npos){
-				//oorだと拡張子が付加されてしまう
+			   new_cur_file->arc_path.rfind(str::toLower(e))!=tstring::npos){
 				ext=tstring(_T("."))+reces::getExtensionEx(m_arc_cfg.cfg().compress.output_file);
-				*new_arc_path=reces::removeExtensionEx(*new_arc_path);
+				new_cur_file->arc_path=reces::removeExtensionEx(new_cur_file->arc_path);
 				need_ext=true;
 			}
 		}
-		if(path::fileExists((*new_arc_path+((need_ext)?ext:_T(""))).c_str())){
+
+		if(path::fileExists((new_cur_file->arc_path+((need_ext)?ext:_T(""))).c_str())){
 			for(unsigned long long i=1;i<ULLONG_MAX;++i){
 				VariableArgument n(_T("_%I64u"),i);
 
-				if(!path::fileExists((*new_arc_path+n.get()+((need_ext)?ext:_T(""))).c_str())){
-					*new_arc_path+=n.get();
+				if(!path::fileExists((new_cur_file->arc_path+n.get()+((need_ext)?ext:_T(""))).c_str())){
+					new_cur_file->arc_path+=n.get();
+					new_cur_file->auto_renamed=true;
 					break;
 				}
 			}
@@ -776,10 +756,43 @@ Reces::ARC_RESULT Reces::arcFileName(tstring* new_arc_path,const tstring& arc_pa
 
 	if(need_ext){
 		//拡張子を追加
-		*new_arc_path+=m_arc_dll->getMethod().ext;
+		new_cur_file->arc_path+=m_arc_dll->getMethod().ext;
 	}
 
 	return ARC_SUCCESS;
+}
+
+//m_arcdll_list読み込み
+void Reces::loadLib(){
+	if(m_arcdll_list.size()!=0)freeLib();
+
+	m_arcdll_list.push_back(new ArcLMZip32(m_arc_cfg));
+	m_arcdll_list.push_back(new ArcUnlha32(m_arc_cfg));
+	m_arcdll_list.push_back(new ArcUnrar32(m_arc_cfg));
+	m_arcdll_list.push_back(new ArcTar32(m_arc_cfg));
+	m_arcdll_list.push_back(new ArcUniso32(m_arc_cfg));
+	m_arcdll_list.push_back(new Arc7zip32(m_arc_cfg));
+	m_arcdll_list.push_back(new ArcXacrett(m_arc_cfg));
+
+	//B2e.dllは特別扱い
+	m_b2e_dll=new ArcB2e(m_arc_cfg);
+}
+
+//m_arcdll_list解放
+void Reces::freeLib(){
+	for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
+		if(m_arcdll_list[i]!=NULL){
+			delete m_arcdll_list[i];
+			m_arcdll_list[i]=NULL;
+		}
+	}
+	m_arcdll_list.clear();
+	std::vector<ArcDll*>().swap(m_arcdll_list);
+
+	if(m_b2e_dll!=NULL){
+		delete m_b2e_dll;
+		m_b2e_dll=NULL;
+	}
 }
 
 //ライブラリリストの7-zip32とLMZIP32を入れ替える
@@ -1751,11 +1764,14 @@ unsigned __stdcall Reces::manageProgressBar(void* param){
 				if(!this_ptr->isTerminated()&&
 				   this_ptr->m_progressbar&&
 				   msg.wParam){
-					misc::thread::post(this_ptr->m_update_progressbar_thread.id,
-									   WM_UPDATE_PROGRESSBAR_MAIN,
-									   reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->data);
+					ArcDll::ARC_PROCESSING_INFO arc_processing_info=
+						*(reinterpret_cast<ArcDll::ARC_PROCESSING_INFO*>(reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->data));
 
 					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
+
+					this_ptr->m_progressbar->update(arc_processing_info.done,
+										   arc_processing_info.total,
+										   arc_processing_info.file_name.c_str());
 				}else{
 					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}
@@ -1766,40 +1782,6 @@ unsigned __stdcall Reces::manageProgressBar(void* param){
 				}
 				if(msg.wParam){
 					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
-				}
-			}
-		}
-	}
-
-	_endthreadex(0);
-	return 0;
-}
-
-unsigned __stdcall Reces::updateProgressBar(void* param){
-	{
-		MSG msg;
-		static Reces* this_ptr=reinterpret_cast<Reces*>(reinterpret_cast<misc::thread::PARAM*>(param)->this_ptr);
-
-		misc::Lock lock(this_ptr->m_update_progressbar_cs);
-
-		::PeekMessage(&msg,NULL,0,0,PM_NOREMOVE);
-
-		//メインスレッドの処理再開
-		reinterpret_cast<misc::thread::PARAM*>(param)->ready.signal();
-
-		while(::GetMessage(&msg,NULL,0,0)>0){
-			if(msg.message==WM_UPDATE_PROGRESSBAR_MAIN){
-				if(!this_ptr->isTerminated()&&
-				   this_ptr->m_progressbar&&
-				   msg.wParam){
-					ArcDll::ARC_PROCESSING_INFO arc_processing_info=
-						*(reinterpret_cast<ArcDll::ARC_PROCESSING_INFO*>(reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->data));
-
-					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
-
-					this_ptr->m_progressbar->update(arc_processing_info.done,
-										   arc_processing_info.total,
-										   arc_processing_info.file_name.c_str());
 				}
 			}
 		}
@@ -1951,7 +1933,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 	for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 		if(m_arcdll_list[i]->isSupportedMethod((m_arc_cfg.cfg().compress.compression_type.c_str()[0]!='@')?
 											   m_arc_cfg.cfg().compress.compression_type.c_str():
-											   m_recompress_mhd.c_str())){
+											   m_cur_file.recompress_mhd.c_str())){
 			m_arc_dll=m_arcdll_list[i];
 			break;
 		}
@@ -1996,15 +1978,15 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 
 		{
 			//'od'と'of'を反映した作成する書庫のパスを作成
-			if(arcFileName(&m_arc_path,m_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+			if(arcFileName(&m_cur_file,m_cur_file.arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 				return ARC_CANNOT_CREATE_DIRECTORY;
 			}
 
-			if(path::isDirectory(m_arc_path.c_str())&&
+			if(path::isDirectory(m_cur_file.arc_path.c_str())&&
 			   m_arc_cfg.cfg().compress.raw_file_name){
 				//作成する書庫と同名のディレクトリが存在する場合oFを無効にして再度パス作成
 				m_arc_cfg.cfg().compress.raw_file_name=false;
-				if(arcFileName(&m_arc_path,m_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+				if(arcFileName(&m_cur_file,m_cur_file.arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 					return ARC_CANNOT_CREATE_DIRECTORY;
 				}
 			}
@@ -2015,8 +1997,8 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 		bool split_file=!m_arc_cfg.cfg().compress.split_value.empty();
 
 		if(split_file){
-			orig_dir=path::getParentDirectory(m_arc_path);
-			m_arc_path=m_split_temp_dir+_T("\\")+path::getFileName(m_arc_path);
+			orig_dir=path::getParentDirectory(m_cur_file.arc_path);
+			m_cur_file.arc_path=m_split_temp_dir+_T("\\")+path::getFileName(m_cur_file.arc_path);
 		}
 
 		if(isTerminated())return ARC_USER_CANCEL;
@@ -2040,7 +2022,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 		tstring log;
 		bool result=false;
 
-		switch(m_arc_dll->compress(m_arc_path.c_str(),&compress_file_list,&log)){
+		switch(m_arc_dll->compress(m_cur_file.arc_path.c_str(),&compress_file_list,&log)){
 			case ArcDll::ARCDLL_SUCCESS:
 				result=true;
 				break;
@@ -2086,13 +2068,13 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 		if(split_file){
 			//分割処理
 			info(_T("ファイルを分割しています...\n"));
-			switch(fileoperation::splitFile(m_arc_path.c_str(),m_arc_cfg.cfg().compress.split_value.c_str(),orig_dir.c_str())){
+			switch(fileoperation::splitFile(m_cur_file.arc_path.c_str(),m_arc_cfg.cfg().compress.split_value.c_str(),orig_dir.c_str())){
 				case fileoperation::SFRET_SUCCESS:
 					//一時ディレクトリ内のファイル/ディレクトリを削除
 					fileoperation::deleteContents(m_split_temp_dir.c_str());
 					return ARC_SUCCESS;
 				case fileoperation::SFRET_CANNOT_OPEN:
-					err_msg=_T("分割対象ファイル '%s' を開くことが出来ませんでした。\n"),m_arc_path.c_str();
+					err_msg=_T("分割対象ファイル '%s' を開くことが出来ませんでした。\n"),m_cur_file.arc_path.c_str();
 					break;
 				case fileoperation::SFRET_INVALID_PARAM:
 					err_msg=_T("分割サイズまたは分割数が正しくありません。\n");
@@ -2112,8 +2094,8 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 			}
 			//エラーであってもとりあえずコピー
 			//ファイル名を作成
-			orig_dir=orig_dir+_T("\\")+path::getFileName(m_arc_path);
-			::CopyFile(m_arc_path.c_str(),orig_dir.c_str(),false);
+			orig_dir=orig_dir+_T("\\")+path::getFileName(m_cur_file.arc_path);
+			::CopyFile(m_cur_file.arc_path.c_str(),orig_dir.c_str(),false);
 			//一時ディレクトリ内のファイル/ディレクトリを削除
 			fileoperation::deleteContents(m_split_temp_dir.c_str());
 		}
@@ -2154,18 +2136,10 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 	m_spi=NULL;
 //	m_b2e_dll=NULL;
 
-	for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
-		if(m_arcdll_list[i]!=NULL){
-			//パスワード付rar書庫に就いて、パスワード入力を一度誤った後、
-			//別書庫の処理をしようとすると、ERROR_USER_CANCELとなり、
-			//解凍が行えないので一度解放する
-			if(m_arcdll_list[i]->isLoaded()){
-				m_arcdll_list[i]->unload();
-			}
-		}
-	}
-
 	info(_T("ライブラリを読み込んでいます..."));
+
+	freeLib();
+	loadLib();
 
 	//7-zip32とLMZIP32を入れ替える
 	swap7ZLMZIP(arc_path.length()>=MAX_PATH);
@@ -2320,7 +2294,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 			//'@'の処理で
 			if(m_arc_cfg.cfg().compress.compression_type.c_str()[0]=='@'&&
 			   //一括再圧縮の一度目か
-			   ((!m_arc_cfg.cfg().compress.each_file&&m_recompress_mhd.empty())||
+			   ((!m_arc_cfg.cfg().compress.each_file&&m_cur_file.recompress_mhd.empty())||
 				//'/e'
 			   m_arc_cfg.cfg().compress.each_file)){
 				DWORD mhd_opt=0;
@@ -2338,13 +2312,13 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 				}
 
 				if(m_arc_dll){
-					m_recompress_mhd.assign(m_arc_dll->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str()));
+					m_cur_file.recompress_mhd.assign(m_arc_dll->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str()));
 				}
 
-				if(m_recompress_mhd.empty())m_recompress_mhd=_T("zip");
-				if(mhd_opt&ArcDll::MHD_PASSWORD)m_recompress_mhd+=_T("pw");
-				if(mhd_opt&ArcDll::MHD_HEADERENCRYPTION)m_recompress_mhd+=_T("he");
-				if(mhd_opt&ArcDll::MHD_SFX)m_recompress_mhd+=_T("sfx");
+				if(m_cur_file.recompress_mhd.empty())m_cur_file.recompress_mhd=_T("zip");
+				if(mhd_opt&ArcDll::MHD_PASSWORD)m_cur_file.recompress_mhd+=_T("pw");
+				if(mhd_opt&ArcDll::MHD_HEADERENCRYPTION)m_cur_file.recompress_mhd+=_T("he");
+				if(mhd_opt&ArcDll::MHD_SFX)m_cur_file.recompress_mhd+=_T("sfx");
 			}
 		}
 
@@ -2374,6 +2348,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 
 		if(m_arc_dll&&
 		   m_arc_cfg.cfg().mode==MODE_RECOMPRESS&&
+		   m_arc_cfg.cfg().recompress.run_command.disable()&&
 		   m_arc_cfg.cfg().compress.each_file&&
 		   !m_arc_cfg.cfg().general.ignore_directory_structures&&
 		   m_arc_cfg.cfg().general.custom_param.empty()&&
@@ -2387,54 +2362,72 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 			if(!current_mhd.empty()){
 				if(str::isEqualStringIgnoreCase((m_arc_cfg.cfg().compress.compression_type.c_str()[0]!='@')?
 												m_arc_cfg.cfg().compress.compression_type:
-												m_recompress_mhd,
+												m_cur_file.recompress_mhd,
 												current_mhd)){
 
 					tstring old_arc_path((!split_file)?arc_path:join_file_name);
-					tstring new_arc_path=old_arc_path;
+					CUR_FILE new_cur_file(old_arc_path);
 
 					if(str::isEqualStringIgnoreCase(path::getExtension(old_arc_path),_T("exe"))){
 						//拡張子がexeなら削る
-						new_arc_path=old_arc_path=reces::removeExtensionEx(old_arc_path);
+						new_cur_file.arc_path=old_arc_path=reces::removeExtensionEx(old_arc_path);
 					}
 
-					if(arcFileName(&new_arc_path,old_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+					tstring ext=reces::getExtensionEx(old_arc_path);
+					tstring old_arc_path_bak(old_arc_path);
+					bool need_ext=false;
+
+					if(m_arc_cfg.cfg().general.auto_rename&&
+					   !ext.empty()&&
+					   old_arc_path.find(str::toLower(ext))!=tstring::npos){
+						ext=tstring(_T("."))+reces::getExtensionEx(old_arc_path);
+						old_arc_path=reces::removeExtensionEx(old_arc_path);
+						need_ext=true;
+					}
+
+					if(arcFileName(&new_cur_file,old_arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 						return ARC_CANNOT_CREATE_DIRECTORY;
 					}
 
+					if(m_arc_cfg.cfg().general.auto_rename&&
+					   need_ext){
+						new_cur_file.arc_path=reces::removeExtensionEx(new_cur_file.arc_path);
+						new_cur_file.arc_path+=ext;
+					}
+
 					//出力するファイルのパスが同一か、異なる場合はそのファイルが存在しない場合のみ処理
-					if(old_arc_path==new_arc_path||
-					   (!path::fileExists(new_arc_path.c_str())&&old_arc_path!=new_arc_path)){
+					if(old_arc_path==new_cur_file.arc_path||
+					   (!path::fileExists(new_cur_file.arc_path.c_str())&&old_arc_path!=new_cur_file.arc_path)){
 						//オリジナルとパスが異なるようであればコピー
 						bool copy_file=!split_file&&
-							old_arc_path!=new_arc_path;
+							old_arc_path!=new_cur_file.arc_path;
 
 						if(copy_file){
 							::CopyFile(arc_path.c_str(),
-									   new_arc_path.c_str(),false);
+									   new_cur_file.arc_path.c_str(),false);
 						}else if(split_file){
 							::MoveFileEx(join_file_name.c_str(),
-										 new_arc_path.c_str(),
+										 new_cur_file.arc_path.c_str(),
 										 MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH);
 						}
 
 						tstring log;
 
-						if(m_arc_dll->del(new_arc_path.c_str(),&log)==ArcDll::ARCDLL_SUCCESS){
+						if(m_arc_dll->del(new_cur_file.arc_path.c_str(),&log)==ArcDll::ARCDLL_SUCCESS){
 							if(!m_arc_cfg.cfg().no_display.no_log){
 								m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 							}
 
-							m_arc_path=new_arc_path;
+							m_cur_file=new_cur_file;
 
 							return ARC_DELETE_COMMAND;
 						}else{
 							if(copy_file){
 								//失敗したため削除
-								::DeleteFile(new_arc_path.c_str());
+								::DeleteFile(new_cur_file.arc_path.c_str());
 							}else if(split_file){
 								//ファイルを元の位置に戻す
-								::MoveFileEx(new_arc_path.c_str(),join_file_name.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH);
+								::MoveFileEx(new_cur_file.arc_path.c_str(),join_file_name.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH);
 							}
 						}
 					}
@@ -2630,6 +2623,9 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 	m_spi=NULL;
 
 	info(_T("ライブラリを読み込んでいます..."));
+
+	freeLib();
+	loadLib();
 
 	//7-zip32とLMZIP32を入れ替える
 	swap7ZLMZIP(arc_path.length()>=MAX_PATH);
@@ -2956,6 +2952,9 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 
 	info(_T("ライブラリを読み込んでいます..."));
 
+	freeLib();
+	loadLib();
+
 	//7-zip32とLMZIP32を入れ替える
 	swap7ZLMZIP(arc_path.length()>=MAX_PATH);
 
@@ -3218,8 +3217,6 @@ bool Reces::run(CommandArgument& cmd_arg){
 	   !m_arc_cfg.cfg().no_display.no_information){
 		//プログレスバーを管理するスレッドを作成
 		m_progressbar_thread.handle=misc::thread::create(&Reces::manageProgressBar,&m_progressbar_thread.id,this);
-		//プログレスバーを更新するスレッドを作成
-		m_update_progressbar_thread.handle=misc::thread::create(&Reces::updateProgressBar,&m_update_progressbar_thread.id,this);
 	}
 
 	//ダイアログのフック通知を受け取るスレッドを作成
@@ -3290,14 +3287,14 @@ bool Reces::run(CommandArgument& cmd_arg){
 						   m_arc_cfg.cfg().compress.each_file){
 							if(fileoperation::isSplitFile(ite_list->c_str())){
 								//分割ファイル
-								m_arc_path=path::removeExtension(*ite_list);
+								m_cur_file.arc_path=path::removeExtension(*ite_list);
 							}else{
-								m_arc_path=*ite_list;
+								m_cur_file.arc_path=*ite_list;
 							}
 
 							if(!m_arc_cfg.cfg().compress.raw_file_name){
 								bool is_supported_ext=false;
-								tstring ext=path::getExtension(m_arc_path);
+								tstring ext=path::getExtension(m_cur_file.arc_path);
 
 								for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 									if(m_arcdll_list[i]!=NULL){
@@ -3310,26 +3307,26 @@ bool Reces::run(CommandArgument& cmd_arg){
 									for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
 										if(m_spi_list[i]!=NULL){
 											//spiは拡張子で判断するためisSupportedArchive()を利用
-											is_supported_ext=m_spi_list[i]->isSupportedArchive(m_arc_path.c_str());
+											is_supported_ext=m_spi_list[i]->isSupportedArchive(m_cur_file.arc_path.c_str());
 											if(is_supported_ext)break;
 										}
 									}
 								}
 
 								if(is_supported_ext||
-								   str::isEqualStringIgnoreCase(path::getExtension(m_arc_path),_T("exe"))){
+								   str::isEqualStringIgnoreCase(path::getExtension(m_cur_file.arc_path),_T("exe"))){
 									//元書庫の拡張子が対応している書庫のものかexeであれば
 									//tar系を考慮しつつ拡張子削除
-									m_arc_path=reces::removeExtensionEx(m_arc_path);
+									m_cur_file.arc_path=reces::removeExtensionEx(m_cur_file.arc_path);
 								}
 							}
 						}
 
-						if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
-							remove_list.push_back(std::make_pair(m_arc_path,*ite_list));
-						}
-
 						if(!m_arc_cfg.cfg().compress.each_file){
+							if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE&&
+							   ite_list!=list_begin){
+								remove_list.push_back(std::make_pair(_T(""),*ite_list));
+							}
 							if(++ite_list!=list_end){
 								--ite_list;
 								continue;
@@ -3356,6 +3353,15 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 						::CloseHandle(m_arc_thread);
 
+						if(!m_cur_file.auto_renamed&&
+						   m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
+							if(m_arc_cfg.cfg().compress.each_file){
+								remove_list.push_back(std::make_pair(m_cur_file.arc_path,*ite_list));
+							}else{
+								remove_list.push_back(std::make_pair(m_cur_file.arc_path,*list_begin));
+							}
+						}
+
 						switch(result){
 							case ARC_SUCCESS:{
 								if(!isTerminated()){
@@ -3366,11 +3372,11 @@ bool Reces::run(CommandArgument& cmd_arg){
 											//分割ファイル
 											(path::getParentDirectory(*ite_list)+
 											 _T("\\")+
-											 path::getFileName(m_arc_path)+
+											 path::getFileName(m_cur_file.arc_path)+
 											 _T(".")+
 											 path::createPartExtension(1)):
 											//通常ファイル
-											 m_arc_path,
+											 m_cur_file.arc_path,
 											&orig_arc_timestamp);
 									}
 
@@ -3407,16 +3413,16 @@ bool Reces::run(CommandArgument& cmd_arg){
 								//分割ファイル
 								(path::getParentDirectory(*ite_list)+
 								 _T("\\")+
-								 path::getFileName(m_arc_path)+
+								 path::getFileName(m_cur_file.arc_path)+
 								 _T(".")+
 								 path::createPartExtension(1)):
 								//通常ファイル
-								 m_arc_path,
+								 m_cur_file.arc_path,
 								&orig_arc_timestamp);
 						}
-
-						if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
-							if(!str::isEqualStringIgnoreCase(m_arc_path,*ite_list)&&
+						if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE&&
+						   !m_cur_file.auto_renamed){
+							if(!str::isEqualStringIgnoreCase(m_cur_file.arc_path,*ite_list)&&
 								!fileoperation::removeSplitFile(ite_list->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
 								removeFile(ite_list->c_str());
 							}
@@ -3429,10 +3435,10 @@ bool Reces::run(CommandArgument& cmd_arg){
 						setExitCode(EXIT_FAILURE);
 						break;
 				}
-
-				//一時ディレクトリ内のファイル/ディレクトリを削除
-				fileoperation::deleteContents(m_arc_cfg.m_recmp_temp_dir.c_str());
-
+				if(m_arc_cfg.cfg().compress.each_file){
+					//一時ディレクトリ内のファイル/ディレクトリを削除
+					fileoperation::deleteContents(m_arc_cfg.m_recmp_temp_dir.c_str());
+				}
 			}
 
 			break;
@@ -3486,12 +3492,12 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 				if(!m_arc_cfg.cfg().compress.raw_file_name&&
 				   !m_arc_cfg.cfg().compress.output_file.empty()){
-					m_arc_path=*compress_file_list.begin();
+					m_cur_file.arc_path=*compress_file_list.begin();
 				}else{
 					if(path::isDirectory(compress_file_list.begin()->c_str())){
-						m_arc_path=path::removeTailSlash(*compress_file_list.begin());
+						m_cur_file.arc_path=path::removeTailSlash(*compress_file_list.begin());
 					}else{
-						m_arc_path=path::removeExtension(*compress_file_list.begin());
+						m_cur_file.arc_path=path::removeExtension(*compress_file_list.begin());
 					}
 				}
 
@@ -3511,11 +3517,11 @@ bool Reces::run(CommandArgument& cmd_arg){
 									//分割ファイル
 									(path::getParentDirectory(*compress_file_list.begin())+
 									 _T("\\")+
-									 path::getFileName(m_arc_path)+
+									 path::getFileName(m_cur_file.arc_path)+
 										 _T(".")+
 									 path::createPartExtension(1)):
 									//通常ファイル
-									 m_arc_path,
+									 m_cur_file.arc_path,
 									&orig_arc_timestamp);
 							}
 							removeFile(compress_file_list.begin()->c_str());
