@@ -943,8 +943,7 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 
 			case '}':{
 				//cfgファイルに書き出す[オプション解析後]
-				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())&&
-				   path::fileExists(&cfg_path[0])){
+				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())){
 					cfg_file.setFileName(&cfg_path[0]);
 					save_cfg=true;
 					dprintf(_T("save_cfg=true\n"));
