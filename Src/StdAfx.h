@@ -67,9 +67,9 @@ typedef std::basic_string<TCHAR>tstring;
 #endif //_tcstoll
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r21_Debug")
+	#define SOFTWARE_VERSION _T("0.00r22b_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r21")
+	#define SOFTWARE_VERSION _T("0.00r22b")
 #endif
 
 #include"sslib/sslib.h"

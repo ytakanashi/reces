@@ -585,16 +585,19 @@ bool Reces::runCommand(){
 	if(m_arc_cfg.cfg().recompress.run_command.interactive){
 		m_stdout.outputString(_T("コマンド: \n"));
 		TCHAR* line=NULL;
-		std::vector<TCHAR> buffer(1024);
+		std::vector<TCHAR> buffer(1024,'\0');
 
 		do{
 			m_stdout.outputString(_T(">"));
+			buffer.assign(buffer.size(),'\0');
 			line=_fgetts(&buffer[0],buffer.size(),stdin);
 			m_arc_cfg.cfg().recompress.run_command.command.assign(&buffer[0]);
 
 			if(m_arc_cfg.cfg().recompress.run_command.command.c_str()[0]!='\n'){
 				str::replaceCharacter(m_arc_cfg.cfg().recompress.run_command.command,_T('\n'),_T('\0'));
-				result=_tsystem(m_arc_cfg.cfg().recompress.run_command.command.c_str())!=-1;
+				if(strvalid(m_arc_cfg.cfg().recompress.run_command.command.c_str())){
+					result=_tsystem(m_arc_cfg.cfg().recompress.run_command.command.c_str())!=-1;
+				}
 			}else{
 				//Enterで抜ける
 				break;
@@ -3386,6 +3389,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 											++ite){
 											if(!str::isEqualStringIgnoreCase(ite->first,ite->second)&&
 											   !fileoperation::removeSplitFile(ite->second.c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
+												dprintf(_T("removeFile(%s)\n"),ite->second.c_str());
 												removeFile(ite->second.c_str());
 											}
 										}
@@ -3423,6 +3427,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 						   !m_cur_file.auto_renamed){
 							if(!str::isEqualStringIgnoreCase(m_cur_file.arc_path,*ite_list)&&
 								!fileoperation::removeSplitFile(ite_list->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
+								dprintf(_T("removeFile(%s)\n"),ite_list->c_str());
 								removeFile(ite_list->c_str());
 							}
 						}
@@ -3523,7 +3528,17 @@ bool Reces::run(CommandArgument& cmd_arg){
 									 m_cur_file.arc_path,
 									&orig_arc_timestamp);
 							}
-							removeFile(compress_file_list.begin()->c_str());
+							if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
+								for(std::list<tstring>::iterator ite=compress_file_list.begin(),
+									end=compress_file_list.end();
+									ite!=end;
+									++ite){
+									if(m_cur_file.arc_path!=*ite){
+										dprintf(_T("removeFile(%s)\n"),ite->c_str());
+										removeFile(ite->c_str());
+									}
+								}
+							}
 						}
 						break;
 
@@ -3578,6 +3593,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 						if(!isTerminated()){
 							if(m_arc_cfg.cfg().general.remove_source!=RMSRC_DISABLE){
 								if(!fileoperation::removeSplitFile(ite->c_str(),m_arc_cfg.cfg().general.remove_source==RMSRC_RECYCLEBIN)){
+									dprintf(_T("removeFile(%s)\n"),ite->c_str());
 									removeFile(ite->c_str());
 								}
 							}
