@@ -13,8 +13,8 @@ LRESULT CALLBACK controlMessageRouter(HWND handle,UINT message,WPARAM wparam,LPA
 	Control* ctrl=reinterpret_cast<Control*>(::GetWindowLongPtr(handle,GWLP_USERDATA));
 
 	if(ctrl!=NULL){
-		ctrl->handleMessage(handle,message,wparam,lparam);
-		return ::CallWindowProc(ctrl->default_proc(),handle,message,wparam,lparam);
+		return ctrl->handleMessage(handle,message,wparam,lparam);
+//		return ::CallWindowProc(ctrl->default_proc(),handle,message,wparam,lparam);
 	}
 	return 0;
 }

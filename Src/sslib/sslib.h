@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.33
+//                  sslib ver.1.34
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -94,6 +94,10 @@ template<typename T>bool strvalid(T str){
 #include"gui/Tab.h"
 #include"gui/ListView.h"
 #endif
+
+
+//Ver.1.34(140831)
+//reces Ver.0.00r22/gui4reces Ver.0.0.1.0で使用
 
 //Ver.1.33(140727)
 //reces Ver.0.00r21/gui4reces Ver.0.0.0.9で使用

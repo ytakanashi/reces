@@ -2,7 +2,7 @@
 //共通ヘッダファイル
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r21 by x@rgs
+//              reces Ver.0.00r22 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -67,9 +67,9 @@ typedef std::basic_string<TCHAR>tstring;
 #endif //_tcstoll
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r22b_Debug")
+	#define SOFTWARE_VERSION _T("0.00r22_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r22b")
+	#define SOFTWARE_VERSION _T("0.00r22")
 #endif
 
 #include"sslib/sslib.h"
