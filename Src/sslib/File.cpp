@@ -197,7 +197,7 @@ template<class T>bool File::readList(T* file_list,DWORD opt){
 	switch(codepage()){
 		case SJIS:{
 #ifdef UNICODE
-			file_buffer_tmp=str::sjis2utf16((char*)&file_buffer[0]);
+			str::sjis2utf16(&file_buffer_tmp,(char*)&file_buffer[0]);
 #else
 			file_buffer_tmp=(char*)&file_buffer[0];
 #endif
@@ -206,9 +206,9 @@ template<class T>bool File::readList(T* file_list,DWORD opt){
 
 		case UTF8:{
 #ifdef UNICODE
-			file_buffer_tmp=str::utf82utf16((char*)&file_buffer[0]);
+			str::utf82utf16(&file_buffer_tmp,(char*)&file_buffer[0]);
 #else
-			file_buffer_tmp=str::utf82sjis((char*)&file_buffer[0]);
+			str::utf82sjis(&file_buffer_tmp,(char*)&file_buffer[0]);
 #endif
 			break;
 		}
@@ -217,7 +217,7 @@ template<class T>bool File::readList(T* file_list,DWORD opt){
 #ifdef UNICODE
 			file_buffer_tmp=(wchar_t*)&file_buffer[0];
 #else
-			file_buffer_tmp=str::utf162sjis((char*)&file_buffer[0]);
+			str::utf162sjis(&file_buffer_tmp,(char*)&file_buffer[0]);
 #endif
 			break;
 		}
@@ -228,7 +228,7 @@ template<class T>bool File::readList(T* file_list,DWORD opt){
 #ifdef UNICODE
 			file_buffer_tmp=(wchar_t*)&dest_buffer[0];
 #else
-			file_buffer_tmp=str::utf162sjis((wchar_t*)&dest_buffer[0]);
+			str::utf162sjis(&file_buffer_tmp,(wchar_t*)&dest_buffer[0]);
 #endif
 			break;
 		}
@@ -325,7 +325,7 @@ DWORD File::writeEx(const TCHAR* format,...)const{
 	switch(codepage()){
 		case UTF8:
 		case SJIS:{
-			std::string multibyte_str=(codepage()==SJIS)?str::utf162sjis(buffer):str::utf162utf8(buffer);
+			std::string multibyte_str((codepage()==SJIS)?str::utf162sjis(buffer):str::utf162utf8(buffer));
 			written_chars=write(multibyte_str.c_str(),multibyte_str.length());
 			break;
 		}

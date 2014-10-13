@@ -24,8 +24,7 @@ CfgFile::CfgFile():m_empty(true),m_cfg_path(){
 	tstring cfg_path;
 
 	if(::GetModuleFileName(NULL,&full_path[0],full_path.size())){
-		cfg_path.assign(&full_path[0]);
-		cfg_path=path::removeExtension(cfg_path)+_T(".cfg");
+		cfg_path.assign(path::removeExtension(&full_path[0]))+=_T(".cfg");
 		setFileName(cfg_path.c_str());
 	}
 }

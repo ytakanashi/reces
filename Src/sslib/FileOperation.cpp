@@ -19,10 +19,11 @@ const long split_max_part=999+26*26*26;
 //対象ディレクトリが多階層に亘り存在しなくても作成
 bool createDirectory(const TCHAR* dir_path_orig,LPSECURITY_ATTRIBUTES security_attributes){
 	if(dir_path_orig==NULL)return false;
+	if(path::isDirectory(dir_path_orig))return true;
 	tstring dir_path(path::addTailSlash(dir_path_orig));
 	tstring current_path;
 
-	for(size_t i=0;i<dir_path.length();i++){
+	for(size_t i=0,length=dir_path.length();i<length;i++){
 #ifndef UNICODE
 			if(::IsDBCSLeadByte(dir_path.c_str()[i])){
 				++i;
@@ -73,7 +74,8 @@ bool renameFile(const TCHAR* src_orig,const TCHAR* dest_orig){
 		if(*ite_src==*ite_dest){
 			cur_path+=*ite_src+_T("\\");
 		}else{
-			tstring tmp(cur_path+*ite_src);
+			tstring tmp(cur_path);
+			tmp+=*ite_src;
 			cur_path+=*ite_dest;
 			if(!path::isRoot(cur_path.c_str())){
 				result=::MoveFileEx(path::addLongPathPrefix(tmp).c_str(),path::addLongPathPrefix(cur_path).c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)!=0;
@@ -257,8 +259,7 @@ void moveDirToDir(const TCHAR* src_path_orig,const TCHAR* dest_path_orig){
 	}
 	for(size_t i=0,list_size=schedule_list.size();i<list_size;i++){
 		if(schedule_list[i]!=NULL){
-			delete schedule_list[i];
-			schedule_list[i]=NULL;
+			SAFE_DELETE(schedule_list[i]);
 		}
 	}
 }
@@ -332,7 +333,7 @@ tstring generateTempDirName(const TCHAR* prefix,const TCHAR* base_dir){
 	::GetTempFileName(path::getTempDirPath().c_str(),prefix,0,&temp_dir[0]);
 	::DeleteFile(&temp_dir[0]);
 
-	return (base_dir!=NULL)?path::addTailSlash(base_dir)+path::getFileName(&temp_dir[0]):&temp_dir[0];
+	return (base_dir!=NULL)?path::addTailSlash(base_dir)+=path::getFileName(&temp_dir[0]):&temp_dir[0];
 }
 
 //一意の名前を持つディレクトリを作成
@@ -395,7 +396,7 @@ bool getFileVersion(const TCHAR* file_path,DWORD* major_ver,DWORD* minor_ver){
 
 			result=true;
 		}
-		delete[] ver_res;
+		SAFE_DELETE_ARRAY(ver_res);
 	}
 	return result;
 }
@@ -535,8 +536,8 @@ SPLITFILE_RESULT splitFile(const TCHAR* file_name,const TCHAR* param,const TCHAR
 		}
 		if(written_size<=0||total_written==src_file_size)break;
 	}
-	if(chunks)delete[] split_sizes;
-	delete[] file_buffer;
+	if(chunks)SAFE_DELETE_ARRAY(split_sizes);
+	SAFE_DELETE_ARRAY(file_buffer);
 	return SFRET_SUCCESS;
 }
 #endif
@@ -596,7 +597,7 @@ JOINFILE_RESULT joinFile(const TCHAR* file_name,const TCHAR* output_dir){
 	base_path=path::removeExtension(base_path);
 
 	if(output_dir!=NULL){
-		dest_path=path::addTailSlash(output_dir)+path::getFileName(base_path);
+		dest_path=path::addTailSlash(output_dir)+=path::getFileName(base_path);
 	}else{
 		dest_path=base_path;
 	}
@@ -630,7 +631,7 @@ JOINFILE_RESULT joinFile(const TCHAR* file_name,const TCHAR* output_dir){
 			dest_file_size+=written_size;
 		}
 	}
-	delete[] file_buffer;
+	SAFE_DELETE_ARRAY(file_buffer);
 
 	return JFRET_SUCCESS;
 }
@@ -713,7 +714,7 @@ bool extractFromResource(const HINSTANCE instance_handle,const WORD id,const TCH
 #endif
 
 //ショートカット作成
-bool createShortcut(const TCHAR* shortcut_file,const TCHAR* src_file,const TCHAR* args,const TCHAR* description,const TCHAR* working_dir){
+bool createShortcut(const TCHAR* shortcut_file,const TCHAR* src_file,const TCHAR* args,int show_cmd,const TCHAR* description,const TCHAR* working_dir){
 	bool result=false;
 
 	::CoInitialize(NULL);
@@ -726,6 +727,7 @@ bool createShortcut(const TCHAR* shortcut_file,const TCHAR* src_file,const TCHAR
 				if(args){
 					pShellLink->SetArguments(args);
 				}
+				pShellLink->SetShowCmd(show_cmd);
 				if(description){
 					pShellLink->SetDescription(description);
 				}

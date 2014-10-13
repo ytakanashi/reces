@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -11,54 +11,17 @@
 #define _ARCDLL_H_31B31910_3688_4592_9BC6_FF763D854A5C
 
 #include"ArcDllBase.h"
-#include"ArcCommon.h"
 #include"FileInfo.h"
 
 
+namespace callback{
+	inline BOOL __stdcall proc(HWND wnd_handle,UINT msg,UINT state,void* info);
+}
 
-class ArcDll:public ArcDllBase,public ArcCommon{
-public:
-	enum ARCDLL_RESULT{
-		//処理成功
-		ARCDLL_SUCCESS,
-		//リストファイルを開くことが出来ない
-		ARCDLL_CANNOT_OPEN_LISTFILE,
-		//マッチするファイルがない
-		ARCDLL_NO_MATCHES_FOUND,
-		//処理失敗
-		ARCDLL_FAILURE
-	};
-
-public:
-class ArcCallbackProcBase{
-public:
-	virtual bool operator()(HWND,UINT,UINT,void*)=0;
-	virtual ~ArcCallbackProcBase(){}
-};
-template<class T>
-class ArcCallbackProc:public ArcCallbackProcBase{
-public:
-	typedef bool(T::*Func)(HWND,UINT,UINT,void*);
-private:
-	T* m_class_ptr;
-	Func m_func;
-public:
-	ArcCallbackProc(T* class_ptr,Func func):m_class_ptr(class_ptr),m_func(func){}
-	virtual bool operator()(HWND wnd_handle,UINT msg,UINT state,void* info){
-		return (m_class_ptr->*m_func)(wnd_handle,msg,state,info);
-	}
-};
-
+class ArcDll:public ArcDllBase{
 public:
 	ArcDll(const TCHAR* library_name,const TCHAR* library_prefix,const TCHAR* supported_ext,const TCHAR* delimiter);
-	virtual ~ArcDll();
-
-private:
-	//内部の関数を呼び出すだけ
-	static ArcCallbackProcBase* m_arc_callback_proc;
-
-	//ライブラリから受け取った書庫処理状況の情報をそのまま利用する
-	bool m_original_extracting_info;
+	virtual ~ArcDll(){}
 
 protected:
 class ArcFileSearch{
@@ -101,7 +64,11 @@ public:
 			m_fileinfo.name.assign(buffer);
 		}else{
 			//GetFileName()が実装されていない場合、m_indIVIDUALINFO構造体より取得
-			m_fileinfo.name.assign((m_arcdll_ptr->isUnicodeMode())?sslib::str::utf82utf16(m_individual_info.szFileName):sslib::str::sjis2utf16(m_individual_info.szFileName));
+			if(m_arcdll_ptr->isUnicodeMode()){
+				sslib::str::utf82utf16(&m_fileinfo.name,m_individual_info.szFileName);
+			}else{
+				sslib::str::sjis2utf16(&m_fileinfo.name,m_individual_info.szFileName);
+			}
 		}
 
 		//属性
@@ -124,22 +91,21 @@ public:
 		MHD_SFX=1<<2,
 	};
 
-	enum{
-		default_compressionlevel=-1,
-		minimum_compressionlevel=-2,
-		maximum_compressionlevel=-3
-	};
+	//統合アーカイバライブラリである
+	bool isCAL();
 
+	//プラグインについての情報を取得
+	tstring getInformation();
 	//対応している圧縮形式であるか
 	bool isSupportedMethod(const TCHAR* mhd);
 	//対応している拡張子であるか
 	bool isSupportedExtension(const TCHAR* ext);
 	//対応している書庫であるか
-	virtual bool isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode=CHECKARCHIVE_BASIC);
+	virtual bool isSupportedArchive(const TCHAR* arc_path,int mode=CHECKARCHIVE_BASIC);
 	//対応している書庫であるか(CHECKARCHIVE_RAPID)
-	virtual bool isSupportedArchiveRapid(const TCHAR* arc_path_orig);
+	virtual bool isSupportedArchiveRapid(const TCHAR* arc_path);
 	//圧縮形式を取得(その形式に対応している場合のみ)
-	virtual tstring getCompressionMethod(const TCHAR* arc_path_orig);
+	virtual tstring getCompressionMethod(const TCHAR* arc_path);
 
 
 protected:
@@ -169,7 +135,7 @@ protected:
 	//書庫情報
 	struct ARC_INFO{
 		tstring arc_path;
-		std::list<fileinfo::FILEINFO> file_list;
+		std::vector<fileinfo::FILEINFO> file_list;
 		long long original_size;
 		struct RD{
 			bool double_dir;
@@ -211,7 +177,7 @@ protected:
 	bool createFilesList(const TCHAR* arc_path);
 
 	//リストにフィルタを適用
-	virtual void applyFilters(std::list<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse=false);
+	virtual void applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse=false);
 
 	//各種構造体のデータより属性を推測
 	DWORD guessAttribute(const char* attr_str_orig,const char* file_name_orig);
@@ -233,8 +199,8 @@ protected:
 	virtual bool outputFileListToConsole(const fileinfo::FILEINFO& fileinfo,int opt=0);
 
 	//リストファイル若しくはコンソールにファイルリストを出力
-	virtual bool outputFileList(const std::list<fileinfo::FILEINFO>& fileinfo_list,const sslib::File& list_file,int opt=0);
-	virtual bool outputFileList(const std::list<fileinfo::FILEINFO>& fileinfo_list,int opt=0);
+	virtual bool outputFileList(const std::vector<fileinfo::FILEINFO>& fileinfo_list,const sslib::File& list_file,int opt=0);
+	virtual bool outputFileList(const std::vector<fileinfo::FILEINFO>& fileinfo_list,int opt=0);
 
 	//実装してねゾーン
 	//--[ここから]--
@@ -242,21 +208,22 @@ protected:
 	virtual DWORD writeFormatedPath(const sslib::File& list_file,const TCHAR* base_dir,const TCHAR* file_path)=0;
 	//書庫内ファイルリストを整形してファイルに書き出す
 	virtual bool writeFormatedList(const sslib::File& list_file,const tstring& full_path)=0;
-public:
-	virtual ARCDLL_RESULT compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg=NULL)=0;
-	virtual ARCDLL_RESULT extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg=NULL)=0;
-	virtual void list(const TCHAR* arc_path_orig,tstring* log_msg=NULL)=0;
 	//--[ここまで]--
-	virtual ARCDLL_RESULT del(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
-	virtual bool test(const TCHAR* arc_path,tstring* log_msg=NULL);
 
+public:
+	inline ARC_TYPE type(){return isCAL()?CAL:UNKNOWN;}
+
+	//設定ダイアログを表示
+	virtual bool configurationDialog(HWND wnd_handle=NULL);
+
+	virtual ARC_RESULT del(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
+	virtual ARC_RESULT test(const TCHAR* arc_path);
 	virtual int sendCommands(const TCHAR* commands,tstring* log_msg=NULL);
-
 
 protected:
 	bool callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info);
 private:
-	static BOOL __stdcall callbackProc(HWND wnd_handle,UINT msg,UINT state,void* info);
+	friend BOOL __stdcall callback::proc(HWND wnd_handle,UINT msg,UINT state,void* info);
 
 	//ライブラリから情報を受け取るコールバック関数を設定
 	bool setArchiveProc();
@@ -266,6 +233,12 @@ protected:
 	virtual bool open(const TCHAR* file_name,const DWORD mode=0);
 	//書庫を閉じる
 	virtual bool close();
+
+protected:
+	//共通パスを取り除く
+	//解凍レンジ「パス情報を最適化して展開する」相当
+	//level=-1で共通パスをすべて取り除く
+	bool excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_dir,int level=-1);
 
 public:
 	//指定された書庫ファイルに格納されているファイル数を得ます
@@ -277,11 +250,10 @@ public:
 	//Dllのバージョンを表示
 	tstring getVersionStr();
 
-	//ライブラリから情報を受け取るコールバック関数を設定
-	bool setCallbackProc(unsigned int progress_thread_id,bool original_extracting_info=false);
-
-	//コールバック関数の設定を解除
-	bool clearCallbackProc();
+	//ライブラリから情報を受け取るスレッドを設定
+	bool setCallback(unsigned int progress_thread_id);
+	//コールバックの設定を解除
+	void clearCallback();
 
 	//書庫に含まれるファイルの一覧をリストファイルに出力
 	bool outputFileList(const TCHAR* arc_path,sslib::File list_file,int opt=0);
@@ -302,4 +274,5 @@ public:
 	inline const COMPRESSION_METHOD& getMethod()const{return m_compression_methods[m_method_index];}
 	inline const COMPRESSION_METHOD& getMethod(size_t index)const{return m_compression_methods[index];}
 };
+
 #endif //_ARCDLL_H_31B31910_3688_4592_9BC6_FF763D854A5C

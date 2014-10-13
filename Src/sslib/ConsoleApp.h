@@ -5,6 +5,7 @@
 
 
 extern int main();
+#define STDOUT app()->stdOut()
 
 namespace sslib{
 class ConsoleApp:public misc::CtrlCEvent{

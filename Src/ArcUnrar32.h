@@ -1,7 +1,7 @@
 ﻿//ArcUnrar32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,17 +10,13 @@
 #ifndef _ARCUNRAR32_H_A541EA38_5734_4b18_88BC_F731657CCEBC
 #define _ARCUNRAR32_H_A541EA38_5734_4b18_88BC_F731657CCEBC
 
-#include"ArcCfg.h"
 #include"ArcDll.h"
 
 
 class ArcUnrar32:public ArcDll{
 public:
-	ArcUnrar32(ArcCfg& arc_cfg);
+	ArcUnrar32();
 	~ArcUnrar32(){}
-
-private:
-	ArcCfg& m_arc_cfg;
 
 protected:
 	//圧縮対象ファイルのパスを整形してファイルに書き出す
@@ -37,10 +33,10 @@ protected:
 public:
 	//対応している書庫であるか
 	bool isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode=CHECKARCHIVE_BASIC);
-	ARCDLL_RESULT compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg=NULL);
-	ARCDLL_RESULT extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg=NULL);
-	void list(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
-	bool test(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
+	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
+	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);
+	ARC_RESULT list(const TCHAR* arc_path);
+	ARC_RESULT test(const TCHAR* arc_path);
 
 	//処理を中止する
 	void abort();

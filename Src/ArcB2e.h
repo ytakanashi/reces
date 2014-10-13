@@ -1,7 +1,7 @@
 ﻿//ArcB2e.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,7 +10,6 @@
 #ifndef _ARCB2E_H_3F99C027_3723_46ab_8320_2B24426F74F6
 #define _ARCB2E_H_3F99C027_3723_46ab_8320_2B24426F74F6
 
-#include"ArcCfg.h"
 #include"ArcDll.h"
 
 
@@ -31,11 +30,8 @@ public:
 	};
 
 public:
-	ArcB2e(ArcCfg& arc_cfg);
+	ArcB2e();
 	~ArcB2e(){}
-
-private:
-	ArcCfg& m_arc_cfg;
 
 protected:
 	//圧縮対象ファイルのパスを整形してファイルに書き出す
@@ -43,9 +39,9 @@ protected:
 	//圧縮対象ファイルリストを整形してファイルに書き出す
 	bool writeFormatedList(const sslib::File& list_file,const tstring& full_path);
 public:
-	ARCDLL_RESULT compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg=NULL);
-	ARCDLL_RESULT extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg=NULL);
-	void list(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
+	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
+	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);
+	ARC_RESULT list(const TCHAR* arc_path);
 
 	//b2eスクリプトのあるディレクトリを指定
 	bool setScriptDirectory(const TCHAR* dir_path);

@@ -38,6 +38,8 @@ bool Library::load(){
 bool Library::load(const TCHAR* library_name,const TCHAR* library_prefix){
 	unload();
 
+	if(library_name==NULL)return load();
+
 	if((m_module=::LoadLibrary(library_name))!=NULL){
 		m_library_name=library_name;
 		setPrefix(library_prefix);

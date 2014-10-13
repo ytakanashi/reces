@@ -354,7 +354,7 @@ int Console::getStringWidth(const TCHAR*str){
 		}
 	}
 
-	delete[] char_type;
+	SAFE_DELETE_ARRAY(char_type);
 
 	return result;
 }

@@ -1,24 +1,35 @@
-﻿//ArcCommon.cpp
+﻿//Archiver.cpp
 //書庫操作共通
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
 
 #include"StdAfx.h"
-#include"ArcCommon.h"
+#include"Archiver.h"
 
 using namespace sslib;
 
 //プログレスバー更新通知
-const UINT ArcCommon::WM_UPDATE_PROGRESSBAR=::RegisterWindowMessage(_T("WM_UPDATE_PROGRESSBAR"));
+const UINT Archiver::WM_UPDATE_PROGRESSBAR=::RegisterWindowMessage(_T("WM_UPDATE_PROGRESSBAR"));
 
+Archiver::Archiver(const TCHAR* library_name):
+	Library(library_name),
+	m_progress_thread_id(0),
+	m_background_mode(false){
+}
+
+Archiver::Archiver(const TCHAR* library_name,const TCHAR* library_prefix):
+	Library(library_name,library_prefix),
+	m_progress_thread_id(0),
+	m_background_mode(false){
+}
 
 //属性フィルタを適用(DIR属性が格納されていない書庫の為に...)
-bool ArcCommon::applyAttributeFilters(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter){
+bool Archiver::applyAttributeFilters(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter){
 	bool matched=true;
 
 	//i:ad[ディレクトリに格納されているファイル/空ディレクトリ]
@@ -71,7 +82,7 @@ bool ArcCommon::applyAttributeFilters(const fileinfo::FILEINFO& fileinfo,const f
 }
 
 //フィルタにマッチするか
-bool ArcCommon::matchFilters(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter){
+bool Archiver::matchFilters(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter){
 	bool matched=true;
 
 	if(!filefilter.empty()||!file_ex_filter.empty()){
@@ -88,7 +99,7 @@ bool ArcCommon::matchFilters(const fileinfo::FILEINFO& fileinfo,const fileinfo::
 }
 
 //true=break/false=continue
-bool ArcCommon::RedundantDir::operator()(const fileinfo::FILEINFO& fileinfo){
+bool Archiver::RedundantDir::operator()(const fileinfo::FILEINFO& fileinfo){
 	tstring buffer(fileinfo.name.c_str());
 
 	//パス区切り文字を'/'に統一する
@@ -105,6 +116,7 @@ bool ArcCommon::RedundantDir::operator()(const fileinfo::FILEINFO& fileinfo){
 			//foo <-
 			m_has_dir=true;
 		}else{
+			//ファイル
 			if(!m_checked_first_file){
 				//最初のファイルを確認
 				//二つ目のファイルが見つかれば二重ディレクトリの疑いは晴れる
@@ -138,7 +150,7 @@ bool ArcCommon::RedundantDir::operator()(const fileinfo::FILEINFO& fileinfo){
 }
 
 //配下のファイルを利用してディレクトリのタイムスタンプを復元
-bool ArcCommon::DirTimeStamp::recover(const TCHAR* dir,const FILETIME& arc_ft,const std::vector<tstring>& recovered_dirs){
+bool Archiver::DirTimeStamp::recover(const TCHAR* dir,const FILETIME& arc_ft,const std::vector<tstring>& recovered_dirs){
 	static const FILETIME m_arc_ft=arc_ft;
 	static const std::vector<tstring> m_recovered_dirs=recovered_dirs;
 
@@ -181,11 +193,11 @@ bool ArcCommon::DirTimeStamp::recover(const TCHAR* dir,const FILETIME& arc_ft,co
 	return false;
 }
 
-bool ArcCommon::DirTimeStamp::addIncompleteDir(const tstring& output_dir,const tstring& name,std::vector<tstring>* incomplete_dirs){
+bool Archiver::DirTimeStamp::addIncompleteDir(const tstring& output_dir,const tstring& name,std::vector<tstring>* incomplete_dirs){
 	if(incomplete_dirs==NULL)return false;
 
 	for(size_t pos=0;;++pos){
-		pos=name.find_first_of('\\',pos);
+		pos=name.find_first_of(_T("\\/"),pos);
 		tstring dir(name.substr(0,pos));
 		if(path::isDirectory((output_dir+dir).c_str())){
 			incomplete_dirs->push_back(output_dir+dir);
@@ -197,50 +209,123 @@ bool ArcCommon::DirTimeStamp::addIncompleteDir(const tstring& output_dir,const t
 	return true;
 }
 
-//共通パスを取り除く
-//解凍レンジ「パス情報を最適化して展開する」相当
-//level=-1で共通パスをすべて取り除く
-bool ArcCommon::excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_dir,int level){
-	if(output_dir==NULL||target_dir==NULL)return false;
-
-	static const int m_level=level;
-
+//書庫内の最小共通区切り文字数を取得
+int Archiver::countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths){
+	static int next_pos=0;
 	struct l{
-		static bool search(tstring* result,const TCHAR* dir,int cur_level){
-			if(result==NULL||(m_level!=-1&&m_level<=cur_level))return false;
-			FileSearch fs;
+		static tstring extractComponent(const tstring& str,int pos){
+			int first_pos=pos,second_pos=first_pos;
 
-			fs.first(dir);
-			if(!fs.next())return false;
-			if(fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
-				bool dir_attr=fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY);
-				tstring filename(fs.filepath());
+			++(next_pos=second_pos=str.find_first_of(_T("\\/"),first_pos));
+			if(second_pos==tstring::npos)next_pos=second_pos=str.length();
+			return (first_pos!=tstring::npos&&second_pos!=tstring::npos&&first_pos<second_pos)?
+				str.substr(first_pos,second_pos-first_pos):
+				_T("");
+		}
 
-				if(!fs.next()){
-					if(dir_attr){
-						if(!search(result,filename.c_str(),++cur_level)){
-							*result=filename;
-						}
-						return true;
+		static bool isCommonComponent(const std::vector<fileinfo::FILEINFO>& paths,int max_length_index,int pt){
+			bool result=false;
+
+			tstring max_length_str=(extractComponent(paths[max_length_index].name,pt));
+			for(size_t i=0,size=paths.size();i<size;i++){
+				if(i!=max_length_index){
+					tstring str=(extractComponent(paths[i].name,pt));
+
+					//自分と異なる空白以外の要素があれば終了
+					if(!str.empty()&&max_length_str!=str){
+						result=false;
+						break;
+					}else{
+						result=true;
+						continue;
 					}
 				}
 			}
-			return false;
+			return result;
 		}
 	};
 
-	tstring common_dir(target_dir);
-	int cur_level=0;
+	next_pos=0;
 
-	l::search(&common_dir,target_dir,cur_level);
+	if(paths.size()<2)return 0;
 
-	fileoperation::moveDirToDir(common_dir.c_str(),output_dir);
+	int result=0;
+	int max_length_index=0;
 
+	{
+		int max_length=0;
+
+		for(size_t i=0,size=paths.size();i<size;i++){
+			int cur_length=str::countCharacter(paths[i].name,_T("\\/"));
+			if(cur_length>max_length){max_length=cur_length;max_length_index=i;}
+		}
+	}
+
+	for(int size=str::countCharacter(paths[max_length_index].name,_T("\\/"));result<size;++result){
+		if(!l::isCommonComponent(paths,max_length_index,next_pos))break;
+	}
+
+	return result;
+}
+
+//書庫内の最小共通区切り文字数を取得
+int Archiver::countDelimiter(const TCHAR* arc_path,const std::vector<fileinfo::FILEINFO>& arc_info){
+	int delimiter_count=0;
+
+	if(!createFilesList(arc_path))return delimiter_count;
+
+	delimiter_count=countCommonComponents(arc_info);
+
+	return delimiter_count;
+}
+
+//プラグインについての情報を取得
+tstring Archiver::getInformation(){
+	if(!isLoaded())load();
+
+	DWORD major_ver=0;
+	DWORD minor_ver=0;
+
+	if(fileoperation::getFileVersion(name().c_str(),&major_ver,&minor_ver)){
+
+		VariableArgument va(_T("%-12s ver.%d.%02d.%02d.%02d\n"),
+							name().c_str(),
+							major_ver>>16,
+							major_ver&0xffff,
+							minor_ver>>16,
+							minor_ver&0xffff);
+		return va.get();
+	}
+	return _T("");
+}
+
+//ライブラリから情報を受け取るスレッドを設定
+bool Archiver::setCallback(unsigned int progress_thread_id){
+	clearCallback();
+
+	m_progress_thread_id=progress_thread_id;
 	return true;
 }
 
+//コールバックの設定を解除
+void Archiver::clearCallback(){
+	m_progress_thread_id=0;
+}
+
+//バックグラウンドモードか否か
+bool Archiver::getBackgroundMode(){
+	return m_background_mode;
+}
+
+//バックグラウンドモードを設定
+bool Archiver::setBackgroundMode(bool mode){
+	return ::SetPriorityClass(::GetCurrentProcess(),
+							  (m_background_mode=mode)?IDLE_PRIORITY_CLASS:NORMAL_PRIORITY_CLASS
+							  )!=0;
+}
+
 //処理を中止する
-void ArcCommon::abort(){
+void Archiver::abort(){
 	if(!isTerminated()){
 		terminateApp();
 	}

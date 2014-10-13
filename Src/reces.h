@@ -1,7 +1,7 @@
 ﻿//reces.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,10 +10,10 @@
 #ifndef _RECES_H_2B802DBE_E1B2_48c1_B8C1_A1C87CBBF681
 #define _RECES_H_2B802DBE_E1B2_48c1_B8C1_A1C87CBBF681
 
-#include"ArcCfg.h"
 #include"ArcDll.h"
 #include"ArcB2e.h"
 #include"Spi.h"
+#include"Wcx.h"
 #include"PrivateProfile.h"
 
 
@@ -21,11 +21,11 @@
 class Reces:public sslib::ConsoleApp{
 public:
 	Reces():
-		m_arc_cfg(),
 		m_arcdll_list(),
 		m_b2e_dll(NULL),
 		m_cal_dll(NULL),
 		m_spi_list(),
+		m_wcx_list(),
 		m_split_temp_dir(),
 		m_original_cur_dir(),
 		m_hook_dll_module(NULL),
@@ -36,7 +36,6 @@ public:
 		m_cur_file(),
 		m_arc_thread(NULL),
 		m_arc_dll(NULL),
-		m_spi(NULL),
 		m_progressbar_thread(),
 		m_dialog_hook_thread(){}
 	~Reces(){}
@@ -72,9 +71,6 @@ private:
 		ARC_FAILURE,
 	};
 
-	//書庫に関する設定
-	ArcCfg m_arc_cfg;
-
 	std::vector<ArcDll*> m_arcdll_list;
 
 	//B2e.dllは特別扱い
@@ -84,6 +80,8 @@ private:
 	ArcDll* m_cal_dll;
 
 	std::vector<Spi*> m_spi_list;
+
+	std::vector<Wcx*> m_wcx_list;
 
 	//分割/結合用一時ディレクトリ
 	tstring m_split_temp_dir;
@@ -146,9 +144,7 @@ private:
 	//書庫処理スレッド
 	HANDLE m_arc_thread;
 	//動作中ライブラリ
-	ArcDll* m_arc_dll;
-	//動作中spi
-	Spi* m_spi;
+	Archiver* m_arc_dll;
 
 	//クリティカルセクション
 	sslib::misc::CriticalSection m_arc_cs,
@@ -170,11 +166,15 @@ private:
 	//ファイルを削除(設定依存)
 	bool removeFile(const TCHAR* file_path);
 	//m_arcdll_list読み込み
-	void loadLib();
+	void loadArcLib();
 	//m_arcdll_list解放
-	void freeLib();
+	void freeArcLib();
 	//ライブラリリストの7-zip32とLMZIP32を入れ替える
 	bool swap7ZLMZIP(bool sort_by_name=true);
+	//読み込みと対応チェック
+	template<typename I>Archiver* loadAndCheck(I ite,I end,const TCHAR* arc_path,bool* loaded_library,bool ext_check=false,const TCHAR* libname=NULL,const TCHAR* full_libname=NULL);
+	//spiやwcxなどプラグインの読み込みと対応チェック
+	template<typename T>Archiver* LoadAndCheckPlugin(std::vector<T*>* plugin_list,const TCHAR* arc_path,bool* loaded_library,const tstring& plugin_dir,const TCHAR* libname,Archiver::ARC_TYPE type);
 	//'od'と'of'を反映した作成する書庫のパスを作成
 	ARC_RESULT arcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg);
 	//書庫にタイムスタンプをコピー
@@ -184,6 +184,8 @@ private:
 
 	//*.spiを検索、リストに追加
 	bool searchSpi(const TCHAR* search_dir);
+	//*.wcxを検索、リストに追加
+	bool searchWcx(const TCHAR* search_dir);
 
 	bool parseOptions(sslib::CommandArgument& cmd_arg);
 

@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -20,7 +20,7 @@ ArcDllBase::ArcDllBase():m_arc_handle(NULL),m_unicode_mode(false){
 }
 
 ArcDllBase::ArcDllBase(const TCHAR* library_name,const TCHAR* library_prefix):
-	Library(library_name,library_prefix),
+	Archiver(library_name,library_prefix),
 	m_arc_handle(NULL),
 	m_unicode_mode(false){
 }
@@ -34,7 +34,7 @@ bool ArcDllBase::load(){
 	m_unicode_mode=false;
 	m_arc_handle=NULL;
 
-	if(Library::load()){
+	if(Archiver::load()){
 #ifdef UNICODE
 		setUnicodeMode(true);
 #endif
@@ -48,7 +48,7 @@ bool ArcDllBase::load(const TCHAR* library_name,const TCHAR* library_prefix){
 	m_unicode_mode=false;
 	m_arc_handle=NULL;
 
-	if(Library::load(library_name,library_prefix)){
+	if(Archiver::load(library_name,library_prefix)){
 #ifdef UNICODE
 		setUnicodeMode(true);
 #endif
@@ -60,7 +60,7 @@ bool ArcDllBase::load(const TCHAR* library_name,const TCHAR* library_prefix){
 //ライブラリを解放
 bool ArcDllBase::unload(){
 	if(isLoaded())closeArchive();
-	return Library::unload();
+	return Archiver::unload();
 }
 
 //関数対応を操作
@@ -147,6 +147,7 @@ bool ArcDllBase::getRunning(){
 	return result;
 }
 
+#if 0
 //DLLがバックグラウンドモードか否かを得ます
 bool ArcDllBase::getBackGroundMode(){
 	typedef BOOL(WINAPI*GETBACKGROUNDMODE_PTR)();
@@ -174,6 +175,7 @@ bool ArcDllBase::setBackGroundMode(const bool back_ground_mode){
 	}
 	return result;
 }
+#endif
 
 //指定ファイルがサポートしている書庫ファイルとして
 //正しいかどうかを返します

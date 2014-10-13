@@ -21,6 +21,7 @@ int locateFirstCharacter(const TCHAR* str,int search_char,int begin_index=0);
 int locateLastCharacter(const TCHAR* str,int search_char);
 //文字列から文字を検索し、その個数を返す
 int countCharacter(const TCHAR* str,int search_char);
+int countCharacter(const tstring& str,const tstring& search_str);
 
 //大文字小文字であるかを無視して文字を比較する
 bool isEqualCharacterIgnoreCase(const int char1,const int char2);

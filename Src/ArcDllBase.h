@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,6 +10,7 @@
 #ifndef _ARCDLLBASE_H_AAC042AD_D5D0_4E78_9923_8A687752895E
 #define _ARCDLLBASE_H_AAC042AD_D5D0_4E78_9923_8A687752895E
 
+#include"Archiver.h"
 
 #ifndef FNAME_MAX32
 	#define FNAME_MAX32 512
@@ -359,7 +360,7 @@ typedef	HGLOBAL	HARCHIVE;
 	typedef ARCHIVERPROC* LPARCHIVERPROC;
 #endif
 
-class ArcDllBase:public sslib::Library{
+class ArcDllBase:public Archiver{
 public:
 	ArcDllBase();
 	ArcDllBase(const TCHAR* library_name,const TCHAR* library_prefix);
@@ -396,10 +397,12 @@ public:
 	bool setCursorMode(const bool cursor_info);
 	//現在DLLが動作中か否かを得ます
 	bool getRunning();
+#if 0
 	//DLLがバックグラウンドモードか否かを得ます
 	bool getBackGroundMode();
 	//DLLのバックグラウンドモードを設定します
 	bool setBackGroundMode(const bool back_ground_mode);
+#endif
 	//指定ファイルがサポートしている書庫ファイルとして正しいかどうかを返します
 	bool checkArchive(const TCHAR* file_name,const int mode=CHECKARCHIVE_BASIC);
 	//指定された書庫ファイルに格納されているファイル数を得ます

@@ -14,9 +14,9 @@
     <ClCompile Include="Arc7-zip32.cpp" />
     <ClCompile Include="ArcB2e.cpp" />
     <ClCompile Include="ArcCAL.cpp" />
-    <ClCompile Include="ArcCommon.cpp" />
     <ClCompile Include="ArcDll.cpp" />
     <ClCompile Include="ArcDllBase.cpp" />
+    <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="ArcLMZip32.cpp" />
     <ClCompile Include="ArcTar32.cpp" />
     <ClCompile Include="ArcUniso32.cpp" />
@@ -42,15 +42,17 @@
     <ClCompile Include="sslib\ProgressBar.cpp" />
     <ClCompile Include="sslib\String.cpp" />
     <ClCompile Include="sslib\VariableArgument.cpp" />
+    <ClCompile Include="Wcx.cpp" />
+    <ClCompile Include="WcxBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arc7-zip32.h" />
     <ClInclude Include="ArcB2e.h" />
     <ClInclude Include="ArcCAL.h" />
     <ClInclude Include="ArcCfg.h" />
-    <ClInclude Include="ArcCommon.h" />
     <ClInclude Include="ArcDll.h" />
     <ClInclude Include="ArcDllBase.h" />
+    <ClInclude Include="Archiver.h" />
     <ClInclude Include="ArcLMZip32.h" />
     <ClInclude Include="ArcTar32.h" />
     <ClInclude Include="ArcUniso32.h" />
@@ -79,6 +81,8 @@
     <ClInclude Include="sslib\String.h" />
     <ClInclude Include="sslib\VariableArgument.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="Wcx.h" />
+    <ClInclude Include="WcxBase.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\reces.ico" />

@@ -43,8 +43,8 @@ int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPST
 
 	int exit_code=app_ptr->getMainWnd()->getExitCode();
 
-	delete app_ptr->m_main_wnd;
-	delete app_ptr;
+	SAFE_DELETE(app_ptr->m_main_wnd);
+	SAFE_DELETE(app_ptr);
 
 	return exit_code;
 }

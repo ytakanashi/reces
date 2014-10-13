@@ -62,6 +62,21 @@ int countCharacter(const TCHAR* str,int search_char){
 	return result;
 }
 
+int countCharacter(const tstring& str,const tstring& search_str){
+	int result=0;
+
+	for(tstring::const_iterator ite=str.begin(),end=str.end();ite!=end;++ite){
+		for(tstring::const_iterator ite_search_str=search_str.begin(),
+			end_search_str=search_str.end();
+			ite_search_str!=end_search_str;++ite_search_str){
+			if(*ite==*ite_search_str){
+				++result;
+			}
+		}
+	}
+	return result;
+}
+
 //大文字小文字であるかを無視して文字を比較する
 bool isEqualCharacterIgnoreCase(const int char1,const int char2){
 	return (::CharLower(reinterpret_cast<LPTSTR>(MAKELONG(char1,0)))==CharLower(reinterpret_cast<LPTSTR>(MAKELONG(char2,0))));
@@ -355,10 +370,10 @@ bool decodeUnicodeEscape(std::wstring& result,const TCHAR*src,bool support_32bit
 
 	if(decoded){
 		result.assign(decoded_str);
-		delete[] decoded_str;
+		SAFE_DELETE_ARRAY(decoded_str);
 		return true;
 	}else{
-		delete[] decoded_str;
+		SAFE_DELETE_ARRAY(decoded_str);
 		return false;
 	}
 	return true;

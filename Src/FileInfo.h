@@ -1,7 +1,7 @@
 ﻿//FileInfo.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -29,8 +29,7 @@ struct FILEINFO{
 	}
 	//ディレクトリ若しくはサブ以下のファイル
 	bool isDirectory()const{
-		return name.rfind(_T("/"))==name.length()-1||
-				 name.rfind(_T("\\"))==name.length()-1||
+		return name.find_last_of(_T("\\/"))==name.length()-1||
 				 attr&FILE_ATTRIBUTE_DIRECTORY;
 	}
 };
@@ -115,11 +114,13 @@ private:
 	bool delNode(FILEINFONODE**pp);
 	bool delV(FILEINFONODE**pp,const TCHAR* name);
 
+	int countSibling(FILEINFONODE**pp);
+
 	void disableLine(FILEINFONODE**ppe);
 	void makeIncludeTree(FILEINFONODE** pp,DWORD options=TO_NONE,const TCHAR* base_dir=NULL);
 	void makeExcludeTree(FILEINFONODE** pp,DWORD options=TO_NONE,const TCHAR* base_dir=NULL);
 
-	void tree2list(FILEINFONODE**pp,std::list<fileinfo::FILEINFO>& list);
+	void tree2list(FILEINFONODE**pp,std::vector<fileinfo::FILEINFO>& list);
 
 #ifdef _DEBUG
 	void msgTree(FILEINFONODE** pp);
@@ -129,10 +130,11 @@ public:
 	bool add(const TCHAR* parent,const TCHAR* name,const fileinfo::FILEINFO* fileinfo=NULL);
 	bool del(const TCHAR* name);
 	void destroy(FILEINFONODE**pp);
+	int countContents(int depth);
 	bool createFileTree(const TCHAR* search_dir_orig,const TCHAR* wildcard=_T("*"),bool include_dir=false);
 	void makeIncludeTree(DWORD options=TO_NONE,const TCHAR* base_dir=NULL);
 	void makeExcludeTree(DWORD options=TO_NONE,const TCHAR* base_dir=NULL);
-	bool tree2list(std::list<fileinfo::FILEINFO>& list);
+	bool tree2list(std::vector<fileinfo::FILEINFO>& list);
 
 #ifdef _DEBUG
 	void msgTree();

@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -47,6 +47,8 @@ bool Config::save(){
 	write(_T("General"),_T("SpiDir"),m_cfg.general.spi_dir.c_str(),!m_cfg.general.spi_dir.empty());
 	//b2eがあるディレクトリ
 	write(_T("General"),_T("B2eDir"),m_cfg.general.b2e_dir.c_str(),!m_cfg.general.b2e_dir.empty());
+	//wcxがあるディレクトリ
+	write(_T("General"),_T("WcxDir"),m_cfg.general.wcx_dir.c_str(),!m_cfg.general.wcx_dir.empty());
 	//Unicodeエスケープシーケンスをデコードする
 	write(_T("General"),_T("DecodeUnicodeEscape"),m_cfg.general.decode_uesc,m_cfg.general.decode_uesc!=m_default_cfg.general.decode_uesc);
 
@@ -240,6 +242,8 @@ bool Config::load(){
 	getStringDataEx(_T("General"),_T("SpiDir"),&m_cfg.general.spi_dir);
 	//b2eのあるディレクトリ
 	getStringDataEx(_T("General"),_T("B2eDir"),&m_cfg.general.b2e_dir);
+	//wcxのあるディレクトリ
+	getStringDataEx(_T("General"),_T("WcxDir"),&m_cfg.general.wcx_dir);
 	//Unicodeエスケープシーケンスをデコードする
 	getDataEx(_T("General"),_T("DecodeUnicodeEscape"),&m_cfg.general.decode_uesc);
 

@@ -41,6 +41,8 @@ tstring getCurrentDirectory();
 tstring getParentDirectory(const tstring& file_path_orig);
 //ルートディレクトリを取得
 tstring getRootDirectory(const tstring& file_path);
+//ルートディレクトリを削除
+tstring removeRootDirectory(const tstring& file_path);
 //実行ファイル名を取得
 tstring getExeName();
 //実行ファイルのディレクトリを取得

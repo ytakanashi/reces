@@ -1,7 +1,7 @@
 ﻿//SpiBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,7 +10,9 @@
 #define _SPIBASE_H_D89DCC07_6B0E_47f3_A2DB_FA78710F5EC3
 
 
-class SpiBase:public sslib::Library{
+#include"Archiver.h"
+
+class SpiBase:public Archiver{
 public:
 	enum SPI_ERROR{
 		SPI_ERROR_NOT_IMPLEMENT=-1,//その機能はインプリメントされていない
@@ -32,12 +34,6 @@ public:
 		SPI_GET_ABOUT,
 		SPI_GET_EXT,
 		SPI_GET_TYPE,
-	};
-
-	enum SPI_TYPE{
-		SPI_NOT=0,
-		SPI_IN,
-		SPI_AM,
 	};
 
 	enum SPI_INPUT_TYPE{
@@ -64,7 +60,7 @@ typedef struct fileInfo{
 
 public:
 	SpiBase(){}
-	SpiBase(const TCHAR* library_name):Library(library_name){}
+	SpiBase(const TCHAR* library_name):Archiver(library_name){}
 	virtual ~SpiBase(){}
 
 public:

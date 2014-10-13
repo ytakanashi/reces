@@ -1,7 +1,7 @@
 ﻿//ArcTar32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,7 +10,6 @@
 #ifndef _ARCTAR32_H_F6AD9D40_6466_4578_93AA_C6FEBAFBFF26
 #define _ARCTAR32_H_F6AD9D40_6466_4578_93AA_C6FEBAFBFF26
 
-#include"ArcCfg.h"
 #include"ArcDll.h"
 
 
@@ -46,11 +45,10 @@ enum{
 	ARCHIVETYPE_ARXZ=48+11
 };
 public:
-	ArcTar32(ArcCfg& arc_cfg);
+	ArcTar32();
 	~ArcTar32(){}
 
 private:
-	ArcCfg& m_arc_cfg;
 	long long m_file_size;
 	DWORD m_write_size;
 	DWORD m_last_write_size;
@@ -69,8 +67,8 @@ public:
 	//圧縮形式を取得(その形式に対応している場合のみ)
 	tstring getCompressionMethod(const TCHAR* arc_path_orig);
 
-	ARCDLL_RESULT compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg=NULL);
-	ARCDLL_RESULT extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg=NULL);
-	void list(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
+	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
+	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);
+	ARC_RESULT list(const TCHAR* arc_path);
 };
 #endif //_ARCTAR32_H_F6AD9D40_6466_4578_93AA_C6FEBAFBFF26

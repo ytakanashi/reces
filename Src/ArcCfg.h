@@ -1,7 +1,7 @@
 ﻿//ArcCfg.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -13,6 +13,8 @@
 #include"PrivateProfile.h"
 
 
+#define CFG ArcCfg::inst()->cfg()
+#define ARCCFG ArcCfg::inst()
 
 class ArcCfg{
 public:
@@ -23,6 +25,8 @@ public:
 		m_password_input_cancelled(false),
 		m_hook_dialog_type(0),
 		m_extracting_wnd_handle(NULL){}
+	ArcCfg(const ArcCfg& i){}
+	ArcCfg& operator=(const ArcCfg& i){}
 	~ArcCfg(){}
 
 private:
@@ -44,10 +48,14 @@ public:
 
 	//進捗ダイアログのハンドル
 	//今のところXacrett.dllの為のみに用意
-	//ArcDll側にsetCallbackProc()で渡す
+	//ArcDll側にsetCallback()で渡す
 	HWND m_extracting_wnd_handle;
 
 public:
+	static ArcCfg* inst(){
+		static ArcCfg inst;
+		return &inst;
+	}
 	inline CONFIG& cfg(){return m_config.cfg();}
 };
 #endif //_ARCCFG_H_78EA4B91_D18C_449e_8947_3D2048E1188C

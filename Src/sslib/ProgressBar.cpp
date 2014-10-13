@@ -121,7 +121,7 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 				break;
 			}
 		}
-		delete buffer;
+		SAFE_DELETE(buffer);
 
 		//進捗率表示行へ
 		m_begin_pos.Y--;

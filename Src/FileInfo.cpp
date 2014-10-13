@@ -2,7 +2,7 @@
 //ファイル情報の操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -318,13 +318,12 @@ bool matchFilters(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilte
 //注意:file_pathではなくフルパスでマッチ判断
 bool matchFilters(const TCHAR* file_path,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,const TCHAR* base_dir){
 	bool result=false;
-	fileinfo::FILEINFO* fileinfo=new fileinfo::FILEINFO();
+	fileinfo::FILEINFO fileinfo=fileinfo::FILEINFO();
 
-	if(getFileInfo(fileinfo,file_path)){
-		result=matchFilters(*fileinfo,filefilter,file_ex_filter,base_dir);
+	if(getFileInfo(&fileinfo,file_path)){
+		result=matchFilters(fileinfo,filefilter,file_ex_filter,base_dir);
 	}
 
-	delete fileinfo;
 	return result;
 }
 
@@ -347,7 +346,7 @@ bool FileTree::addV(const TCHAR* name,const fileinfo::FILEINFO* fileinfo){
 				(*pp_new)->fileinfo=*fileinfo;
 				result=true;
 			}
-			delete fileinfo;
+			SAFE_DELETE(fileinfo);
 		}else{
 			(*pp_new)->fileinfo=*fileinfo;
 			result=true;
@@ -360,6 +359,7 @@ bool FileTree::addV(FILEINFONODE**pp,const TCHAR* parent_dir,const TCHAR* name,c
 	if(!*pp)return false;
 
 	bool result=false;
+
 	if(lstrcmp((*pp)->fileinfo.name.c_str(),parent_dir)==0){
 		FILEINFONODE**pp_new=&(*pp)->child;
 
@@ -375,7 +375,7 @@ bool FileTree::addV(FILEINFONODE**pp,const TCHAR* parent_dir,const TCHAR* name,c
 					(*pp_new)->parent_dir=*pp;
 					result=true;
 				}
-				delete fileinfo;
+				SAFE_DELETE(fileinfo);
 			}else{
 				(*pp_new)->fileinfo=*fileinfo;
 				(*pp_new)->parent_dir=*pp;
@@ -403,8 +403,7 @@ bool FileTree::delNode(FILEINFONODE**pp){
 	if(!(*pp)->child){
 		FILEINFONODE* del_data=*pp;
 		*pp=(*pp)->next;
-		delete del_data;
-		del_data=NULL;
+		SAFE_DELETE(del_data);
 	}else{
 		delNode(&(*pp)->child);
 		delNode(pp);
@@ -435,8 +434,26 @@ void FileTree::destroy(FILEINFONODE**pp){
 	destroy(&(*pp)->next);
 
 	FILEINFONODE*del_node=*pp;
-	delete del_node;
-	del_node=NULL;
+	SAFE_DELETE(del_node);
+}
+
+int FileTree::countSibling(FILEINFONODE**pp){
+	if(!*pp)return -1;
+
+	int count=0;
+
+	while(*pp)if(*(pp=&(*pp)->next))++count;
+	return count;
+}
+
+int FileTree::countContents(int depth){
+	FILEINFONODE**pp=&m_tree;
+
+	for(int i=0;i<depth;++i){
+		pp=&(*pp)->child;
+		if(!*pp)return -1;
+	}
+	return countSibling(pp)+1;
 }
 
 void FileTree::disableLine(FILEINFONODE**pp){
@@ -596,7 +613,7 @@ void FileTree::makeExcludeTree(DWORD options,const TCHAR* base_dir){
 	makeExcludeTree(&m_tree,options,base_dir);
 }
 
-void FileTree::tree2list(FILEINFONODE**pp,std::list<fileinfo::FILEINFO>& list){
+void FileTree::tree2list(FILEINFONODE**pp,std::vector<fileinfo::FILEINFO>& list){
 	if(!*pp)return;
 
 	if(!(*pp)->disable){
@@ -606,7 +623,7 @@ void FileTree::tree2list(FILEINFONODE**pp,std::list<fileinfo::FILEINFO>& list){
 	tree2list(&(*pp)->next,list);
 }
 
-bool FileTree::tree2list(std::list<fileinfo::FILEINFO>& list){
+bool FileTree::tree2list(std::vector<fileinfo::FILEINFO>& list){
 	tree2list(&m_tree,list);
 	return !list.empty();
 }

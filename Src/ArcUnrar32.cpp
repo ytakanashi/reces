@@ -2,7 +2,7 @@
 //Unrar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -11,6 +11,7 @@
 #include"StdAfx.h"
 #include"ArcUnrar32.h"
 #include"Hook/HookArchiverDialog.h"
+#include"ArcCfg.h"
 
 using namespace sslib;
 
@@ -125,12 +126,11 @@ namespace hook{
 }
 }
 
-ArcUnrar32::ArcUnrar32(ArcCfg& arc_cfg):
+ArcUnrar32::ArcUnrar32():
 	ArcDll(_T("Unrar32"),
 			_T("Unrar"),
 			_T("rar"),
-			_T("\\")),
-	m_arc_cfg(arc_cfg){
+			_T("\\")){
 		hook::this_ptr=this;
 		COMPRESSION_METHOD method[]={
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
@@ -145,23 +145,23 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 	tstring arc_path(arc_path_orig);
 	replaceDelimiter(arc_path);
 
-	bool use_password=!m_arc_cfg.cfg().general.password_list.empty();
+	bool use_password=!CFG.general.password_list.empty();
 
-	std::list<tstring>::iterator ite_password_list=m_arc_cfg.cfg().general.password_list.begin();
-	std::list<tstring>::iterator password_list_end=m_arc_cfg.cfg().general.password_list.end();
+	std::list<tstring>::iterator ite_password_list=CFG.general.password_list.begin();
+	std::list<tstring>::iterator password_list_end=CFG.general.password_list.end();
 
 	do{
 		if(use_password&&ite_password_list!=password_list_end){
-			m_arc_cfg.cfg().general.password=*ite_password_list;
+			CFG.general.password=*ite_password_list;
 			++ite_password_list;
 		}else{
-			m_arc_cfg.cfg().general.password.clear();
+			CFG.general.password.clear();
 		}
 		result=checkArchive(arc_path.c_str(),mode);
 	}while(!isTerminated()&&
-		   !m_arc_cfg.m_password_input_cancelled&&
+		   !ARCCFG->m_password_input_cancelled&&
 		   !result&&
-		   m_arc_cfg.m_hook_dialog_type==HOOK_UNRAR32_PASSWORD);
+		   ARCCFG->m_hook_dialog_type==HOOK_UNRAR32_PASSWORD);
 
 	return result;
 
@@ -178,20 +178,20 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
-	bool use_password=!m_arc_cfg.cfg().general.password_list.empty();
+	bool use_password=!CFG.general.password_list.empty();
 
-	std::list<tstring>::iterator ite_password_list=m_arc_cfg.cfg().general.password_list.begin();
-	std::list<tstring>::iterator password_list_end=m_arc_cfg.cfg().general.password_list.end();
+	std::list<tstring>::iterator ite_password_list=CFG.general.password_list.begin();
+	std::list<tstring>::iterator password_list_end=CFG.general.password_list.end();
 
 	int dll_ret=-1;
 	m_processing_info.clear();
 
 	do{
 		if(use_password&&ite_password_list!=password_list_end){
-			m_arc_cfg.cfg().general.password=*ite_password_list;
+			CFG.general.password=*ite_password_list;
 			++ite_password_list;
 		}else{
-			m_arc_cfg.cfg().general.password.clear();
+			CFG.general.password.clear();
 		}
 
 		//実行
@@ -206,82 +206,84 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 }
 
 //書庫をテスト
-bool ArcUnrar32::test(const TCHAR* arc_path_orig,tstring* log_msg){
+ArcUnrar32::ARC_RESULT ArcUnrar32::test(const TCHAR* arc_path){
 	bool result=false;
-	if(isSupportedArchive(arc_path_orig)){
-		tstring arc_path(arc_path_orig);
-		replaceDelimiter(arc_path);
 
-		result=checkArchive(arc_path.c_str(),CHECKARCHIVE_FULLCRC|CHECKARCHIVE_ALL);
+	if(isSupportedArchive(arc_path)){
+		tstring arc_path_str(arc_path);
+		replaceDelimiter(arc_path_str);
+
+		result=checkArchive(arc_path_str.c_str(),CHECKARCHIVE_FULLCRC|CHECKARCHIVE_ALL);
 	}
 
-	if(log_msg){
-		log_msg->assign((result)?_T("正常な書庫です。"):_T("異常な書庫です。"));
+	if(!CFG.no_display.no_log){
+		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),
+								   (result)?_T("正常な書庫です。"):_T("異常な書庫です。"));
 	}
 
-	return result;
+	return (result)?ARC_SUCCESS:ARC_FAILURE;
 }
 
-ArcDll::ARCDLL_RESULT ArcUnrar32::compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg){
-	return ARCDLL_FAILURE;
+ArcUnrar32::ARC_RESULT ArcUnrar32::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
+	return ARC_FAILURE;
 }
 
-ArcDll::ARCDLL_RESULT ArcUnrar32::extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg){
-	tstring arc_path(arc_path_orig);
-	tstring output_dir(output_dir_orig);
+ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
+	tstring arc_path_str(arc_path);
+	tstring output_dir_str(output_dir);
 
 	hook::progress_done=hook::progress_total=0;
 
-	bool use_filter=!m_arc_cfg.cfg().general.filefilter.empty()||!m_arc_cfg.cfg().general.file_ex_filter.empty();
+	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 	tstring list_file_path;
 	File list_file;
 
 	if(use_filter){
 		//リストファイルを作成
-		list_file_path=fileoperation::createTempFile(_T("rar"),m_arc_cfg.m_list_temp_dir.c_str());
+		list_file_path=fileoperation::createTempFile(_T("rar"),ARCCFG->m_list_temp_dir.c_str());
 		//BOMなしファイルを出力
 		if(!list_file.open(list_file_path.c_str(),
 						   OPEN_ALWAYS,
 						   GENERIC_WRITE,
 						   0,
 						   (isUnicodeMode())?static_cast<File::CODEPAGE>(File::UTF8|File::NO_BOM):File::SJIS)){
-			return ARCDLL_CANNOT_OPEN_LISTFILE;
+			return ARC_CANNOT_OPEN_LISTFILE;
 		}
 
 		//リストファイルに解凍対象ファイルのみ出力
-		if(!outputFileListEx(arc_path.c_str(),
-							 m_arc_cfg.cfg().general.filefilter,
-							 m_arc_cfg.cfg().general.file_ex_filter,
+		if(!outputFileListEx(arc_path_str.c_str(),
+							 CFG.general.filefilter,
+							 CFG.general.file_ex_filter,
 							 list_file)){
-			return ARCDLL_NO_MATCHES_FOUND;
+			return ARC_NO_MATCHES_FOUND;
 		}
 		list_file.close();
 	}
 
-	if(!m_arc_cfg.cfg().no_display.no_information&&
-	   !app()->stdOut().isRedirected()){
-		hook::progress_total=getFileCount(arc_path.c_str());
+	if(!CFG.no_display.no_information&&
+	   !STDOUT.isRedirected()){
+		hook::progress_total=getFileCount(arc_path_str.c_str());
 	}
 
 	tstring output_dir_bak;
 	fileoperation::scheduleDelete schedule_delete;
 
-	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
-		output_dir_bak=output_dir;
-		output_dir=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir.c_str()));
+	if(CFG.compress.exclude_base_dir!=0){
+		output_dir_bak=output_dir_str;
+		output_dir_str=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir_str.c_str()));
 
 		//一時ディレクトリ削除予約
-		schedule_delete.set(output_dir.c_str());
+		schedule_delete.set(output_dir_str.c_str());
 		//削除漏れ対策
-		m_arc_cfg.m_schedule_list.push_back(new fileoperation::scheduleDelete(output_dir.c_str()));
+		ARCCFG->m_schedule_list.push_back(new fileoperation::scheduleDelete(output_dir_str.c_str()));
 	}
 
 	//区切り文字置換
-	replaceDelimiter(arc_path);
-	replaceDelimiter(output_dir);
+	replaceDelimiter(arc_path_str);
+	replaceDelimiter(output_dir_str);
 
 	VariableArgument cmd_line(_T("%s %s %s %s %s%s%s %s%s%s"),
-							  (!m_arc_cfg.cfg().general.ignore_directory_structures)?_T("-x"):_T("-x -e"),
+							  (!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -e"),
 							  _T("-r -o -y"),
 							  //-r     : 再帰的に検索
 
@@ -290,13 +292,13 @@ ArcDll::ARCDLL_RESULT ArcUnrar32::extract(const TCHAR* arc_path_orig,const TCHAR
 
 							  _T("--"),
 
-							  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-							  arc_path.c_str(),
-							  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
+							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+							  arc_path_str.c_str(),
+							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-							  (str::containsWhiteSpace(output_dir))?_T("\""):_T(""),
-							  output_dir.c_str(),
-							  (str::containsWhiteSpace(output_dir))?_T("\""):_T(""));
+							  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
+							  output_dir_str.c_str(),
+							  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""));
 
 	if(use_filter){
 		cmd_line.add(_T(" @%s%s%s"),
@@ -308,25 +310,25 @@ ArcDll::ARCDLL_RESULT ArcUnrar32::extract(const TCHAR* arc_path_orig,const TCHAR
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path);
 
-	bool use_password=!m_arc_cfg.cfg().general.password_list.empty();
+	bool use_password=!CFG.general.password_list.empty();
 
-	std::list<tstring>::iterator ite_password_list=m_arc_cfg.cfg().general.password_list.begin();
-	std::list<tstring>::iterator password_list_end=m_arc_cfg.cfg().general.password_list.end();
+	std::list<tstring>::iterator ite_password_list=CFG.general.password_list.begin();
+	std::list<tstring>::iterator password_list_end=CFG.general.password_list.end();
 
-	hook::install(m_arc_cfg.cfg().no_display.no_information||app()->stdOut().isRedirected());
+	hook::install(CFG.no_display.no_information||STDOUT.isRedirected());
 
 	int dll_ret=-1;
 	m_processing_info.clear();
 
 	do{
 		if(use_password){
-			m_arc_cfg.cfg().general.password=*ite_password_list;
+			CFG.general.password=*ite_password_list;
 		}
 
 		//実行
-		if(m_arc_cfg.cfg().no_display.no_log||log_msg==NULL){
+		if(CFG.no_display.no_log||log_msg==NULL){
 			tstring dummy(1,'\0');
 
 			dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
@@ -338,51 +340,49 @@ ArcDll::ARCDLL_RESULT ArcUnrar32::extract(const TCHAR* arc_path_orig,const TCHAR
 		   dll_ret>=ERROR_START&&
 		   (++ite_password_list)!=password_list_end);
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	hook::uninstall();
 
 	//パス区切り文字を'\\'に
-	if(*m_delimiter=='/')str::replaceCharacter(output_dir,'/','\\');
+	if(*m_delimiter=='/')str::replaceCharacter(output_dir_str,'/','\\');
 
-	if(m_arc_cfg.cfg().general.decode_uesc){
+	if(CFG.general.decode_uesc){
 		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		decodeUnicodeEscape(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.ignore_directory_structures);
+		decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
 	}
 
-	if(!m_arc_cfg.cfg().general.ignore_directory_structures&&
-	   m_arc_cfg.cfg().extract.directory_timestamp){
+	if(!CFG.general.ignore_directory_structures&&
+	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		recoverDirectoryTimestamp(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.decode_uesc,true);
+		recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
 	}
 
 	unload();
 
-	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
+	if(CFG.compress.exclude_base_dir!=0){
 		//共通パスを取り除く
-		excludeCommonPath(output_dir_bak.c_str(),output_dir.c_str(),m_arc_cfg.cfg().compress.exclude_base_dir);
+		excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
 	}
 
-	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
+	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
 }
 
-void ArcUnrar32::list(const TCHAR* arc_path_orig,tstring* log_msg){
-	if(log_msg==NULL)return;
+ArcUnrar32::ARC_RESULT ArcUnrar32::list(const TCHAR* arc_path){
+	tstring arc_path_str(arc_path);
 
-	tstring arc_path(arc_path_orig);
+	replaceDelimiter(arc_path_str);
 
-	replaceDelimiter(arc_path);
-
-	if(m_arc_cfg.cfg().output_file_list.api_mode){
-		outputFileListEx(arc_path.c_str(),m_arc_cfg.cfg().general.filefilter,m_arc_cfg.cfg().general.file_ex_filter,(m_arc_cfg.cfg().general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
+	if(CFG.output_file_list.api_mode){
+		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,(CFG.general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
 	}else{
-		bool use_filter=!m_arc_cfg.cfg().general.filefilter.empty()||!m_arc_cfg.cfg().general.file_ex_filter.empty();
+		bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 		tstring list_file_path;
 		File list_file;
 
 		if(use_filter){
 			//リストファイルを作成
-			list_file_path=fileoperation::createTempFile(_T("rar"),m_arc_cfg.m_list_temp_dir.c_str());
+			list_file_path=fileoperation::createTempFile(_T("rar"),ARCCFG->m_list_temp_dir.c_str());
 			//BOMなしファイルを出力
 			if(list_file.open(list_file_path.c_str(),
 							  OPEN_ALWAYS,
@@ -390,9 +390,9 @@ void ArcUnrar32::list(const TCHAR* arc_path_orig,tstring* log_msg){
 							  0,
 							  (isUnicodeMode())?static_cast<File::CODEPAGE>(File::UTF8|File::NO_BOM):File::SJIS)){
 				//リストファイルに列挙対象ファイルのみ出力
-				outputFileListEx(arc_path.c_str(),
-								 m_arc_cfg.cfg().general.filefilter,
-								 m_arc_cfg.cfg().general.file_ex_filter,
+				outputFileListEx(arc_path_str.c_str(),
+								 CFG.general.filefilter,
+								 CFG.general.file_ex_filter,
 								 list_file);
 				list_file.close();
 			}else{
@@ -405,9 +405,9 @@ void ArcUnrar32::list(const TCHAR* arc_path_orig,tstring* log_msg){
 								  _T("-q"),
 								  _T("--"),
 
-								  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-								  arc_path.c_str(),
-								  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""));
+								  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+								  arc_path_str.c_str(),
+								  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
 
 		if(use_filter){
 			cmd_line.add(_T(" @%s%s%s"),
@@ -418,8 +418,12 @@ void ArcUnrar32::list(const TCHAR* arc_path_orig,tstring* log_msg){
 
 		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
-		execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		tstring log_msg;
+
+		execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
+	return ARC_SUCCESS;
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す
@@ -444,7 +448,7 @@ void ArcUnrar32::abort(){
 
 //ArcDll::callbackProcV()に投げるための準備
 bool ArcUnrar32::preCallback(const TCHAR* file_name,const TCHAR* progress){
-	if(m_arc_cfg.cfg().no_display.no_information||app()->stdOut().isRedirected())return false;
+	if(CFG.no_display.no_information||STDOUT.isRedirected())return false;
 
 	EXTRACTINGINFOEX64 arc_info={};
 

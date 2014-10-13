@@ -49,8 +49,6 @@
 		<Unit filename="ArcCAL.cpp" />
 		<Unit filename="ArcCAL.h" />
 		<Unit filename="ArcCfg.h" />
-		<Unit filename="ArcCommon.cpp" />
-		<Unit filename="ArcCommon.h" />
 		<Unit filename="ArcDll.cpp" />
 		<Unit filename="ArcDll.h" />
 		<Unit filename="ArcDllBase.cpp" />
@@ -67,6 +65,8 @@
 		<Unit filename="ArcUnrar32.h" />
 		<Unit filename="ArcXacrett.cpp" />
 		<Unit filename="ArcXacrett.h" />
+		<Unit filename="Archiver.cpp" />
+		<Unit filename="Archiver.h" />
 		<Unit filename="FileInfo.cpp" />
 		<Unit filename="FileInfo.h" />
 		<Unit filename="PrivateProfile.cpp" />
@@ -76,6 +76,10 @@
 		<Unit filename="SpiBase.cpp" />
 		<Unit filename="SpiBase.h" />
 		<Unit filename="StdAfx.h" />
+		<Unit filename="Wcx.cpp" />
+		<Unit filename="Wcx.h" />
+		<Unit filename="WcxBase.cpp" />
+		<Unit filename="WcxBase.h" />
 		<Unit filename="reces.cpp" />
 		<Unit filename="reces.h" />
 		<Unit filename="resources\reces.ico" />

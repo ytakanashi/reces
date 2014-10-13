@@ -2,7 +2,7 @@
 //対応外の統合アーカイバライブラリ操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,32 +10,32 @@
 
 #include"StdAfx.h"
 #include"ArcCAL.h"
+#include"ArcCfg.h"
 
 using namespace sslib;
 
 
-ArcCAL::ArcCAL(ArcCfg& arc_cfg,const TCHAR* library_name,const TCHAR* library_prefix):
+ArcCAL::ArcCAL(const TCHAR* library_name,const TCHAR* library_prefix):
 	ArcDll(library_name,
 			library_prefix,
 			_T("*"),
-			_T("\\")),
-	m_arc_cfg(arc_cfg){
+			_T("\\")){
 		COMPRESSION_METHOD method[]={
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
 		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
 }
 
-ArcDll::ARCDLL_RESULT ArcCAL::compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg){
-	return ARCDLL_FAILURE;
+ArcCAL::ARC_RESULT ArcCAL::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
+	return ARC_FAILURE;
 }
 
-ArcDll::ARCDLL_RESULT ArcCAL::extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg){
-	return ARCDLL_FAILURE;
+ArcCAL::ARC_RESULT ArcCAL::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
+	return ARC_FAILURE;
 }
 
-void ArcCAL::list(const TCHAR* arc_path_orig,tstring* log_msg){
-	return;
+ArcCAL::ARC_RESULT ArcCAL::list(const TCHAR* arc_path){
+	return ARC_FAILURE;
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す

@@ -36,7 +36,7 @@ int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPST
 		app_ptr->cleanup();
 	}
 
-	delete app_ptr;
+	SAFE_DELETE(app_ptr);
 
 	return exit_code;
 }

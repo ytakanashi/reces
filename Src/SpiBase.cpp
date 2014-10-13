@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -24,7 +24,7 @@ int SpiBase::getPluginInfo(int info_no,tstring* result_buffer,int buffer_length)
 		std::vector<char> buffer(buffer_length);
 
 		result=GetPluginInfo(info_no,&buffer[0],buffer_length);
-		result_buffer->assign(str::sjis2utf16(std::string(&buffer[0])));
+		str::sjis2utf16(result_buffer,std::string(&buffer[0]));
 	}
 	return result;
 }

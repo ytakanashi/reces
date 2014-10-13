@@ -50,7 +50,7 @@ template<class T>bool FileDialog::doModalOpen(T* file_list,HWND wnd_handle,bool 
 				if(file.length()==0)break;
 
 				//dir+file_name
-				if(file_list!=NULL)file_list->push_back(path::addTailSlash(parent_dir)+file);
+				if(file_list!=NULL)file_list->push_back(path::addTailSlash(parent_dir)+=file);
 
 				//次のファイルへ
 				i+=file.length()+1;

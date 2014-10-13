@@ -66,7 +66,7 @@ int main(){
 
 	exit_code=app_ptr->getExitCode();
 
-	delete app();
+	SAFE_DELETE(app_ptr);
 
 	return exit_code;
 }

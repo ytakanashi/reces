@@ -2,7 +2,7 @@
 //B2e.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,32 +10,32 @@
 
 #include"StdAfx.h"
 #include"ArcB2e.h"
+#include"ArcCfg.h"
 
 using namespace sslib;
 
 
-ArcB2e::ArcB2e(ArcCfg& arc_cfg):
+ArcB2e::ArcB2e():
 	ArcDll(_T("b2e32"),
 			_T("B2E"),
 			_T("*"),
-			_T("\\")),
-	m_arc_cfg(arc_cfg){
+			_T("\\")){
 		COMPRESSION_METHOD method[]={
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
 		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
 }
 
-ArcDll::ARCDLL_RESULT ArcB2e::compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg){
-	return ARCDLL_FAILURE;
+ArcB2e::ARC_RESULT ArcB2e::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
+	return ARC_FAILURE;
 }
 
-ArcDll::ARCDLL_RESULT ArcB2e::extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg){
-	return ARCDLL_FAILURE;
+ArcB2e::ARC_RESULT ArcB2e::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
+	return ARC_FAILURE;
 }
 
-void ArcB2e::list(const TCHAR* arc_path_orig,tstring* log_msg){
-	return;
+ArcB2e::ARC_RESULT ArcB2e::list(const TCHAR* arc_path){
+	return ARC_FAILURE;
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す
@@ -82,9 +82,11 @@ bool ArcB2e::getScriptName(const UINT index,tstring* result_buffer,DWORD buffer_
 		std::vector<char> buffer_multibyte(buffer_size);
 
 		result=p_ScriptGetName(index,&buffer_multibyte[0],buffer_size);
-		result_buffer->assign((isUnicodeMode())?
-							  str::utf82utf16(&buffer_multibyte[0]):
-							  str::sjis2utf16(&buffer_multibyte[0]));
+		if(isUnicodeMode()){
+			str::utf82utf16(result_buffer,&buffer_multibyte[0]);
+		}else{
+			str::sjis2utf16(result_buffer,&buffer_multibyte[0]);
+		}
 	}
 	return result;
 }
@@ -114,9 +116,11 @@ bool ArcB2e::getExtractExtensions(const UINT index,const UINT ext_index,tstring*
 		std::vector<char> buffer_multibyte(buffer_size);
 
 		result=p_ScriptGetExtractExtensions(index,ext_index,&buffer_multibyte[0],buffer_size);
-		result_buffer->assign((isUnicodeMode())?
-							  str::utf82utf16(&buffer_multibyte[0]):
-							  str::sjis2utf16(&buffer_multibyte[0]));
+		if(isUnicodeMode()){
+			str::utf82utf16(result_buffer,&buffer_multibyte[0]);
+		}else{
+			str::sjis2utf16(result_buffer,&buffer_multibyte[0]);
+		}
 	}
 	return result;
 }
@@ -131,9 +135,11 @@ bool ArcB2e::getCompressType(const UINT index,tstring* result_buffer,DWORD buffe
 		std::vector<char> buffer_multibyte(buffer_size);
 
 		result=p_ScriptGetCompressType(index,&buffer_multibyte[0],buffer_size);
-		result_buffer->assign((isUnicodeMode())?
-							  str::utf82utf16(&buffer_multibyte[0]):
-							  str::sjis2utf16(&buffer_multibyte[0]));
+		if(isUnicodeMode()){
+			str::utf82utf16(result_buffer,&buffer_multibyte[0]);
+		}else{
+			str::sjis2utf16(result_buffer,&buffer_multibyte[0]);
+		}
 	}
 	return result;
 }
@@ -148,9 +154,11 @@ bool ArcB2e::getCompressMethod(const UINT index,const UINT mhd_index,tstring* re
 		std::vector<char> buffer_multibyte(buffer_size);
 
 		result=p_ScriptGetCompressMethod(index,mhd_index,&buffer_multibyte[0],buffer_size);
-		result_buffer->assign((isUnicodeMode())?
-							  str::utf82utf16(&buffer_multibyte[0]):
-							  str::sjis2utf16(&buffer_multibyte[0]));
+		if(isUnicodeMode()){
+			str::utf82utf16(result_buffer,&buffer_multibyte[0]);
+		}else{
+			str::sjis2utf16(result_buffer,&buffer_multibyte[0]);
+		}
 	}
 	return result;
 }

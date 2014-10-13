@@ -117,7 +117,7 @@ bool removeSplitFile(const TCHAR* file_name,bool recycle_bin);
 bool extractFromResource(const HINSTANCE instance_handle,const WORD id,const TCHAR*type,const TCHAR* file_name);
 
 //ショートカット作成
-bool createShortcut(const TCHAR* shortcut_file,const TCHAR* src_file,const TCHAR* args=NULL,const TCHAR* description=NULL,const TCHAR* working_dir=NULL);
+bool createShortcut(const TCHAR* shortcut_file,const TCHAR* src_file,const TCHAR* args=NULL,int show_cmd=SW_SHOWNORMAL,const TCHAR* description=NULL,const TCHAR* working_dir=NULL);
 
 //namespace fileoperation
 }

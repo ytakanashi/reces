@@ -183,6 +183,28 @@ tstring getRootDirectory(const tstring& file_path){
 	}
 }
 
+//ルートディレクトリを削除
+tstring removeRootDirectory(const tstring& file_path){
+	int slash_pos=-1;
+
+	if(file_path.empty())return file_path;
+
+	slash_pos=str::locateLastCharacter(file_path.c_str(),'\\');
+	if(slash_pos==-1)slash_pos=str::locateLastCharacter(file_path.c_str(),'/');
+	if(slash_pos==-1||
+	   (file_path[1]==':'&&slash_pos==2&&file_path[3]=='\0')){
+		//区切り文字が含まれないかルート
+		return _T("");
+	}else{
+		slash_pos=str::locateFirstCharacter(file_path.c_str(),'\\');
+		if(slash_pos==-1)slash_pos=str::locateFirstCharacter(file_path.c_str(),'/');
+		if(slash_pos==2&&file_path[2]==':'&&file_path[3]!='\0'){//C:\foo\*
+			++slash_pos;
+		}
+		return file_path.substr(slash_pos+1);
+	}
+}
+
 //実行ファイル名を取得
 tstring getExeName(){
 	std::vector<TCHAR> buffer(MAX_PATH);

@@ -2,7 +2,7 @@
 //Unlha32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,6 +10,7 @@
 
 #include"StdAfx.h"
 #include"ArcUnlha32.h"
+#include"ArcCfg.h"
 #include"FileInfo.h"
 #include"PrivateProfile.h"
 
@@ -19,12 +20,11 @@ using namespace sslib;
 
 
 
-ArcUnlha32::ArcUnlha32(ArcCfg& arc_cfg):
+ArcUnlha32::ArcUnlha32():
 	ArcDll(_T("Unlha32"),
 			_T("Unlha"),
 			_T("lzh.lha.lzs"),
 			_T("/")),
-	m_arc_cfg(arc_cfg),
 	m_file_size(0),
 	m_write_size(0),
 	m_last_write_size(0),
@@ -42,67 +42,70 @@ ArcUnlha32::ArcUnlha32(ArcCfg& arc_cfg):
 }
 
 //書庫をテスト
-bool ArcUnlha32::test(const TCHAR* arc_path_orig,tstring* log_msg){
-	tstring arc_path(arc_path_orig);
+ArcUnlha32::ARC_RESULT ArcUnlha32::test(const TCHAR* arc_path){
+	tstring arc_path_str(arc_path);
 
-	replaceDelimiter(arc_path);
+	replaceDelimiter(arc_path_str);
 
 	VariableArgument cmd_line(_T("%s %s %s%s%s"),
 							  _T("t"),
 							  _T("-n1"),
-							  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-							  arc_path.c_str(),
-							  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""));
+							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+							  arc_path_str.c_str(),
+							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
 	int dll_ret=-1;
-	if(!m_arc_cfg.cfg().no_display.no_information&&
-	   !app()->stdOut().isRedirected()){
+	if(!CFG.no_display.no_information&&
+	   !STDOUT.isRedirected()){
 		m_processing_info.clear();
 	}
 
-	if(log_msg==NULL){
+	if(CFG.no_display.no_log){
 		//実行
 		tstring dummy(1,'\0');
 
 		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		tstring log_msg;
+
+		dll_ret=execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 
-	return dll_ret==0;
+	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
 }
 
-ArcDll::ARCDLL_RESULT ArcUnlha32::compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg){
-	if(m_compression_methods[m_method_index].mhd==NULL)return ARCDLL_FAILURE;
+ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
+	if(m_compression_methods[m_method_index].mhd==NULL)return ARC_FAILURE;
 
-	tstring arc_path(arc_path_orig);
+	tstring arc_path_str(arc_path);
 
 	m_file_size=m_write_size=m_last_write_size=m_last_hash=0;
 
 	//階層無視圧縮ではリスト出力が必要!
-	if(m_arc_cfg.cfg().general.ignore_directory_structures&&
-	   (m_arc_cfg.cfg().general.filefilter.empty()&&m_arc_cfg.cfg().general.file_ex_filter.empty())){
-		m_arc_cfg.cfg().general.filefilter.pattern_list.push_back(tstring(_T("*")));
+	if(CFG.general.ignore_directory_structures&&
+	   (CFG.general.filefilter.empty()&&CFG.general.file_ex_filter.empty())){
+		CFG.general.filefilter.pattern_list.push_back(tstring(_T("*")));
 	}
 
 	tstring list_file_path;
 	File list_file;
 
 	//リストファイルを作成
-	list_file_path=fileoperation::createTempFile(_T("lzh"),m_arc_cfg.m_list_temp_dir.c_str());
+	list_file_path=fileoperation::createTempFile(_T("lzh"),ARCCFG->m_list_temp_dir.c_str());
 	if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
-		return ARCDLL_CANNOT_OPEN_LISTFILE;
+		return ARC_CANNOT_OPEN_LISTFILE;
 	}
 
 	//リストファイルにパスを出力
-	if(m_arc_cfg.cfg().mode==MODE_RECOMPRESS){
+	if(CFG.mode==MODE_RECOMPRESS){
 		list_file.writeEx(_T("*\r\n"));
 
 		//ファイルサイズ計算
-		if(!m_arc_cfg.cfg().no_display.no_information&&
-		   !app()->stdOut().isRedirected()){
+		if(!CFG.no_display.no_information&&
+		   !STDOUT.isRedirected()){
 			m_file_size=fileoperation::getDirectorySize(path::getCurrentDirectory().c_str());
 		}
 	}else{
@@ -114,37 +117,37 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::compress(const TCHAR* arc_path_orig,std::list<
 		}
 	}
 
-	if(!list_file.getSize())return ARCDLL_NO_MATCHES_FOUND;
+	if(!list_file.getSize())return ARC_NO_MATCHES_FOUND;
 
 	list_file.close();
 
 	//区切り文字置換
-	replaceDelimiter(arc_path);
-	replaceDelimiter(&m_arc_cfg.cfg().general.filefilter.pattern_list);
-	replaceDelimiter(&m_arc_cfg.cfg().general.file_ex_filter.pattern_list);
+	replaceDelimiter(arc_path_str);
+	replaceDelimiter(&CFG.general.filefilter.pattern_list);
+	replaceDelimiter(&CFG.general.file_ex_filter.pattern_list);
 	replaceDelimiter(file_list);
 	replaceDelimiter(list_file_path);
 
 	//勝手に拡張子が付加されないように'.'をファイル名末尾に追加。
-	if(lstrcmp(getMethod().mhd,_T("lzhsfx"))!=0)arc_path+=_T(".");
+	if(lstrcmp(getMethod().mhd,_T("lzhsfx"))!=0)arc_path_str+=_T(".");
 
 	VariableArgument cmd_line(_T("%s %s %s %s %s %s%s%s @%s%s%s"),
 									 _T("a"),
-									 (m_arc_cfg.cfg().compress.create_new)?_T("-d1 -jso1 -+1 -jf0 -jtc -gm"):_T("-d1 -jso1 -+1 -jf0 -gm"),
+									 (CFG.compress.create_new)?_T("-d1 -jso1 -+1 -jf0 -jtc -gm"):_T("-d1 -jso1 -+1 -jf0 -gm"),
 									 //-d1    : ディレクトリー (配下) の格納。
 									 //-jso1  : SH_DENYNO でのオープンを行わない。
 									 //-+1    : レジストリーの設定を無視。
 									 //-jf0   : ルート記号の削除。
 									 //-jtc   : 指定したファイルのみ格納
 									 //-gm    : エラーメッセージ表示の抑止。
-									 m_arc_cfg.cfg().general.custom_param.c_str(),
+									 CFG.general.custom_param.c_str(),
 									 _T("-n1"),
 									 //sfx
 									 getMethod().cmd,
 
-									 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-									 arc_path.c_str(),
-									 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									 arc_path_str.c_str(),
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
 									 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
 									 list_file_path.c_str(),
@@ -152,17 +155,17 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::compress(const TCHAR* arc_path_orig,std::list<
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path);
 
 
 	//実行
 	int dll_ret=-1;
-	if(!m_arc_cfg.cfg().no_display.no_information&&
-	   !app()->stdOut().isRedirected()){
+	if(!CFG.no_display.no_information&&
+	   !STDOUT.isRedirected()){
 		m_processing_info.clear();
 	}
 
-	if(m_arc_cfg.cfg().no_display.no_log||log_msg==NULL){
+	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
 		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
@@ -170,80 +173,80 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::compress(const TCHAR* arc_path_orig,std::list<
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	unload();
 
-	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
+	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
 }
 
-ArcDll::ARCDLL_RESULT ArcUnlha32::extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg){
-	tstring arc_path(arc_path_orig);
-	tstring output_dir(output_dir_orig);
+ArcUnlha32::ARC_RESULT ArcUnlha32::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
+	tstring arc_path_str(arc_path);
+	tstring output_dir_str(output_dir);
 
 	m_file_size=m_write_size=m_last_write_size=m_last_hash=0;
 
-	bool use_filter=!m_arc_cfg.cfg().general.filefilter.empty()||!m_arc_cfg.cfg().general.file_ex_filter.empty();
+	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 	tstring list_file_path;
 	File list_file;
 
 	if(use_filter){
 		//リストファイルを作成
-		list_file_path=fileoperation::createTempFile(_T("lzh"),m_arc_cfg.m_list_temp_dir.c_str());
+		list_file_path=fileoperation::createTempFile(_T("lzh"),ARCCFG->m_list_temp_dir.c_str());
 		if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
-			return ARCDLL_CANNOT_OPEN_LISTFILE;
+			return ARC_CANNOT_OPEN_LISTFILE;
 		}
 
 		//リストファイルに解凍対象ファイルのみ出力
-		outputFileListEx(arc_path.c_str(),
-							 m_arc_cfg.cfg().general.filefilter,
-							 m_arc_cfg.cfg().general.file_ex_filter,
+		outputFileListEx(arc_path_str.c_str(),
+							 CFG.general.filefilter,
+							 CFG.general.file_ex_filter,
 							 list_file,
 							 //フィルタ適用を逆にする
 							 REVERSE_FILTER);
 		list_file.close();
 	}
 
-	if(!m_arc_cfg.cfg().no_display.no_information&&
-	   !app()->stdOut().isRedirected()){
-		m_file_size=getTotalOriginalSize(arc_path_orig);
+	if(!CFG.no_display.no_information&&
+	   !STDOUT.isRedirected()){
+		m_file_size=getTotalOriginalSize(arc_path);
 	}
 
 	tstring output_dir_bak;
 	fileoperation::scheduleDelete schedule_delete;
 
-	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
-		output_dir_bak=output_dir;
-		output_dir=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir.c_str()));
+	if(CFG.compress.exclude_base_dir!=0){
+		output_dir_bak=output_dir_str;
+		output_dir_str=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir_str.c_str()));
 
 		//一時ディレクトリ削除予約
-		schedule_delete.set(output_dir.c_str());
+		schedule_delete.set(output_dir_str.c_str());
 		//削除漏れ対策
-		m_arc_cfg.m_schedule_list.push_back(new fileoperation::scheduleDelete(output_dir.c_str()));
+		ARCCFG->m_schedule_list.push_back(new fileoperation::scheduleDelete(output_dir_str.c_str()));
 	}
 
 	//区切り文字置換
-	replaceDelimiter(arc_path);
-	replaceDelimiter(output_dir);
+	replaceDelimiter(arc_path_str);
+	replaceDelimiter(output_dir_str);
 	replaceDelimiter(list_file_path);
 
 	VariableArgument cmd_line(_T("%s %s %s %s %s%s%s %s%s%s"),
-									 (!m_arc_cfg.cfg().general.ignore_directory_structures)?_T("e -x1"):_T("e"),
+									 (!CFG.general.ignore_directory_structures)?_T("e -x1"):_T("e"),
 									 _T("-a1 -c1 -jf0 -jyo -+1 -gm -r2"),
 									 //-a1    : すべてのファイルについて属性を復元して展開します。
 									 //-c1    : タイムスタンプ検査を省略
 									 //-jyo   : 既存ファイルへの上書き確認の省略。
 									 //-gm    : エラーメッセージ表示の抑止。
 									 //-r2    : ディレクトリー指定再帰モード
-									 m_arc_cfg.cfg().general.custom_param.c_str(),
+									 CFG.general.custom_param.c_str(),
 									 _T("-n1"),
-									 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-									 arc_path.c_str(),
-									 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									 arc_path_str.c_str(),
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-									 (str::containsWhiteSpace(output_dir))?_T("\""):_T(""),
-									 output_dir.c_str(),
-									 (str::containsWhiteSpace(output_dir))?_T("\""):_T(""));
+									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
+									 output_dir_str.c_str(),
+									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""));
 
 	if(use_filter){
 		cmd_line.add(_T(" @%s%s%s"),
@@ -254,16 +257,16 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::extract(const TCHAR* arc_path_orig,const TCHAR
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path);
 
 	//実行
 	int dll_ret=-1;
-	if(!m_arc_cfg.cfg().no_display.no_information&&
-	   !app()->stdOut().isRedirected()){
+	if(!CFG.no_display.no_information&&
+	   !STDOUT.isRedirected()){
 		m_processing_info.clear();
 	}
 
-	if(m_arc_cfg.cfg().no_display.no_log||log_msg==NULL){
+	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
 		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
@@ -271,60 +274,60 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::extract(const TCHAR* arc_path_orig,const TCHAR
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	//パス区切り文字を'\\'に
-	if(*m_delimiter=='/')str::replaceCharacter(output_dir,'/','\\');
+	if(*m_delimiter=='/')str::replaceCharacter(output_dir_str,'/','\\');
 
-	if(m_arc_cfg.cfg().general.decode_uesc){
+	if(CFG.general.decode_uesc){
 		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		decodeUnicodeEscape(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.ignore_directory_structures);
+		decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
 	}
 
-	if(!m_arc_cfg.cfg().general.ignore_directory_structures&&
-	   m_arc_cfg.cfg().extract.directory_timestamp){
+	if(!CFG.general.ignore_directory_structures&&
+	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		recoverDirectoryTimestamp(arc_path_orig,output_dir.c_str(),m_arc_cfg.cfg().general.decode_uesc,true);
+		recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
 	}
 
 	unload();
 
-	if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
+	if(CFG.compress.exclude_base_dir!=0){
 		//共通パスを取り除く
-		excludeCommonPath(output_dir_bak.c_str(),output_dir.c_str(),m_arc_cfg.cfg().compress.exclude_base_dir);
+		excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
 	}
 
-	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
+	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
 }
 
-ArcDll::ARCDLL_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_msg){
+ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_msg){
 	tstring arc_path(arc_path_orig);
 
 	tstring list_file_path;
 	File list_file;
-	bool use_filter=!m_arc_cfg.cfg().general.filefilter.empty()||!m_arc_cfg.cfg().general.file_ex_filter.empty();
+	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 
 	if(!use_filter||
-	   !m_arc_cfg.cfg().recompress.run_command.disable()||
-	   m_arc_cfg.cfg().general.ignore_directory_structures||
-	   m_arc_cfg.cfg().compress.compression_level!=-1){
-		return ARCDLL_FAILURE;
+	   !CFG.recompress.run_command.disable()||
+	   CFG.general.ignore_directory_structures||
+	   CFG.compress.compression_level!=-1){
+		return ARC_FAILURE;
 	}
 
 	//リストファイルを作成
-	list_file_path=fileoperation::createTempFile(_T("lzh"),m_arc_cfg.m_list_temp_dir.c_str());
+	list_file_path=fileoperation::createTempFile(_T("lzh"),ARCCFG->m_list_temp_dir.c_str());
 	if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
-		return ARCDLL_CANNOT_OPEN_LISTFILE;
+		return ARC_CANNOT_OPEN_LISTFILE;
 	}
 
-	if(!createFilesList(arc_path.c_str()))return ARCDLL_FAILURE;
+	if(!createFilesList(arc_path.c_str()))return ARC_FAILURE;
 
-	std::list<fileinfo::FILEINFO> fileinfo_list=m_arc_info.file_list;
+	std::vector<fileinfo::FILEINFO> fileinfo_list=m_arc_info.file_list;
 
-	applyFilters(&fileinfo_list,m_arc_cfg.cfg().general.filefilter,m_arc_cfg.cfg().general.file_ex_filter,true);
+	applyFilters(&fileinfo_list,CFG.general.filefilter,CFG.general.file_ex_filter,true);
 
 	//リストファイルに解凍対象ファイルのみ出力
-	for(std::list<fileinfo::FILEINFO>::const_iterator ite=fileinfo_list.begin(),
+	for(std::vector<fileinfo::FILEINFO>::const_iterator ite=fileinfo_list.begin(),
 		end=fileinfo_list.end();
 		ite!=end;++ite){
 		list_file.writeEx(_T("%s\r\n"),ite->name.c_str());
@@ -353,16 +356,16 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_ms
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
 
 	//実行
 	int dll_ret=-1;
-	if(!m_arc_cfg.cfg().no_display.no_information&&
-	   !app()->stdOut().isRedirected()){
+	if(!CFG.no_display.no_information&&
+	   !STDOUT.isRedirected()){
 		m_processing_info.clear();
 	}
 
-	if(m_arc_cfg.cfg().no_display.no_log||log_msg==NULL){
+	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
 		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
@@ -370,36 +373,34 @@ ArcDll::ARCDLL_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_ms
 		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 	}
 
-	if(!m_arc_cfg.cfg().no_display.no_information)app()->stdOut().outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	unload();
 
-	return (dll_ret==0)?ARCDLL_SUCCESS:ARCDLL_FAILURE;
+	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
 }
 
-void ArcUnlha32::list(const TCHAR* arc_path_orig,tstring* log_msg){
-	if(log_msg==NULL)return;
+ArcUnlha32::ARC_RESULT ArcUnlha32::list(const TCHAR* arc_path){
+	tstring arc_path_str(arc_path);
 
-	tstring arc_path(arc_path_orig);
+	replaceDelimiter(arc_path_str);
 
-	replaceDelimiter(arc_path);
-
-	if(m_arc_cfg.cfg().output_file_list.api_mode){
-		outputFileListEx(arc_path.c_str(),m_arc_cfg.cfg().general.filefilter,m_arc_cfg.cfg().general.file_ex_filter,(m_arc_cfg.cfg().general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
+	if(CFG.output_file_list.api_mode){
+		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,(CFG.general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
 	}else{
 		tstring list_file_path;
 		File list_file;
 
-		bool use_filter=!m_arc_cfg.cfg().general.filefilter.empty()||!m_arc_cfg.cfg().general.file_ex_filter.empty();
+		bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 
 		if(use_filter){
 			//リストファイルを作成
-			list_file_path=fileoperation::createTempFile(_T("lzh"),m_arc_cfg.m_list_temp_dir.c_str());
+			list_file_path=fileoperation::createTempFile(_T("lzh"),ARCCFG->m_list_temp_dir.c_str());
 			if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 				//リストファイルに列挙対象ファイルのみ出力
-				outputFileListEx(arc_path.c_str(),
-									 m_arc_cfg.cfg().general.filefilter,
-									 m_arc_cfg.cfg().general.file_ex_filter,
+				outputFileListEx(arc_path_str.c_str(),
+									 CFG.general.filefilter,
+									 CFG.general.file_ex_filter,
 									 list_file,
 									 //フィルタ適用を逆にする
 									 true);
@@ -413,9 +414,9 @@ void ArcUnlha32::list(const TCHAR* arc_path_orig,tstring* log_msg){
 
 		VariableArgument cmd_line(_T("%s %s%s%s"),
 										 _T("l"),
-										 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-										 arc_path.c_str(),
-										 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""));
+										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+										 arc_path_str.c_str(),
+										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
 
 		if(use_filter){
 			cmd_line.add(_T(" @%s%s%s"),
@@ -426,21 +427,25 @@ void ArcUnlha32::list(const TCHAR* arc_path_orig,tstring* log_msg){
 
 		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
-		execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		tstring log_msg;
+
+		execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
+	return ARC_SUCCESS;
 }
 
 //リストにフィルタを適用
-void ArcUnlha32::applyFilters(std::list<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse){
+void ArcUnlha32::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse){
 	if(filefilter.empty()&&file_ex_filter.empty())return;
 
 	//除外リストを作成
-	std::list<fileinfo::FILEINFO> exclude_list;
-	FileTree file_tree(m_arc_cfg.cfg().general.filefilter,m_arc_cfg.cfg().general.file_ex_filter);
+	std::vector<fileinfo::FILEINFO> exclude_list;
+	FileTree file_tree(CFG.general.filefilter,CFG.general.file_ex_filter);
 
-	fileinfo_list->sort();
+	std::sort(fileinfo_list->begin(),fileinfo_list->end());
 
-	for(std::list<fileinfo::FILEINFO>::iterator ite=fileinfo_list->begin(),
+	for(std::vector<fileinfo::FILEINFO>::iterator ite=fileinfo_list->begin(),
 		end=fileinfo_list->end();
 		ite!=end;
 		++ite){
@@ -528,7 +533,7 @@ DWORD ArcUnlha32::writeFormatedExcludePath(const File& list_file,const TCHAR* ba
 
 //圧縮対象ファイルリストを整形してファイルに書き出す
 bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_path){
-	bool use_filter=!m_arc_cfg.cfg().general.filefilter.empty()||!m_arc_cfg.cfg().general.file_ex_filter.empty();
+	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 
 	tstring base_dir=path::getParentDirectory(full_path);
 	replaceDelimiter(base_dir);
@@ -537,7 +542,7 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 	if(path::isDirectory(full_path.c_str())){
 		//full_pathはディレクトリ
 
-		if(m_arc_cfg.cfg().compress.exclude_base_dir!=0){
+		if(CFG.compress.exclude_base_dir!=0){
 			//基底ディレクトリを含まない
 			base_dir=full_path;
 			replaceDelimiter(base_dir);
@@ -547,13 +552,13 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 
 		if(use_filter){
 			//フィルタ使用時
-			std::list<fileinfo::FILEINFO> filtered_list;
+			std::vector<fileinfo::FILEINFO> filtered_list;
 
-			FileTree file_tree(m_arc_cfg.cfg().general.filefilter,m_arc_cfg.cfg().general.file_ex_filter);
+			FileTree file_tree(CFG.general.filefilter,CFG.general.file_ex_filter);
 
 			file_tree.createFileTree(full_path.c_str(),_T("*"),true);
 
-			if(!m_arc_cfg.cfg().general.ignore_directory_structures){
+			if(!CFG.general.ignore_directory_structures){
 				//通常圧縮->処理対象外ファイルリスト
 				file_tree.makeExcludeTree(FileTree::TO_NONE,full_path.c_str());
 			}else{
@@ -568,7 +573,7 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 				//フィルタを使用しない処理へ
 				use_filter=false;
 			}else{
-				for(std::list<fileinfo::FILEINFO>::iterator ite=filtered_list.begin(),
+				for(std::vector<fileinfo::FILEINFO>::iterator ite=filtered_list.begin(),
 					end=filtered_list.end();
 					ite!=end;
 					++ite){
@@ -599,9 +604,9 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 													::GetFileAttributes(full_path.c_str())));
 			replaceDelimiter(root_dir);
 
-			if(!m_arc_cfg.cfg().general.ignore_directory_structures){
+			if(!CFG.general.ignore_directory_structures){
 				//ディレクトリをまず書き出し
-				if(m_arc_cfg.cfg().compress.exclude_base_dir==0){
+				if(CFG.compress.exclude_base_dir==0){
 					writeFormatedPath(list_file,base_dir.c_str(),root_dir.c_str());
 				}else{
 					writeFormatedPath(list_file,base_dir.c_str(),_T("*"));
@@ -610,8 +615,8 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 
 			if(!use_filter){
 				//フィルタがなければここで終了
-				if(!m_arc_cfg.cfg().no_display.no_information&&
-				   !app()->stdOut().isRedirected()){
+				if(!CFG.no_display.no_information&&
+				   !STDOUT.isRedirected()){
 					m_file_size+=relative_path_list.begin()->second;
 				}
 				return true;
@@ -626,7 +631,7 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 
 				replaceDelimiter(ite->first);
 
-				if(!m_arc_cfg.cfg().general.ignore_directory_structures){
+				if(!CFG.general.ignore_directory_structures){
 					//'/mc'
 					//write:
 					//[親ディレクトリ ディレクトリ内ファイルの相対パス]
@@ -662,25 +667,25 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 					replaceDelimiter(base_dir);
 				}
 				//合計サイズ
-				if(!m_arc_cfg.cfg().no_display.no_information&&
-				   !app()->stdOut().isRedirected()){
+				if(!CFG.no_display.no_information&&
+				   !STDOUT.isRedirected()){
 					m_file_size+=ite->second;
 				}
 			}
 			//合計サイズ
-			if(!m_arc_cfg.cfg().no_display.no_information&&
-			   !app()->stdOut().isRedirected()){
-				if(!m_arc_cfg.cfg().general.ignore_directory_structures){
+			if(!CFG.no_display.no_information&&
+			   !STDOUT.isRedirected()){
+				if(!CFG.general.ignore_directory_structures){
 					m_file_size=fileoperation::getDirectorySize(full_path.c_str())-exclude_file_size;
 				}
 			}
 		}
 	}else{
 		//full_pathはファイル
-		if(fileinfo::matchFilters(full_path.c_str(),m_arc_cfg.cfg().general.filefilter,m_arc_cfg.cfg().general.file_ex_filter,base_dir.c_str())){
+		if(fileinfo::matchFilters(full_path.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,base_dir.c_str())){
 			//合計サイズ
-			if(!m_arc_cfg.cfg().no_display.no_information&&
-			   !app()->stdOut().isRedirected()){
+			if(!CFG.no_display.no_information&&
+			   !STDOUT.isRedirected()){
 				m_file_size+=fileoperation::getFileSize(full_path.c_str());
 			}
 			//write:
@@ -697,9 +702,11 @@ void ArcUnlha32::setExtractingInfo(UINT state,void* arc_info){
 		case sizeof(EXTRACTINGINFOEX64):{
 			//処理中ファイル名
 			//SourceとDest反転注意
-			m_processing_info.file_name=(isUnicodeMode())?
-				str::utf82utf16(((LPEXTRACTINGINFOEX64)arc_info)->szDestFileName):
-				str::sjis2utf16(((LPEXTRACTINGINFOEX64)arc_info)->szDestFileName);
+			if(isUnicodeMode()){
+				str::utf82utf16(&m_processing_info.file_name,((LPEXTRACTINGINFOEX64)arc_info)->szDestFileName);
+			}else{
+				str::sjis2utf16(&m_processing_info.file_name,((LPEXTRACTINGINFOEX64)arc_info)->szDestFileName);
+			}
 
 			//ファイルサイズ
 			m_processing_info.total=m_file_size;
@@ -730,7 +737,7 @@ void ArcUnlha32::setExtractingInfo(UINT state,void* arc_info){
 				//Unlha32は圧縮時にまず一時ファイルの情報??を送ってきてくれる優しい子ので
 				//格納ファイル一つ一つの書き込み状況に就いては更新せず、
 				//格納ファイルのサイズを取り扱うように。
-				if(m_arc_cfg.cfg().mode==MODE_COMPRESS)break;
+				if(CFG.mode==MODE_COMPRESS)break;
 				write_size=abs(m_last_write_size-((LPEXTRACTINGINFOEX64)arc_info)->llWriteSize);
 			}else{
 				write_size=((LPEXTRACTINGINFOEX64)arc_info)->llWriteSize;
@@ -738,7 +745,7 @@ void ArcUnlha32::setExtractingInfo(UINT state,void* arc_info){
 
 			m_last_write_size=((LPEXTRACTINGINFOEX64)arc_info)->llWriteSize;
 
-			if(m_arc_cfg.cfg().mode==MODE_COMPRESS)write_size=((LPEXTRACTINGINFOEX64)arc_info)->llFileSize;
+			if(CFG.mode==MODE_COMPRESS)write_size=((LPEXTRACTINGINFOEX64)arc_info)->llFileSize;
 
 			m_processing_info.done=
 				m_write_size+=write_size;

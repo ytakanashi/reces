@@ -29,7 +29,7 @@ Window::~Window(){
 	closeWindow();
 
 	if(m_window_proc){
-		delete m_window_proc;
+		SAFE_DELETE(m_window_proc);
 
 		handlers::iterator ite_handlers=m_message_handlers.find(this);
 		if(ite_handlers!=m_message_handlers.end()){
@@ -38,7 +38,7 @@ Window::~Window(){
 				ite_handler_base!=end;
 				++ite_handler_base){
 				//ハンドラを削除
-				delete ite_handler_base->second;
+				SAFE_DELETE(ite_handler_base->second);
 			}
 			//オブジェクトの登録自体を削除
 //			m_message_handlers.erase(ite_handlers);
@@ -60,7 +60,7 @@ void Window::unregisterMessageHandler(UINT message){
 	if(ite_handlers!=m_message_handlers.end()){
 		if(ite_handlers->second.find(message)!=ite_handlers->second.end()){
 			//ハンドラを削除
-			delete m_message_handlers[this][message];
+			SAFE_DELETE(m_message_handlers[this][message]);
 			//イベントを削除
 			ite_handlers->second.erase(message);
 			//そのオブジェクトが登録しているメッセージハンドラが0であればオブジェクトの登録自体を削除

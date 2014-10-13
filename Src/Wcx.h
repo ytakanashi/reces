@@ -1,4 +1,4 @@
-﻿//Spi.h
+﻿//Wcx.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 //              reces Ver.0.00r23 by x@rgs
@@ -6,48 +6,41 @@
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
-#ifndef _SPI_H_4F4E72AA_0C47_4f12_8683_6D9F77D3AE58
-#define _SPI_H_4F4E72AA_0C47_4f12_8683_6D9F77D3AE58
+#ifndef _WCX_H_1948985C_769E_421b_957B_71F189EAA154
+#define _WCX_H_1948985C_769E_421b_957B_71F189EAA154
 
 
-#include"SpiBase.h"
+#include"WcxBase.h"
 #include"PrivateProfile.h"
 #include"FileInfo.h"
 
 
-class Spi:public SpiBase{
+class Wcx:public WcxBase{
 public:
-	Spi(const TCHAR* library_name):
-	SpiBase(library_name),
+	Wcx(const TCHAR* library_name):
+	WcxBase(library_name),
 	m_arc_info(){}
-	virtual ~Spi(){}
-
-public:
-	//ライブラリを読み込みます
-	virtual bool load();
-	virtual bool load(const TCHAR* library_name,const TCHAR* library_prefix);
+	virtual ~Wcx(){}
 
 private:
 	std::vector<fileinfo::FILEINFO> m_arc_info;
-	//対応拡張子リスト
-	std::list<tstring> m_supported_ext_list;
 
 private:
+	//ヘッダーから情報を取得
+	fileinfo::FILEINFO data();
 	//書庫内のすべてのファイルの情報を取得
 	bool createFilesList(const TCHAR* arc_path);
 	//エラーメッセージを取得
 	bool getErrorMessage(tstring* msg,int code);
 
 public:
-	inline ARC_TYPE type(){return static_cast<ARC_TYPE>(isSusiePlugin());}
-	//spiである[戻り値はプラグインのタイプ]
-	int isSusiePlugin();
+	inline ARC_TYPE type(){return isWcx()?WCX:UNKNOWN;}
+	//wcxである
+	bool isWcx();
 	//対応している拡張子であるか
 	bool isSupportedExtension(const TCHAR* ext);
 	//対応している書庫か
-	bool isSupportedArchive(const TCHAR* arc_path,int mode=0);
-	//プラグインに就いての情報を取得
-	tstring getInformation();
+	bool isSupportedArchive(const TCHAR* arc_path, int mode=0);
 	//設定ダイアログを表示
 	bool configurationDialog(HWND wnd_handle=NULL);
 	int getFileCount(const TCHAR* arc_path);
@@ -60,4 +53,4 @@ public:
 	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file);
 };
 
-#endif //_SPI_H_4F4E72AA_0C47_4f12_8683_6D9F77D3AE58
+#endif //_WCX_H_1948985C_769E_421b_957B_71F189EAA154

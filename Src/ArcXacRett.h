@@ -1,7 +1,7 @@
 ﻿//ArcXacrett.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r22 by x@rgs
+//              reces Ver.0.00r23 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,7 +10,6 @@
 #ifndef _ARCXACRETT_H_A614B220_8D60_42a3_A755_319198605FF7
 #define _ARCXACRETT_H_A614B220_8D60_42a3_A755_319198605FF7
 
-#include"ArcCfg.h"
 #include"ArcDll.h"
 
 
@@ -84,11 +83,10 @@ enum{
 	ARCHIVETYPE_ASK=62
 };
 public:
-	ArcXacrett(ArcCfg& arc_cfg);
+	ArcXacrett();
 	~ArcXacrett(){}
 
 private:
-	ArcCfg& m_arc_cfg;
 	tstring* m_log_msg;
 	long long m_file_size;
 	long long m_write_size;
@@ -109,9 +107,9 @@ public:
 	//書庫形式を取得
 //	bool getCompressionMethod(TCHAR* type,const TCHAR* arc_path);
 
-	ARCDLL_RESULT compress(const TCHAR* arc_path_orig,std::list<tstring>* file_list,tstring* log_msg=NULL);
-	ARCDLL_RESULT extract(const TCHAR* arc_path_orig,const TCHAR* output_dir_orig,tstring* log_msg=NULL);
-	void list(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
+	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
+	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);
+	ARC_RESULT list(const TCHAR* arc_path);
 
 	//処理を中止する
 	void abort();
