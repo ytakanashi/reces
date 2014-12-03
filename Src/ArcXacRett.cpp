@@ -2,7 +2,7 @@
 //Xacrett.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24a by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -199,7 +199,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
 	bool use_password=!CFG.general.password_list.empty();
 

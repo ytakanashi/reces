@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24a by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -219,7 +219,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 	}
 
 	result=ARC_SUCCESS;
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path);
+	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
 	for(;arc_info->method[0]&&!isTerminated()&&!ARCCFG->m_password_input_cancelled;++arc_info){
 		tstring file_path=str::sjis2utf16(arc_info->path);

@@ -20,12 +20,12 @@ namespace{
 }
 
 VariableArgument::VariableArgument(const TCHAR* format,const va_list argp):
-	m_buffer(1024){
+	m_buffer(){
 	variableArgumentCore(&m_buffer,format,argp);
 }
 
 VariableArgument::VariableArgument(const TCHAR* format,...):
-	m_buffer(1024){
+	m_buffer(){
 	if(format!=NULL){
 		va_list argp;
 		va_start(argp,format);
@@ -37,7 +37,7 @@ VariableArgument::VariableArgument(const TCHAR* format,...):
 }
 
 void VariableArgument::add(const TCHAR* format,...){
-	std::vector<TCHAR> buffer(1024);
+	std::vector<TCHAR> buffer(256);
 
 	if(format!=NULL){
 		va_list argp;

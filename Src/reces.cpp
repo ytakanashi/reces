@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24a by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -35,6 +35,8 @@ namespace{
 	const UINT WM_CREATE_PROGRESSBAR=::RegisterWindowMessage(_T("WM_CREATE_PROGRESSBAR"));
 	const UINT WM_UPDATE_PROGRESSBAR_MAIN=::RegisterWindowMessage(_T("WM_UPDATE_PROGRESSBAR_MAIN"));
 	const UINT WM_DESTROY_PROGRESSBAR=::RegisterWindowMessage(_T("WM_DESTROY_PROGRESSBAR"));
+
+	int wait=0;
 }
 
 namespace{
@@ -193,7 +195,7 @@ void Reces::cleanup(){
 	static bool done=false;
 	if(done)return;
 
-	if(!m_stdout.isRedirected()&&
+	if(!STDOUT.isRedirected()&&
 	   !CFG.no_display.no_information){
 		//プログレスバー更新通知を受け取るスレッドを閉じる
 		misc::thread::close(m_progressbar_thread);
@@ -237,19 +239,19 @@ void Reces::cleanup(){
 		SAFE_DELETE(ARCCFG->m_schedule_list[i]);
 	}
 
-	m_stdout.showCursor(true);
+	STDOUT.showCursor(true);
 	done=true;
 }
 
 void Reces::usage(){
-	m_stdout.outputString(_T("`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n")
+	STDOUT.outputString(_T("`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n")
 						  _T("              reces Ver.%s by x@rgs\n")
 						  _T("              under NYSL Version 0.9982\n")
 						  _T("\n`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n\n"),SOFTWARE_VERSION);
 
-	m_stdout.outputString(_T("usage:\n"));
-	m_stdout.outputString(_T("\treces [/<options>...] [/@<listfiles>...] [<files>...]\n\n"));
-	m_stdout.outputString(_T("options:\n")
+	STDOUT.outputString(_T("usage:\n"));
+	STDOUT.outputString(_T("\treces [/<options>...] [/@<listfiles>...] [<files>...]\n\n"));
+	STDOUT.outputString(_T("options:\n")
 						  _T("\t/m<r|R|c|C|e|E|l|L|s|S|v>\t #動作モード\n")
 						  _T("\t/mr[type|@[option]][:library]\t #再圧縮\n")
 						  _T("\t/mR[type|@[option]][:library]\t #再圧縮 (ディレクトリ階層を無視)\n")
@@ -271,17 +273,17 @@ void Reces::usage(){
 
 	int item_count=0;
 
-	m_stdout.outputString(_T("compression type:\n\t   "));
+	STDOUT.outputString(_T("compression type:\n\t   "));
 	for(size_t i=0;i<m_arcdll_list.size();++i){
 		for(size_t ii=0;m_arcdll_list[i]->getMethod(ii).mhd!=NULL;++ii){
-			m_stdout.outputString(_T(" [%8s]"),m_arcdll_list[i]->getMethod(ii).mhd);
-			if((item_count+1)%4==0)m_stdout.outputString(_T("\n\t   "));
+			STDOUT.outputString(_T(" [%8s]"),m_arcdll_list[i]->getMethod(ii).mhd);
+			if((item_count+1)%4==0)STDOUT.outputString(_T("\n\t   "));
 			item_count++;
 		}
 	}
-	if(item_count%4!=0)m_stdout.outputString(_T("\n"));
+	if(item_count%4!=0)STDOUT.outputString(_T("\n"));
 
-	m_stdout.outputString(_T("\n")
+	STDOUT.outputString(_T("\n")
 						  _T("\t/n<options...>\t #情報非表示\n")
 						  _T("\t/ni \t\t ;進捗状況\n")
 						  _T("\t/nl \t\t ;ログ\n")
@@ -406,7 +408,7 @@ void Reces::usage(){
 						  _T("\n")
 						  _T("\t//\t\t #オプション解析終了\n")
 						  );
-	m_stdout.outputString(_T("\n"));
+	STDOUT.outputString(_T("\n"));
 }
 
 void Reces::ctrlCEvent(){
@@ -416,7 +418,7 @@ void Reces::ctrlCEvent(){
 
 	dprintf(_T("terminate()\n"));
 	terminateApp();
-	m_stdout.showCursor(true);
+	STDOUT.showCursor(true);
 
 	if(m_arc_dll){
 		m_arc_dll->abort();
@@ -441,7 +443,7 @@ void Reces::ctrlCEvent(){
 	::WaitForSingleObject(m_arc_thread,INFINITE);
 	::CloseHandle(m_arc_thread);
 
-	if(!m_stdout.isRedirected()&&
+	if(!STDOUT.isRedirected()&&
 	   !CFG.no_display.no_information){
 		misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 	}
@@ -449,7 +451,7 @@ void Reces::ctrlCEvent(){
 	//コールバック関数の登録を解除
 	m_arc_dll->clearCallback();
 
-	m_stdout.outputString(_T("\n処理が中断されました。\n"));
+	STDOUT.outputString(_T("\n処理が中断されました。\n"));
 	cleanup();
 	done=true;
 }
@@ -462,7 +464,7 @@ bool Reces::info(const TCHAR* msg,...){
 	va_list argp;
 	va_start(argp,msg);
 
-	m_stdout.write(msg,argp,&written_chars);
+	STDOUT.write(msg,argp,&written_chars);
 
 	va_end(argp);
 	return true;
@@ -514,8 +516,8 @@ bool Reces::requirePassword(){
 	input_password.getConsoleMode(&mode);
 
 	if(CFG.no_display.no_password){
-		if(!m_stdout.isRedirected()){
-			m_stdout.outputString(_T("\nパスワード(表示されません): "));
+		if(!STDOUT.isRedirected()){
+			STDOUT.outputString(_T("\nパスワード(表示されません): "));
 		}else{
 			//標準エラー出力でメッセージを表示
 			Console password_message(STD_ERROR_HANDLE);
@@ -524,8 +526,8 @@ bool Reces::requirePassword(){
 		//入力した文字を表示しないようにする
 		input_password.setConsoleMode(mode&~ENABLE_ECHO_INPUT);
 	}else{
-		if(!m_stdout.isRedirected()){
-			m_stdout.outputString(_T("\nパスワード: "));
+		if(!STDOUT.isRedirected()){
+			STDOUT.outputString(_T("\nパスワード: "));
 		}else{
 			//標準エラー出力でメッセージを表示
 			Console password_message(STD_ERROR_HANDLE);
@@ -534,7 +536,7 @@ bool Reces::requirePassword(){
 	}
 
 	//カーソル再表示
-	m_stdout.showCursor(true);
+	STDOUT.showCursor(true);
 
 	std::vector<TCHAR> buffer(1024,'\0');
 
@@ -547,12 +549,12 @@ bool Reces::requirePassword(){
 	}
 
 	//カーソル再非表示
-	m_stdout.showCursor(false);
+	STDOUT.showCursor(false);
 
 	//元に戻す
 	input_password.setConsoleMode(mode);
 
-	if(CFG.no_display.no_password)m_stdout.outputString(_T("\n\n"));
+	if(CFG.no_display.no_password)STDOUT.outputString(_T("\n\n"));
 
 	return !CFG.general.password.empty();
 }
@@ -567,12 +569,12 @@ bool Reces::runCommand(){
 
 	::SetCurrentDirectory(ARCCFG->m_recmp_temp_dir.c_str());
 	if(CFG.recompress.run_command.interactive){
-		m_stdout.outputString(_T("コマンド: \n"));
+		STDOUT.outputString(_T("コマンド: \n"));
 		TCHAR* line=NULL;
 		std::vector<TCHAR> buffer(1024,'\0');
 
 		do{
-			m_stdout.outputString(_T(">"));
+			STDOUT.outputString(_T(">"));
 			buffer.assign(buffer.size(),'\0');
 			line=_fgetts(&buffer[0],buffer.size(),stdin);
 			CFG.recompress.run_command.command.assign(&buffer[0]);
@@ -590,7 +592,7 @@ bool Reces::runCommand(){
 			   line!=NULL);
 	}else{
 		if(!CFG.recompress.run_command.command.empty()){
-			m_stdout.outputString(_T("'%s'を実行しています...\n"),CFG.recompress.run_command.command.c_str());
+			STDOUT.outputString(_T("'%s'を実行しています...\n"),CFG.recompress.run_command.command.c_str());
 			result=_tsystem(CFG.recompress.run_command.command.c_str())!=-1;
 		}
 	}
@@ -754,7 +756,8 @@ Reces::ARC_RESULT Reces::arcFileName(CUR_FILE* new_cur_file,const tstring& arc_p
 
 //m_arcdll_list読み込み
 void Reces::loadArcLib(){
-	if(m_arcdll_list.size()!=0)freeArcLib();
+	if(m_arcdll_list.size()!=0||
+	   m_b2e_dll!=NULL)freeArcLib();
 
 	m_arcdll_list.push_back(new ArcLMZip32());
 	m_arcdll_list.push_back(new ArcUnlha32());
@@ -773,7 +776,7 @@ void Reces::freeArcLib(){
 	for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 		SAFE_DELETE(m_arcdll_list[i]);
 	}
-	m_arcdll_list.clear();
+
 	std::vector<ArcDll*>().swap(m_arcdll_list);
 
 	if(m_b2e_dll!=NULL){
@@ -783,6 +786,7 @@ void Reces::freeArcLib(){
 
 //ライブラリリストの7-zip32とLMZIP32を入れ替える
 bool Reces::swap7ZLMZIP(bool sort_by_name){
+	if(!sort_by_name)return true;
 	for(size_t i=0,ii=0,list_size=m_arcdll_list.size();i<list_size;){
 		if(m_arcdll_list[i]!=NULL&&m_arcdll_list[ii]!=NULL){
 			if(m_arcdll_list[i]->name()!=_T("7-zip32"))++i;
@@ -802,10 +806,10 @@ bool Reces::swap7ZLMZIP(bool sort_by_name){
 }
 
 //読み込みと対応チェック
-template<typename I>Archiver* Reces::loadAndCheck(I ite,I end,const TCHAR* arc_path,bool* loaded_library,bool ext_check,const TCHAR* libname,const TCHAR* full_libname){
+template<typename I>Archiver* Reces::loadAndCheck(I ite,I end,const TCHAR* arc_path,bool* loaded_library,const TCHAR* ext,const TCHAR* libname,const TCHAR* full_libname){
 	for(;ite!=end;++ite){
-		if(!(ext_check&&!(*ite)->isSupportedExtension(path::getExtension(arc_path).c_str()))&&
-		   !(!ext_check&&libname!=NULL&&!str::isEqualStringIgnoreCase((*ite)->name(),libname))){
+		if(!(ext&&!(*ite)->isSupportedExtension(ext))&&
+		   !(!ext&&libname!=NULL&&!str::isEqualStringIgnoreCase((*ite)->name(),libname))){
 			if(!(!(*ite)->isLoaded()&&!(*ite)->load((full_libname!=NULL)?full_libname:libname,NULL))){
 				if(loaded_library!=NULL)*loaded_library=true;
 				if(!(arc_path!=NULL&&!(*ite)->isSupportedArchive(arc_path))){
@@ -844,7 +848,7 @@ template<typename T>Archiver* Reces::LoadAndCheckPlugin(std::vector<T*>* plugin_
 						plugin_list->end(),
 						arc_path,
 						loaded_library,
-						false,
+						NULL,
 						&full_path[0]);
 }
 
@@ -1153,7 +1157,7 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 
 						dprintf(_T("select library: %s\n"),CFG.general.selected_library_name.c_str());
 
-						if(options[i].c_str()[0]=='s'){
+						if(options[i].c_str()[1]=='s'){
 							//'ms'以降はライブラリに送る文字列とする
 							//再割り当て
 							cmd_arg.filepaths().clear();
@@ -1754,6 +1758,14 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 				break;
 			}
 
+			//TODO
+			case 'w':{
+				if(options[i].find(_T("wait:"))==0&&
+				   options[i][5]!='\0'){
+					wait=_ttoi(options[i].substr(5).c_str());
+				}
+			}
+
 			default:
 				break;
 		}
@@ -2000,7 +2012,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 	}
 
 	if(!m_arc_dll){
-		m_stdout.outputString(_T("\n"));
+		STDOUT.outputString(_T("\n"));
 		err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
 		return ARC_NOT_SUPPORTED_METHOD;
 	}
@@ -2017,7 +2029,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 	if(isTerminated())return ARC_USER_CANCEL;
 
 	if(!m_arc_dll->isLoaded()&&!m_arc_dll->load()){
-		m_stdout.outputString(_T("\n"));
+		STDOUT.outputString(_T("\n"));
 		VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),m_arc_dll->name().c_str());
 		err_msg=error_message.get();
 		return ARC_CANNOT_LOAD_LIBRARY;
@@ -2069,7 +2081,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 			CFG.compress.exclude_base_dir=0;
 		}
 
-		if(!m_stdout.isRedirected()&&
+		if(!STDOUT.isRedirected()&&
 		   !CFG.no_display.no_information){
 			misc::thread::post(m_progressbar_thread.id,WM_CREATE_PROGRESSBAR);
 		}
@@ -2098,7 +2110,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 				break;
 		}
 
-		if(!m_stdout.isRedirected()&&
+		if(!STDOUT.isRedirected()&&
 		   !CFG.no_display.no_information){
 			misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 		}
@@ -2122,7 +2134,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 		}
 
 		if(!CFG.no_display.no_log){
-			m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 		}
 
 		if(split_file){
@@ -2196,11 +2208,44 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 
 	info(_T("ライブラリを読み込んでいます..."));
 
-	freeArcLib();
 	loadArcLib();
 
 	//7-zip32とLMZIP32を入れ替える
 	swap7ZLMZIP(arc_path.length()>=MAX_PATH);
+
+	//ファイルがロックされていないかテスト
+	if(wait){
+		bool success=false;
+		int retries=0;
+		const int max_retries=5;
+
+		do{
+			HANDLE handle=::CreateFile(arc_path.c_str(),
+									   GENERIC_READ,
+									   0,
+									   NULL,
+									   OPEN_EXISTING,
+									   FILE_ATTRIBUTE_NORMAL,
+									   NULL);
+
+			if(handle==INVALID_HANDLE_VALUE){
+				retries++;
+				::Sleep(wait);
+				continue;
+			}
+			success=true;
+			::CloseHandle(handle);
+			break;
+		}while(retries<max_retries);
+
+		if(!success){
+			info(_T("\n"));
+			err_msg+=_T("ファイルを開くことが出来ません。");
+			err_msg+=arc_path.c_str();
+			err_msg+=_T("\n");
+			return ARC_FAILURE;
+		}
+	}
 
 	{
 		bool loaded_library=false;
@@ -2211,7 +2256,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 								   m_arcdll_list.end(),
 								   arc_path.c_str(),
 								   &loaded_library,
-								   false,
+								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
 		}else{
@@ -2220,7 +2265,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 								   m_arcdll_list.end(),
 								   arc_path.c_str(),
 								   &loaded_library,
-								   true);
+								   path::getExtension(arc_path).c_str());
 
 			//総当たり
 			if(!m_arc_dll){
@@ -2267,16 +2312,16 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 
 		if(!m_arc_dll){
 			if(ARCCFG->m_password_input_cancelled){
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				err_msg=_T("パスワードの入力がキャンセルされました。\n");
 				return ARC_INPUT_PASSWORD_CANCEL;
 			}else if(!CFG.general.selected_library_name.empty()&&!loaded_library){
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 				err_msg=error_message.get();
 				return ARC_CANNOT_LOAD_LIBRARY;
 			}else{
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
 				return ARC_NOT_SUPPORTED_METHOD;
 			}
@@ -2423,7 +2468,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 
 						if(static_cast<ArcDll*>(m_arc_dll)->del(new_cur_file.arc_path.c_str(),&log)==Archiver::ARC_SUCCESS){
 							if(!CFG.no_display.no_log){
-								m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+								STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 							}
 
 							m_cur_file=new_cur_file;
@@ -2505,7 +2550,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 		//区切り文字を末尾に追加
 		output_dir=path::addTailSlash(output_dir);
 
-		if(!m_stdout.isRedirected()&&
+		if(!STDOUT.isRedirected()&&
 		   !CFG.no_display.no_information){
 			misc::thread::post(m_progressbar_thread.id,WM_CREATE_PROGRESSBAR);
 		}
@@ -2536,7 +2581,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 				break;
 		}
 
-		if(!m_stdout.isRedirected()&&
+		if(!STDOUT.isRedirected()&&
 		   !CFG.no_display.no_information){
 			misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 		}
@@ -2574,7 +2619,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 		}
 
 		if(!CFG.no_display.no_log){
-			m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 		}
 		return (result)?ARC_SUCCESS:ARC_FAILURE;
 	}
@@ -2591,7 +2636,7 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 		switch(fileoperation::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
 			case fileoperation::JFRET_SUCCESS:{
 				split_file=true;
-				m_stdout.outputString(_T("ファイルを結合しました。\n"));
+				STDOUT.outputString(_T("ファイルを結合しました。\n"));
 				join_file_name=path::addTailSlash(m_split_temp_dir.c_str());
 				join_file_name+=removeExtensionEx(path::getFileName(arc_path));
 				break;
@@ -2611,7 +2656,6 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 
 	info(_T("ライブラリを読み込んでいます..."));
 
-	freeArcLib();
 	loadArcLib();
 
 	//7-zip32とLMZIP32を入れ替える
@@ -2626,7 +2670,7 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 								   m_arcdll_list.end(),
 								   arc_path.c_str(),
 								   &loaded_library,
-								   false,
+								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
 		}else{
@@ -2635,7 +2679,7 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 								   m_arcdll_list.end(),
 								   arc_path.c_str(),
 								   &loaded_library,
-								   true);
+								   path::getExtension(arc_path).c_str());
 
 			//総当たり
 			if(!m_arc_dll){
@@ -2682,16 +2726,16 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 
 		if(!m_arc_dll){
 			if(ARCCFG->m_password_input_cancelled){
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				err_msg=_T("パスワードの入力がキャンセルされました。\n");
 				return ARC_INPUT_PASSWORD_CANCEL;
 			}else if(!CFG.general.selected_library_name.empty()&&!loaded_library){
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 				err_msg=error_message.get();
 				return ARC_CANNOT_LOAD_LIBRARY;
 			}else{
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
 				return ARC_NOT_SUPPORTED_METHOD;
 			}
@@ -2752,7 +2796,7 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 								   m_arcdll_list.end(),
 								   NULL,
 								   NULL,
-								   0,
+								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
 		}
@@ -2765,7 +2809,7 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 								   v.end(),
 								   NULL,
 								   NULL,
-								   0,
+								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
 			if(m_arc_dll!=NULL){
@@ -2777,7 +2821,7 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 		}
 
 		if(!m_arc_dll){
-			m_stdout.outputString(_T("\n"));
+			STDOUT.outputString(_T("\n"));
 			VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 			err_msg=error_message.get();
 			return ARC_CANNOT_LOAD_LIBRARY;
@@ -2820,7 +2864,7 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 			}
 		}
 
-		if(!m_stdout.isRedirected()&&
+		if(!STDOUT.isRedirected()&&
 		   !CFG.no_display.no_information){
 			misc::thread::post(m_progressbar_thread.id,WM_CREATE_PROGRESSBAR);
 		}
@@ -2841,9 +2885,9 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 			STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),result,result);
 		}
 
-		if(!log.empty())m_stdout.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+		if(!log.empty())STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 
-		if(!m_stdout.isRedirected()&&
+		if(!STDOUT.isRedirected()&&
 		   !CFG.no_display.no_information){
 			misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
 		}
@@ -2864,7 +2908,7 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 		switch(fileoperation::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
 			case fileoperation::JFRET_SUCCESS:{
 				split_file=true;
-				m_stdout.outputString(_T("ファイルを結合しました。\n"));
+				STDOUT.outputString(_T("ファイルを結合しました。\n"));
 				join_file_name=path::addTailSlash(m_split_temp_dir.c_str());
 				join_file_name+=removeExtensionEx(path::getFileName(arc_path));
 				break;
@@ -2884,7 +2928,6 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 
 	info(_T("ライブラリを読み込んでいます..."));
 
-	freeArcLib();
 	loadArcLib();
 
 	//7-zip32とLMZIP32を入れ替える
@@ -2897,25 +2940,23 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 			//ライブラリが指定されている場合
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 								   m_arcdll_list.end(),
-								   arc_path.c_str(),
-								   &loaded_library,
-								   false,
+								   NULL,
+								   NULL,
+								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
 		}else{
 			//拡張子からの推測
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 								   m_arcdll_list.end(),
-								   arc_path.c_str(),
-								   &loaded_library,
-								   true);
+								   NULL,
+								   NULL,
+								   path::getExtension(arc_path).c_str());
 
-			//総当たり
+			//リスト先頭から読み込み
 			if(!m_arc_dll){
 				m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
-									   m_arcdll_list.end(),
-									   arc_path.c_str(),
-									   &loaded_library);
+									   m_arcdll_list.end());
 			}
 		}
 
@@ -2928,22 +2969,17 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 											 CFG.general.wcx_dir,
 											 CFG.general.selected_library_name.c_str(),
 											 Archiver::WCX);
-			}else{
-				m_arc_dll=loadAndCheck(m_wcx_list.begin(),
-									   m_wcx_list.end(),
-									   arc_path.c_str(),
-									   &loaded_library);
 			}
 		}
 
 		if(!m_arc_dll){
 			if(!CFG.general.selected_library_name.empty()&&!loaded_library){
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 				err_msg=error_message.get();
 				return ARC_CANNOT_LOAD_LIBRARY;
 			}else{
-				m_stdout.outputString(_T("\n"));
+				STDOUT.outputString(_T("\n"));
 				err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
 				return ARC_NOT_SUPPORTED_METHOD;
 			}
@@ -3026,7 +3062,7 @@ Reces::ARC_RESULT Reces::settings(tstring& err_msg){
 								   m_arcdll_list.end(),
 								   NULL,
 								   NULL,
-								   0,
+								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
 		}
@@ -3039,7 +3075,7 @@ Reces::ARC_RESULT Reces::settings(tstring& err_msg){
 								   v.end(),
 								   NULL,
 								   NULL,
-								   0,
+								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
 			if(m_arc_dll!=NULL){
@@ -3052,7 +3088,7 @@ Reces::ARC_RESULT Reces::settings(tstring& err_msg){
 	}
 
 	if(!m_arc_dll){
-		m_stdout.outputString(_T("\n"));
+		STDOUT.outputString(_T("\n"));
 		VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 		err_msg=error_message.get();
 		return ARC_CANNOT_LOAD_LIBRARY;
@@ -3114,7 +3150,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 			  CFG.general.wcx_dir.c_str():
 			  path::getExeDirectory().c_str());
 
-	if(!m_stdout.isRedirected()&&
+	if(!STDOUT.isRedirected()&&
 	   !CFG.no_display.no_information){
 		//プログレスバーを管理するスレッドを作成
 		m_progressbar_thread.handle=misc::thread::create(&Reces::manageProgressBar,&m_progressbar_thread.id,this);
@@ -3643,11 +3679,11 @@ bool Reces::run(CommandArgument& cmd_arg){
 				for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 					if(m_arcdll_list[i]!=NULL){
 #if 0
-							m_stdout.outputString(_T("%-12s %s\n"),
+							STDOUT.outputString(_T("%-12s %s\n"),
 												  m_arcdll_list[i]->name().c_str(),
 												  getVersion(m_arcdll_list[i]->name().c_str()).c_str());
 #else
-							m_stdout.outputString(_T("%-12s %s\n"),
+							STDOUT.outputString(_T("%-12s %s\n"),
 												  m_arcdll_list[i]->name().c_str(),
 												  m_arcdll_list[i]->getVersionStr().c_str());
 #endif
@@ -3656,11 +3692,11 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 				if(m_b2e_dll){
 #if 0
-						m_stdout.outputString(_T("%-12s %s\n"),
+						STDOUT.outputString(_T("%-12s %s\n"),
 											  m_b2e_dll->name().c_str(),
 											  getVersion(m_b2e_dll->name().c_str()).c_str());
 #else
-						m_stdout.outputString(_T("%-12s %s\n"),
+						STDOUT.outputString(_T("%-12s %s\n"),
 											  m_b2e_dll->name().c_str(),
 											  m_b2e_dll->getVersionStr().c_str());
 #endif
@@ -3669,11 +3705,11 @@ bool Reces::run(CommandArgument& cmd_arg){
 				for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
 					if(m_spi_list[i]!=NULL){
 #if 0
-							m_stdout.outputString(_T("%-12s %s\n"),
+							STDOUT.outputString(_T("%-12s %s\n"),
 												  m_spi_list[i]->name().c_str(),
 												  getVersion(m_spi_list[i]->name().c_str()).c_str());
 #else
-							m_stdout.outputString(_T("%s\n"),
+							STDOUT.outputString(_T("%s\n"),
 												  m_spi_list[i]->getInformation().c_str());
 #endif
 					}
@@ -3681,14 +3717,14 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 				for(size_t i=0,list_size=m_wcx_list.size();i<list_size;i++){
 					if(m_wcx_list[i]!=NULL){
-							m_stdout.outputString(_T("%-12s %s\n"),
+							STDOUT.outputString(_T("%-12s %s\n"),
 												  m_wcx_list[i]->name().c_str(),
 												  getVersion(m_wcx_list[i]->name().c_str()).c_str());
 					}
 				}
 			}else{
 				for(std::vector<tstring>::size_type i=0,size=filepaths.size();!isTerminated()&&i<size;++i){
-						m_stdout.outputString(_T("%-12s %s\n"),
+						STDOUT.outputString(_T("%-12s %s\n"),
 											  filepaths[i].c_str(),
 											  getVersion(filepaths[i].c_str()).c_str());
 				}

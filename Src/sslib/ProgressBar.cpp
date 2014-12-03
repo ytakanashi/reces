@@ -103,7 +103,8 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 
 		//"   =>"がある行を探し、移動
 		static const TCHAR header[]=_T("   =>");
-		TCHAR* buffer=new TCHAR[ARRAY_SIZEOF(header)];
+		static const int buffer_size=ARRAY_SIZEOF(header);
+		static TCHAR buffer[buffer_size];
 
 		m_stdout.getPosition(&m_begin_pos);
 		m_begin_pos.X=0;
@@ -121,7 +122,6 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 				break;
 			}
 		}
-		SAFE_DELETE(buffer);
 
 		//進捗率表示行へ
 		m_begin_pos.Y--;
