@@ -66,8 +66,7 @@ template<class T>bool FileDialog::doModalOpen(T* file_list,HWND wnd_handle,bool 
 				//FNERR_BUFFERTOOSMALL[バッファが小さい]
 				::MessageBox(wnd_handle,_T("選択したファイルの数が多過ぎます。"),NULL,MB_ICONWARNING);
 			}else{
-				VariableArgument va(_T("ファイルの選択に失敗しました。\nErrCode:0x%08X"),dlg_err);
-				::MessageBox(wnd_handle,va.get(),NULL,MB_ICONWARNING);
+				::MessageBox(wnd_handle,format(_T("ファイルの選択に失敗しました。\nErrCode:0x%08X"),dlg_err).c_str(),NULL,MB_ICONWARNING);
 			}
 		}
 	}
@@ -116,8 +115,7 @@ bool FileDialog::doModalSave(tstring* file_path,HWND wnd_handle,const TCHAR* fil
 		DWORD dlg_err=::CommDlgExtendedError();
 
 		if(dlg_err!=0){
-			VariableArgument va(_T("ファイルの選択に失敗しました。\nErrCode:0x%08X"),dlg_err);
-			::MessageBox(wnd_handle,va.get(),NULL,MB_ICONWARNING);
+			::MessageBox(wnd_handle,format(_T("ファイルの選択に失敗しました。\nErrCode:0x%08X"),dlg_err).c_str(),NULL,MB_ICONWARNING);
 		}
 	}else{
 		if(file_path!=NULL)file_path->assign(&file_buffer[0]);

@@ -1,7 +1,7 @@
 ﻿//Archiver.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -86,13 +86,13 @@ protected:
 		RedundantDir():
 			m_is_double_dir(true),
 			m_has_dir(false),
-			m_checked_first_file(false),
+			m_file_in_root_dir(false),
 			m_root_dir(){}
 		virtual ~RedundantDir(){}
 	private:
 		bool m_is_double_dir;
 		bool m_has_dir;
-		bool m_checked_first_file;
+		bool m_file_in_root_dir;
 		tstring m_root_dir;
 	public:
 		inline bool isDoubleDir()const{return m_is_double_dir;}

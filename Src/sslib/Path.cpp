@@ -534,8 +534,7 @@ tstring createPartExtension(long count,int digit){
 
 	if(count<=max_number){
 		//'*'を使用すると桁数を変数から指定できる
-		VariableArgument va(_T("%0*ld"),digit,count);
-		ext.assign(va.get());
+		ext=format(_T("%0*ld"),digit,count);
 	}else if(count<=max_number+max_alphabet){
 		long i=count-(max_number+1);
 

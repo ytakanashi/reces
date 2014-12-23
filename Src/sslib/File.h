@@ -63,7 +63,7 @@ public:
 	//BOMを書き込む
 	void writeBom()const;
 	//ファイルに書き出す(可変長引数)
-	DWORD writeEx(const TCHAR* format,...)const;
+	DWORD writeEx(const TCHAR* fmt,...)const;
 
 	//ファイルポインタの位置を設定
 	bool seek(long long offset,UINT from=FILE_BEGIN,long long* cur=NULL);

@@ -97,9 +97,9 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 		int msg_width=0;
 
 		//メッセージ表示
-		VariableArgument va(_T("   => \'%s\'"),msg);
-		msg_width=m_stdout.getStringWidth(va.get());
-		m_stdout.outputString(va.get());
+		tstring msg_str=format(_T("   => \'%s\'"),msg);
+		msg_width=m_stdout.getStringWidth(msg_str.c_str());
+		m_stdout.outputString(msg_str.c_str());
 
 		//"   =>"がある行を探し、移動
 		static const TCHAR header[]=_T("   =>");

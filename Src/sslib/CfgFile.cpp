@@ -92,8 +92,7 @@ bool CfgFile::getStringDataEx(const TCHAR* section,const TCHAR* key,tstring* res
 //データを設定
 bool CfgFile::setData(const TCHAR* section,const TCHAR* key,int value){
 	if(m_empty){writeBom(filepath().c_str());m_empty=false;}
-	VariableArgument va(_T("%d"),value);
-	return setData(section,key,va.get());
+	return setData(section,key,format(_T("%d"),value).c_str());
 }
 
 //データ(文字列)を設定

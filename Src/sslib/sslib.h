@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.35
+//                  sslib ver.1.37
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -42,7 +42,7 @@ template<typename T>bool strvalid(T str){
 
 #include"Misc.h"
 
-#include"VariableArgument.h"
+#include"FormatString.h"
 
 #include"String.h"
 
@@ -59,15 +59,14 @@ template<typename T>bool strvalid(T str){
 #ifndef SSLIB_GUI
 	#ifndef SSLIB_GUI_DIALOG
 		#include"ConsoleApp.h"
-		extern void createInstance();
 	#else
 		#include"DialogApp.h"
-		extern void createInstance();
 	#endif
 #else
 	#include"WindowApp.h"
-	extern void createInstance();
 #endif
+extern void createInstance();
+
 
 #include"ProgressBar.h"
 
@@ -98,6 +97,12 @@ template<typename T>bool strvalid(T str){
 #include"gui/ListView.h"
 #endif
 
+
+//Ver.1.37(141223)
+//reces Ver.0.00r24で使用
+
+//Ver.1.36(141203)
+//reces Ver.0.00r24aで使用
 
 //Ver.1.35(141013)
 //reces Ver.0.00r23/gui4reces Ver.0.0.1.1で使用

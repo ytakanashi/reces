@@ -1,7 +1,7 @@
 ﻿//ArcXacrett.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -90,10 +90,6 @@ private:
 	tstring* m_log_msg;
 	long long m_file_size;
 	long long m_write_size;
-
-private:
-	//ArcDll::callbackProcV()の代替
-	bool updateProgressBar(const TCHAR* file_name);
 
 protected:
 	//圧縮対象ファイルのパスを整形してファイルに書き出す

@@ -2,7 +2,7 @@
 //LMZIP32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24a by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -175,13 +175,13 @@ ArcLMZip32::ARC_RESULT ArcLMZip32::test(const TCHAR* arc_path){
 	//プレフィックス設定
 	setPrefix(_T("Unzip"));
 
-	VariableArgument cmd_line(_T("%s %s%s%s"),
-							  _T("-t"),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-							  arc_path_str.c_str(),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
+	tstring cmd_line(format(_T("%s %s%s%s"),
+									  _T("-t"),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	int dll_ret=-1;
 	if(!CFG.no_display.no_information&&
@@ -193,11 +193,11 @@ ArcLMZip32::ARC_RESULT ArcLMZip32::test(const TCHAR* arc_path){
 		//実行
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
 		tstring log_msg;
 
-		dll_ret=execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 
@@ -289,26 +289,26 @@ ArcLMZip32::ARC_RESULT ArcLMZip32::compress(const TCHAR* arc_path,std::list<tstr
 		level_str+=static_cast<TCHAR>(CFG.compress.compression_level+'0');
 	}
 
-	VariableArgument cmd_line(_T("%s %s %s %s %s %s%s%s %s@%s%s"),
-							  //-r 再帰ディレクトリ検索
-							  _T("-r"),
-							  //-S システム・隠し属性ファイルも対象にする
-							  _T("-S"),
-							  //-j パスを保存しない
-							  (!CFG.general.ignore_directory_structures)?_T(""):_T("-j"),
-							  //getMethod().level,compression_level
-							  (CFG.compress.compression_level!=-1&&!level_str.empty())?level_str.c_str():getMethod().cmd,
-							  CFG.general.custom_param.c_str(),
+	tstring cmd_line(format(_T("%s %s %s %s %s %s%s%s %s@%s%s"),
+									  //-r 再帰ディレクトリ検索
+									  _T("-r"),
+									  //-S システム・隠し属性ファイルも対象にする
+									  _T("-S"),
+									  //-j パスを保存しない
+									  (!CFG.general.ignore_directory_structures)?_T(""):_T("-j"),
+									  //getMethod().level,compression_level
+									  (CFG.compress.compression_level!=-1&&!level_str.empty())?level_str.c_str():getMethod().cmd,
+									  CFG.general.custom_param.c_str(),
 
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-							  arc_path_str.c_str(),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-							  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-							  list_file_path.c_str(),
-							  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+									  list_file_path.c_str(),
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'に圧縮しています...\n\n"),arc_path);
 
@@ -318,9 +318,9 @@ ArcLMZip32::ARC_RESULT ArcLMZip32::compress(const TCHAR* arc_path,std::list<tstr
 	if(CFG.no_display.no_log){
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
 	unload();
@@ -376,30 +376,30 @@ ArcLMZip32::ARC_RESULT ArcLMZip32::extract(const TCHAR* arc_path,const TCHAR* ou
 	replaceDelimiter(arc_path_str);
 	replaceDelimiter(output_dir_str);
 
-	VariableArgument cmd_line(_T("%s %s %s %s%s%s %s%s%s"),
-							  //反転注意
-							  //-j パス付きでファイルを復元
-							  (!CFG.general.ignore_directory_structures)?_T("-j"):_T(""),
-							  //-o 既存ファイルへの上書き確認の省略
-							  _T("-o"),
-							  CFG.general.custom_param.c_str(),
+	tstring cmd_line(format(_T("%s %s %s %s%s%s %s%s%s"),
+									  //反転注意
+									  //-j パス付きでファイルを復元
+									  (!CFG.general.ignore_directory_structures)?_T("-j"):_T(""),
+									  //-o 既存ファイルへの上書き確認の省略
+									  _T("-o"),
+									  CFG.general.custom_param.c_str(),
 
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-							  arc_path_str.c_str(),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-							  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-							  output_dir_str.c_str(),
-							  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""));
+									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
+									  output_dir_str.c_str(),
+									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T("")));
 
 	if(use_filter){
-		cmd_line.add(_T(" %s@%s%s"),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-					 list_file_path.c_str(),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+		cmd_line.append(format(_T(" %s@%s%s"),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+										 list_file_path.c_str(),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 	}
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
@@ -417,9 +417,9 @@ ArcLMZip32::ARC_RESULT ArcLMZip32::extract(const TCHAR* arc_path,const TCHAR* ou
 	if(CFG.no_display.no_log){
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(app()->wnd(),cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(app()->wnd(),cmd_line.c_str(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(app()->wnd(),cmd_line.get(),log_msg,log_buffer_size);
+		dll_ret=execute(app()->wnd(),cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
 	hook::uninstall();
@@ -463,17 +463,17 @@ ArcLMZip32::ARC_RESULT ArcLMZip32::list(const TCHAR* arc_path){
 	if(CFG.output_file_list.api_mode){
 		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,(CFG.general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
 	}else{
-		VariableArgument cmd_line(_T("%s %s%s%s"),
-								  _T("-v"),
-								  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-								  arc_path_str.c_str(),
-								  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
+		tstring cmd_line(format(_T("%s %s%s%s"),
+										  _T("-v"),
+										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+										  arc_path_str.c_str(),
+										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
 
-		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 		tstring log_msg;
 
-		execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 	return ARC_SUCCESS;

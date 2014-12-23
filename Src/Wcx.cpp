@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24a by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -67,7 +67,7 @@ int Wcx::getFileCount(const TCHAR* arc_path){
 	int count=0;
 
 	m_open_arc_data=new OPEN_ARC_DATA(arc_path,isUnicodeMode());
-	if(!openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS){
+	if(!(openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS)){
 		closeArchive();
 		SAFE_DELETE(m_open_arc_data);
 		return count;
@@ -94,7 +94,7 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 	int delimiter_count=(CFG.compress.exclude_base_dir!=0)?countDelimiter(arc_path,m_arc_info):0;
 
 	m_open_arc_data=new OPEN_ARC_DATA(arc_path,isUnicodeMode(),PK_OM_EXTRACT);
-	if(!openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS){
+	if(!(openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS)){
 		closeArchive();
 		SAFE_DELETE(m_open_arc_data);
 		return result;
@@ -192,7 +192,7 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 
 		if(!created){
 			m_open_arc_data=new OPEN_ARC_DATA(arc_path,isUnicodeMode(),PK_OM_EXTRACT);
-			if(!openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS){
+			if(!(openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS)){
 				closeArchive();
 				SAFE_DELETE(m_open_arc_data);
 				return result;
@@ -480,7 +480,7 @@ bool Wcx::createFilesList(const TCHAR* arc_path){
 	if(!isLoaded())load();
 
 	m_open_arc_data=new OPEN_ARC_DATA(arc_path,isUnicodeMode());
-	if(!openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS){
+	if(!(openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS)){
 		closeArchive();
 		SAFE_DELETE(m_open_arc_data);
 		return false;
@@ -522,7 +522,7 @@ bool Wcx::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_
 		if(!isLoaded())load();
 
 		m_open_arc_data=new OPEN_ARC_DATA(arc_path,isUnicodeMode());
-		if(!openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS){
+		if(!(openArchive()!=NULL&&m_open_arc_data->result()==E_SUCCESS)){
 			closeArchive();
 			SAFE_DELETE(m_open_arc_data);
 			return result;

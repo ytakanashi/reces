@@ -2,7 +2,7 @@
 //統合アーカイバDll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -52,10 +52,9 @@ bool ArcDll::isCAL(){
 tstring ArcDll::getInformation(){
 	if(!isLoaded())load();
 
-	VariableArgument va(_T("%-12s ver.%s\n"),
-						(name()+_T(".dll")).c_str(),
-						getVersionStr().c_str());
-	return va.get();
+	return format(_T("%-12s ver.%s\n"),
+							(name()+_T(".dll")).c_str(),
+							getVersionStr().c_str());
 }
 
 //対応している圧縮形式であるか
@@ -167,12 +166,11 @@ tstring ArcDll::getVersionStr(){
 		DWORD minor_ver=0;
 
 		if(fileoperation::getFileVersion(name().c_str(),&major_ver,&minor_ver)){
-			VariableArgument version(_T("%d.%02d.%02d.%02d"),
-									 major_ver>>16,
-									 major_ver&0xffff,
-									 minor_ver>>16,
-									 minor_ver&0xffff);
-				return version.get();
+			return format(_T("%d.%02d.%02d.%02d"),
+									major_ver>>16,
+									major_ver&0xffff,
+									minor_ver>>16,
+									minor_ver&0xffff);
 		}else{
 			if(path::fileExists(name().c_str())){
 				//バージョンの取得は出来ないが、存在はする
@@ -184,12 +182,11 @@ tstring ArcDll::getVersionStr(){
 	}
 
 	//アーカイバDllは上位/下位2ワードに100を掛けた数値を返す
-	VariableArgument version(_T("%d.%02d.%02d.%02d"),
-							 major_ver/100,
-							 major_ver%100,
-							 minor_ver/100,
-							 minor_ver%100);
-	return version.get();
+	return format(_T("%d.%02d.%02d.%02d"),
+							major_ver/100,
+							major_ver%100,
+							minor_ver/100,
+							minor_ver%100);
 }
 
 //ファイル処理情報を格納
@@ -275,12 +272,11 @@ bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info){
 	//ファイル処理情報を格納
 	if(!CFG.no_display.no_information){
 		setExtractingInfo(state,info);
+		if(m_processing_info.file_name.empty())return true;
 	}else{
 		//ライブラリから受け取った書庫処理状況の情報をそのまま利用する
-		ArcDll::setExtractingInfo(state,info);
+//		ArcDll::setExtractingInfo(state,info);
 	}
-
-	if(m_processing_info.file_name.empty())return true;
 
 	if(isTerminated())return false;
 
@@ -376,9 +372,8 @@ bool ArcDll::createFilesList(const TCHAR* arc_path){
 void ArcDll::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse){
 	if(filefilter.empty()&&file_ex_filter.empty())return;
 
-	for(std::vector<fileinfo::FILEINFO>::iterator ite_fileinfo=fileinfo_list->begin(),
-		end=fileinfo_list->end();
-		ite_fileinfo!=end;){
+	for(std::vector<fileinfo::FILEINFO>::iterator ite_fileinfo=fileinfo_list->begin();
+		ite_fileinfo!=fileinfo_list->end();){
 		bool matched=fileinfo::matchFilters(*ite_fileinfo,filefilter,file_ex_filter);
 
 		//反転

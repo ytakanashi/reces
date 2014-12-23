@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -124,11 +124,8 @@ bool Config::save(){
 	//処理対象フィルタ
 	if(!m_cfg.general.filefilter.empty()||
 	   !isEmptySection(_T("FileFilter"))){
-		VariableArgument min_size(_T("%I64d"),m_cfg.general.filefilter.min_size);
-		VariableArgument max_size(_T("%I64d"),m_cfg.general.filefilter.max_size);
-
-		write(_T("FileFilter"),_T("MinSize"),min_size.get(),m_cfg.general.filefilter.min_size!=m_default_cfg.general.filefilter.min_size);
-		write(_T("FileFilter"),_T("MaxSize"),max_size.get(),m_cfg.general.filefilter.max_size!=m_default_cfg.general.filefilter.max_size);
+		write(_T("FileFilter"),_T("MinSize"),format(_T("%I64d"),m_cfg.general.filefilter.min_size).c_str(),m_cfg.general.filefilter.min_size!=m_default_cfg.general.filefilter.min_size);
+		write(_T("FileFilter"),_T("MaxSize"),format(_T("%I64d"),m_cfg.general.filefilter.max_size).c_str(),m_cfg.general.filefilter.max_size!=m_default_cfg.general.filefilter.max_size);
 
 
 		if(m_cfg.general.filefilter.attr!=m_default_cfg.general.filefilter.attr||
@@ -163,11 +160,8 @@ bool Config::save(){
 	//処理対象外フィルタ
 	if(!m_cfg.general.file_ex_filter.empty()||
 	   !isEmptySection(_T("FileExFilter"))){
-		VariableArgument min_size(_T("%I64d"),m_cfg.general.file_ex_filter.min_size);
-		VariableArgument max_size(_T("%I64d"),m_cfg.general.file_ex_filter.max_size);
-
-		write(_T("FileExFilter"),_T("MinSize"),min_size.get(),m_cfg.general.file_ex_filter.min_size!=m_default_cfg.general.file_ex_filter.min_size);
-		write(_T("FileExFilter"),_T("MaxSize"),max_size.get(),m_cfg.general.file_ex_filter.max_size!=m_default_cfg.general.file_ex_filter.max_size);
+		write(_T("FileExFilter"),_T("MinSize"),format(_T("%I64d"),m_cfg.general.file_ex_filter.min_size).c_str(),m_cfg.general.file_ex_filter.min_size!=m_default_cfg.general.file_ex_filter.min_size);
+		write(_T("FileExFilter"),_T("MaxSize"),format(_T("%I64d"),m_cfg.general.file_ex_filter.max_size).c_str(),m_cfg.general.file_ex_filter.max_size!=m_default_cfg.general.file_ex_filter.max_size);
 
 
 		if(m_cfg.general.file_ex_filter.attr!=m_default_cfg.general.file_ex_filter.attr||

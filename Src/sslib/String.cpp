@@ -414,16 +414,16 @@ long long filesize2longlong(const TCHAR* size_str){
 
 //long long(バイト単位)をファイルサイズを表す文字列に変換
 tstring longlong2filesize(const long long size_ll){
-	VariableArgument va(NULL);
+	tstring str;
 
-	if(size_ll<1024)va.add(_T("%I64db"),size_ll);
-	else if(size_ll<(1024<<10))va.add(_T("%.2fkb"),size_ll/1024.0);
-	else if(size_ll<(1024LL<<20))va.add(_T("%.2fmb"),size_ll/((1024<<10)*1.0));
-	else if(size_ll<(1024LL<<30))va.add(_T("%.2fgb"),size_ll/((1024<<20)*1.0));
-	else if(size_ll<(1024LL<<40))va.add(_T("%.2ftb"),size_ll/((1024LL<<30)*1.0));
-	else va.add(_T("%I64db"),size_ll);
+	if(size_ll<1024)str=format(_T("%I64db"),size_ll);
+	else if(size_ll<(1024<<10))str=format(_T("%.2fkb"),size_ll/1024.0);
+	else if(size_ll<(1024LL<<20))str=format(_T("%.2fmb"),size_ll/((1024<<10)*1.0));
+	else if(size_ll<(1024LL<<30))str=format(_T("%.2fgb"),size_ll/((1024<<20)*1.0));
+	else if(size_ll<(1024LL<<40))str=format(_T("%.2ftb"),size_ll/((1024LL<<30)*1.0));
+	else str=format(_T("%I64db"),size_ll);
 
-	return va.get();
+	return str;
 }
 
 //FILETIME構造体からlong longへ変換
@@ -584,9 +584,7 @@ const tstring longlong2datetime(long long date_time){
 		return _T("");
 	}
 
-	VariableArgument va(_T("%I64d"),date_time);
-
-	return va.get();
+	return format(_T("%I64d"),date_time);
 }
 
 #if 0
@@ -702,9 +700,7 @@ const tstring longlong2datetime(long long date_time){
 	result_ll+=st.wSecond;
 
 
-	sslib::VariableArgument date_time_str(_T("%I64d"),result_ll);
-	tstring result=date_time_str.get();
-	return result;
+	return format(_T("%I64d"),result_ll);
 }
 #endif
 

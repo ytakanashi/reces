@@ -2,7 +2,7 @@
 //Unlha32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24a by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -47,14 +47,14 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::test(const TCHAR* arc_path){
 
 	replaceDelimiter(arc_path_str);
 
-	VariableArgument cmd_line(_T("%s %s %s%s%s"),
-							  _T("t"),
-							  _T("-n1"),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-							  arc_path_str.c_str(),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
+	tstring cmd_line(format(_T("%s %s %s%s%s"),
+									  _T("t"),
+									  _T("-n1"),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	int dll_ret=-1;
 	if(!CFG.no_display.no_information&&
@@ -66,11 +66,11 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::test(const TCHAR* arc_path){
 		//実行
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
 		tstring log_msg;
 
-		dll_ret=execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 
@@ -131,29 +131,29 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstr
 	//勝手に拡張子が付加されないように'.'をファイル名末尾に追加。
 	if(lstrcmp(getMethod().mhd,_T("lzhsfx"))!=0)arc_path_str+=_T(".");
 
-	VariableArgument cmd_line(_T("%s %s %s %s %s %s%s%s @%s%s%s"),
-									 _T("a"),
-									 (CFG.compress.create_new)?_T("-d1 -jso1 -+1 -jf0 -jtc -gm"):_T("-d1 -jso1 -+1 -jf0 -gm"),
-									 //-d1    : ディレクトリー (配下) の格納。
-									 //-jso1  : SH_DENYNO でのオープンを行わない。
-									 //-+1    : レジストリーの設定を無視。
-									 //-jf0   : ルート記号の削除。
-									 //-jtc   : 指定したファイルのみ格納
-									 //-gm    : エラーメッセージ表示の抑止。
-									 CFG.general.custom_param.c_str(),
-									 _T("-n1"),
-									 //sfx
-									 getMethod().cmd,
+	tstring cmd_line(format(_T("%s %s %s %s %s %s%s%s @%s%s%s"),
+									  _T("a"),
+									  (CFG.compress.create_new)?_T("-d1 -jso1 -+1 -jf0 -jtc -gm"):_T("-d1 -jso1 -+1 -jf0 -gm"),
+									  //-d1    : ディレクトリー (配下) の格納。
+									  //-jso1  : SH_DENYNO でのオープンを行わない。
+									  //-+1    : レジストリーの設定を無視。
+									  //-jf0   : ルート記号の削除。
+									  //-jtc   : 指定したファイルのみ格納
+									  //-gm    : エラーメッセージ表示の抑止。
+									  CFG.general.custom_param.c_str(),
+									  _T("-n1"),
+									  //sfx
+									  getMethod().cmd,
 
-									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									 arc_path_str.c_str(),
-									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-									 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-									 list_file_path.c_str(),
-									 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+									  list_file_path.c_str(),
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'に圧縮しています...\n\n"),arc_path);
 
@@ -168,9 +168,9 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstr
 	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
@@ -230,32 +230,32 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::extract(const TCHAR* arc_path,const TCHAR* ou
 	replaceDelimiter(output_dir_str);
 	replaceDelimiter(list_file_path);
 
-	VariableArgument cmd_line(_T("%s %s %s %s %s%s%s %s%s%s"),
-									 (!CFG.general.ignore_directory_structures)?_T("e -x1"):_T("e"),
-									 _T("-a1 -c1 -jf0 -jyo -+1 -gm -r2"),
-									 //-a1    : すべてのファイルについて属性を復元して展開します。
-									 //-c1    : タイムスタンプ検査を省略
-									 //-jyo   : 既存ファイルへの上書き確認の省略。
-									 //-gm    : エラーメッセージ表示の抑止。
-									 //-r2    : ディレクトリー指定再帰モード
-									 CFG.general.custom_param.c_str(),
-									 _T("-n1"),
-									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									 arc_path_str.c_str(),
-									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+	tstring cmd_line(format(_T("%s %s %s %s %s%s%s %s%s%s"),
+									  (!CFG.general.ignore_directory_structures)?_T("e -x1"):_T("e"),
+									  _T("-a1 -c1 -jf0 -jyo -+1 -gm -r2"),
+									  //-a1    : すべてのファイルについて属性を復元して展開します。
+									  //-c1    : タイムスタンプ検査を省略
+									  //-jyo   : 既存ファイルへの上書き確認の省略。
+									  //-gm    : エラーメッセージ表示の抑止。
+									  //-r2    : ディレクトリー指定再帰モード
+									  CFG.general.custom_param.c_str(),
+									  _T("-n1"),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-									 output_dir_str.c_str(),
-									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""));
+									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
+									  output_dir_str.c_str(),
+									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T("")));
 
 	if(use_filter){
-		cmd_line.add(_T(" @%s%s%s"),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-					 list_file_path.c_str(),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+		cmd_line.append(format(_T(" @%s%s%s"),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+										 list_file_path.c_str(),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 	}
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
@@ -269,9 +269,9 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::extract(const TCHAR* arc_path,const TCHAR* ou
 	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
@@ -339,22 +339,22 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_m
 	replaceDelimiter(arc_path);
 	replaceDelimiter(list_file_path);
 
-	VariableArgument cmd_line(_T("%s %s %s %s%s%s @%s%s%s"),
-									 _T("d"),
-									 _T("-gm -r2"),
-									 //-gm    : エラーメッセージ表示の抑止。
-									 //-r2    : ディレクトリー指定再帰モード
-									 _T("-n1"),
+	tstring cmd_line(format(_T("%s %s %s %s%s%s @%s%s%s"),
+									  _T("d"),
+									  _T("-gm -r2"),
+									  //-gm    : エラーメッセージ表示の抑止。
+									  //-r2    : ディレクトリー指定再帰モード
+									  _T("-n1"),
 
-									 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-									 arc_path.c_str(),
-									 (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
+									  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
+									  arc_path.c_str(),
+									  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
 
-									 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-									 list_file_path.c_str(),
-									 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+									  list_file_path.c_str(),
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
 
@@ -368,9 +368,9 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_m
 	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
@@ -412,24 +412,24 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::list(const TCHAR* arc_path){
 
 		replaceDelimiter(list_file_path);
 
-		VariableArgument cmd_line(_T("%s %s%s%s"),
-										 _T("l"),
-										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-										 arc_path_str.c_str(),
-										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
+		tstring cmd_line(format(_T("%s %s%s%s"),
+										  _T("l"),
+										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+										  arc_path_str.c_str(),
+										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
 
 		if(use_filter){
-			cmd_line.add(_T(" @%s%s%s"),
-						 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-						 list_file_path.c_str(),
-						 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+			cmd_line.append(format(_T(" @%s%s%s"),
+											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+											 list_file_path.c_str(),
+											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 		}
 
-		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 		tstring log_msg;
 
-		execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 	return ARC_SUCCESS;

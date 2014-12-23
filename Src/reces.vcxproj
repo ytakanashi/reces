@@ -36,12 +36,12 @@
     <ClCompile Include="sslib\File.cpp" />
     <ClCompile Include="sslib\FileOperation.cpp" />
     <ClCompile Include="sslib\FileSearch.cpp" />
+    <ClCompile Include="sslib\FormatString.cpp" />
     <ClCompile Include="sslib\Library.cpp" />
     <ClCompile Include="sslib\Misc.cpp" />
     <ClCompile Include="sslib\Path.cpp" />
     <ClCompile Include="sslib\ProgressBar.cpp" />
     <ClCompile Include="sslib\String.cpp" />
-    <ClCompile Include="sslib\VariableArgument.cpp" />
     <ClCompile Include="Wcx.cpp" />
     <ClCompile Include="WcxBase.cpp" />
   </ItemGroup>
@@ -73,13 +73,13 @@
     <ClInclude Include="sslib\File.h" />
     <ClInclude Include="sslib\FileOperation.h" />
     <ClInclude Include="sslib\FileSearch.h" />
+    <ClInclude Include="sslib\FormatString.h" />
     <ClInclude Include="sslib\Library.h" />
     <ClInclude Include="sslib\Misc.h" />
     <ClInclude Include="sslib\Path.h" />
     <ClInclude Include="sslib\ProgressBar.h" />
     <ClInclude Include="sslib\sslib.h" />
     <ClInclude Include="sslib\String.h" />
-    <ClInclude Include="sslib\VariableArgument.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Wcx.h" />
     <ClInclude Include="WcxBase.h" />
@@ -152,7 +152,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;version.lib;imagehlp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>/STUB:resources\stub %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/STUB:resources\stub /PDBALTPATH:%_PDB% %(AdditionalOptions)</AdditionalOptions>
+      <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

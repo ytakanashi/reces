@@ -2,7 +2,7 @@
 //共通ヘッダファイル
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24a by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -67,9 +67,9 @@ typedef std::basic_string<TCHAR>tstring;
 #endif //_tcstoll
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r24a_Debug")
+	#define SOFTWARE_VERSION _T("0.00r24_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r24a")
+	#define SOFTWARE_VERSION _T("0.00r24")
 #endif
 
 #include"sslib/sslib.h"
@@ -80,9 +80,7 @@ inline void msg(const TCHAR* format,...){
 	va_list argp;
 	va_start(argp,format);
 
-	sslib::VariableArgument va(format,argp);
-
-	MessageBox(NULL,va.get(),NULL,MB_OK);
+	MessageBox(NULL,sslib::format(format,argp).c_str(),NULL,MB_OK);
 
 	va_end(argp);
 }

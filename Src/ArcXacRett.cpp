@@ -2,7 +2,7 @@
 //Xacrett.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24a by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -173,31 +173,31 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 	replaceDelimiter(arc_path_str);
 	replaceDelimiter(output_dir_str);
 
-	VariableArgument cmd_line(_T("%s %s %s %s %s%s%s %s%s%s"),
-							  (!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -j"),
-							  _T("-o1"),
-							  CFG.general.custom_param.c_str(),
-							  //-o1    :上書き確認ダイアログ表示の抑止
-							  //			_T("-n1"),
-							  _T(""),
+	tstring cmd_line(format(_T("%s %s %s %s %s%s%s %s%s%s"),
+									  (!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -j"),
+									  _T("-o1"),
+									  CFG.general.custom_param.c_str(),
+									  //-o1    :上書き確認ダイアログ表示の抑止
+									  //			_T("-n1"),
+									  _T(""),
 
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-							  arc_path_str.c_str(),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-							  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-							  output_dir_str.c_str(),
-							  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""));
+									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
+									  output_dir_str.c_str(),
+									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T("")));
 
 	if(use_filter){
 		//注意:'@'も二重引用府内に含めること
-		cmd_line.add(_T(" %s@%s%s"),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-					 list_file_path.c_str(),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+		cmd_line.append(format(_T(" %s@%s%s"),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+										 list_file_path.c_str(),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 	}
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
@@ -223,7 +223,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 //		if(CFG.no_display.no_log||log_msg==NULL){
 			tstring dummy(1,'\0');
 
-			dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+			dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 //		}else{
 //			dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
 //		}

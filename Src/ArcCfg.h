@@ -1,7 +1,7 @@
 ﻿//ArcCfg.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -16,7 +16,7 @@
 #define CFG ArcCfg::inst()->cfg()
 #define ARCCFG ArcCfg::inst()
 
-class ArcCfg{
+class ArcCfg:private sslib::misc::NonCopyable<ArcCfg>{
 public:
 	ArcCfg():
 		m_config(),
@@ -25,8 +25,6 @@ public:
 		m_password_input_cancelled(false),
 		m_hook_dialog_type(0),
 		m_extracting_wnd_handle(NULL){}
-	ArcCfg(const ArcCfg& i){}
-	ArcCfg& operator=(const ArcCfg& i){}
 	~ArcCfg(){}
 
 private:

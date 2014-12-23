@@ -1,7 +1,7 @@
 ﻿//reces.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -172,7 +172,7 @@ private:
 	//ライブラリリストの7-zip32とLMZIP32を入れ替える
 	bool swap7ZLMZIP(bool sort_by_name=true);
 	//読み込みと対応チェック
-	template<typename I>Archiver* loadAndCheck(I ite,I end,const TCHAR* arc_path,bool* loaded_library,bool ext_check=false,const TCHAR* libname=NULL,const TCHAR* full_libname=NULL);
+	template<typename I>Archiver* loadAndCheck(I ite,I end,const TCHAR* arc_path=NULL,bool* loaded_library=NULL,const TCHAR* ext=NULL,const TCHAR* libname=NULL,const TCHAR* full_libname=NULL);
 	//spiやwcxなどプラグインの読み込みと対応チェック
 	template<typename T>Archiver* LoadAndCheckPlugin(std::vector<T*>* plugin_list,const TCHAR* arc_path,bool* loaded_library,const tstring& plugin_dir,const TCHAR* libname,Archiver::ARC_TYPE type);
 	//'od'と'of'を反映した作成する書庫のパスを作成

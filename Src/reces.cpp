@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24a by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -40,10 +40,6 @@ namespace{
 }
 
 namespace{
-	DWORD WaitForProcessExit(DWORD process_id,DWORD milliseconds=INFINITE){
-		return ::WaitForSingleObject(::OpenProcess(SYNCHRONIZE,false,process_id),INFINITE);
-	}
-
 	tstring removeTailCharacter(const tstring& str,TCHAR c){
 		if(str.empty())return str;
 
@@ -211,8 +207,7 @@ void Reces::cleanup(){
 
 	//パスワードダイアログのフックを終了
 	if(m_pUninstallHook){
-		DWORD result=0;
-		::SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG,300,&result);
+		::SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG,300,NULL);
 
 		m_pUninstallHook();
 		::FreeLibrary(m_hook_dll_module);
@@ -498,12 +493,11 @@ tstring Reces::getVersion(const TCHAR* file_path){
 	DWORD minor_ver=0;
 
 	if(fileoperation::getFileVersion(file_path,&major_ver,&minor_ver)){
-		VariableArgument version(_T("%d.%02d.%02d.%02d"),
-									   major_ver>>16,
-									   major_ver&0xffff,
-									   minor_ver>>16,
-									   minor_ver&0xffff);
-		return version.get();
+		return format(_T("%d.%02d.%02d.%02d"),
+								major_ver>>16,
+								major_ver&0xffff,
+								minor_ver>>16,
+								minor_ver&0xffff);
 	}
 	return _T("");
 }
@@ -563,7 +557,6 @@ bool Reces::requirePassword(){
 bool Reces::runCommand(){
 	Console* input_command=new Console(STD_INPUT_HANDLE);
 	bool result=false;
-
 
 	tstring current_dir(path::getCurrentDirectory());
 
@@ -650,8 +643,7 @@ Reces::ARC_RESULT Reces::arcFileName(CUR_FILE* new_cur_file,const tstring& arc_p
 
 		if(!path::fileExists(output_dir.c_str())){
 			if(!fileoperation::createDirectory(output_dir.c_str())){
-				VariableArgument error_message(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
-				err_msg=error_message.get();
+				err_msg.assign(format(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str()));
 				return ARC_CANNOT_CREATE_DIRECTORY;
 			}
 		}
@@ -686,8 +678,7 @@ Reces::ARC_RESULT Reces::arcFileName(CUR_FILE* new_cur_file,const tstring& arc_p
 
 		if(!path::fileExists(output_dir.c_str())){
 			if(!fileoperation::createDirectory(output_dir.c_str())){
-				VariableArgument error_message(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
-				err_msg=error_message.get();
+				err_msg=format(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
 				return ARC_CANNOT_CREATE_DIRECTORY;
 			}
 		}
@@ -734,10 +725,10 @@ Reces::ARC_RESULT Reces::arcFileName(CUR_FILE* new_cur_file,const tstring& arc_p
 
 		if(path::fileExists((new_cur_file->arc_path+((need_ext)?ext:_T(""))).c_str())){
 			for(unsigned long long i=1;i<ULLONG_MAX;++i){
-				VariableArgument n(_T("_%I64u"),i);
+				tstring n=format(_T("_%I64u"),i);
 
-				if(!path::fileExists((new_cur_file->arc_path+n.get()+((need_ext)?ext:_T(""))).c_str())){
-					new_cur_file->arc_path+=n.get();
+				if(!path::fileExists((new_cur_file->arc_path+n.c_str()+((need_ext)?ext:_T(""))).c_str())){
+					new_cur_file->arc_path+=n.c_str();
 					new_cur_file->auto_renamed=true;
 					break;
 				}
@@ -1024,11 +1015,12 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 			case 'm':{//動作モード
 				switch(options[i].c_str()[1]){
 					case 'R':
-						//ディレクトリ階層を無視して圧縮/解凍
+						//ディレクトリ階層を無視して再圧縮
 						CFG.general.ignore_directory_structures=true;
 						dprintf(_T("CFG.general.ignore_directory_structures\n"));
 						//fall through
-					case 'r':{//Recompress
+					case 'r':{
+						//再圧縮
 						CFG.mode=MODE_RECOMPRESS;
 						dprintf(_T("mode : recompress\n"));
 
@@ -1049,11 +1041,12 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 					}
 
 					case 'C':
-						//ディレクトリ階層を無視して圧縮/解凍
+						//ディレクトリ階層を無視して圧縮
 						CFG.general.ignore_directory_structures=true;
 						dprintf(_T("CFG.general.ignore_directory_structures\n"));
 						//fall through
-					case 'c':{//Compress
+					case 'c':{
+						//圧縮
 						CFG.mode=MODE_COMPRESS;
 						dprintf(_T("mode : compress\n"));
 
@@ -1070,11 +1063,12 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 
 
 					case 'E':
-						//ディレクトリ階層を無視して圧縮/解凍
+						//ディレクトリ階層を無視して解凍
 						CFG.general.ignore_directory_structures=true;
 						dprintf(_T("CFG.general.ignore_directory_structures\n"));
 						//fall through
-					case 'e':{//Extract
+					case 'e':{
+						//解凍
 						CFG.mode=MODE_EXTRACT;
 						dprintf(_T("Mode : extract\n"));
 
@@ -1170,14 +1164,12 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 						break;
 					}
 
-
 					case 'v':{
 						//バージョン確認
 						CFG.mode=MODE_VERSION;
 						dprintf(_T("mode : version\n"));
 						break;
 					}
-
 				}
 				break;
 			}//case 'm'
@@ -1713,7 +1705,8 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 				break;
 			}//case 'C'
 
-			case 'U':{//Unicodeエスケープシーケンスをデコードする
+			case 'U':{
+				//Unicodeエスケープシーケンスをデコードする
 				if(options[i].find(_T("UESC"))==0){
 					switch(options[i].c_str()[4]){
 						case '0':
@@ -1729,7 +1722,8 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 				break;
 			}//case 'U'
 
-			case 'q':{//処理終了後閉じる
+			case 'q':{
+				//処理終了後閉じる
 				switch(options[i].c_str()[1]){
 					case '0':
 					case '-':
@@ -1743,7 +1737,8 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 				break;
 			}//case 'q'
 
-			case '@':{//リストファイル
+			case '@':{
+				//リストファイル
 				File list_file;
 
 				if(!list_file.open(options[i].c_str()+1,OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
@@ -1758,8 +1753,8 @@ bool Reces::parseOptions(CommandArgument& cmd_arg){
 				break;
 			}
 
-			//TODO
 			case 'w':{
+				//wait指定
 				if(options[i].find(_T("wait:"))==0&&
 				   options[i][5]!='\0'){
 					wait=_ttoi(options[i].substr(5).c_str());
@@ -2030,8 +2025,7 @@ Reces::ARC_RESULT Reces::compress(std::list<tstring>& compress_file_list,tstring
 
 	if(!m_arc_dll->isLoaded()&&!m_arc_dll->load()){
 		STDOUT.outputString(_T("\n"));
-		VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),m_arc_dll->name().c_str());
-		err_msg=error_message.get();
+		err_msg=format(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),m_arc_dll->name().c_str());
 		return ARC_CANNOT_LOAD_LIBRARY;
 	}
 
@@ -2317,8 +2311,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 				return ARC_INPUT_PASSWORD_CANCEL;
 			}else if(!CFG.general.selected_library_name.empty()&&!loaded_library){
 				STDOUT.outputString(_T("\n"));
-				VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
-				err_msg=error_message.get();
+				err_msg=format(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 				return ARC_CANNOT_LOAD_LIBRARY;
 			}else{
 				STDOUT.outputString(_T("\n"));
@@ -2342,8 +2335,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 			info(_T("バックグラウンドモードに設定しました。\n"));
 		}
 
-		if(m_arc_dll->type()==Archiver::CAL&&
-		   CFG.mode==MODE_RECOMPRESS){
+		if(CFG.mode==MODE_RECOMPRESS){
 			//'@'の処理で
 			if(CFG.compress.compression_type.c_str()[0]=='@'&&
 			   //一括再圧縮の一度目か
@@ -2364,8 +2356,21 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 					mhd_opt|=ArcDll::MHD_SFX;
 				}
 
-				if(m_arc_dll){
-					m_cur_file.recompress_mhd.assign(static_cast<ArcDll*>(m_arc_dll)->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str()));
+				if(m_arc_dll->type()==Archiver::CAL){
+					if(m_arc_dll){
+						m_cur_file.recompress_mhd.assign(static_cast<ArcDll*>(m_arc_dll)->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str()));
+					}
+				}else{
+					//統合アーカイバ以外
+					for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
+						if(!(!m_arcdll_list[i]->isLoaded()&&!m_arcdll_list[i]->load())){
+							if(m_arcdll_list[i]->isSupportedArchive((!split_file)?arc_path.c_str():join_file_name.c_str())){
+								if(!(m_cur_file.recompress_mhd.assign(m_arcdll_list[i]->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str()))).empty()){
+									break;
+								}
+							}
+						}
+					}
 				}
 
 				if(m_cur_file.recompress_mhd.empty())m_cur_file.recompress_mhd=_T("zip");
@@ -2392,8 +2397,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 			output_dir.assign(&buffer[0]);
 			if(!path::fileExists(output_dir.c_str())){
 				if(!fileoperation::createDirectory(output_dir.c_str())){
-					VariableArgument error_message(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
-					err_msg=error_message.get();
+					err_msg.assign(format(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str()));
 					return ARC_CANNOT_CREATE_DIRECTORY;
 				}
 			}
@@ -2540,8 +2544,7 @@ Reces::ARC_RESULT Reces::extract(const tstring& arc_path,tstring& err_msg){
 				if(!created_dir){
 					//コールバック関数の登録を解除
 					m_arc_dll->clearCallback();
-					VariableArgument error_message(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
-					err_msg=error_message.get();
+					err_msg=format(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
 					return ARC_CANNOT_CREATE_DIRECTORY;
 				}
 			}
@@ -2731,8 +2734,7 @@ Reces::ARC_RESULT Reces::list(const tstring& arc_path,tstring& err_msg){
 				return ARC_INPUT_PASSWORD_CANCEL;
 			}else if(!CFG.general.selected_library_name.empty()&&!loaded_library){
 				STDOUT.outputString(_T("\n"));
-				VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
-				err_msg=error_message.get();
+				err_msg=format(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 				return ARC_CANNOT_LOAD_LIBRARY;
 			}else{
 				STDOUT.outputString(_T("\n"));
@@ -2822,8 +2824,7 @@ Reces::ARC_RESULT Reces::sendCommands(std::list<tstring>& commands_list,tstring&
 
 		if(!m_arc_dll){
 			STDOUT.outputString(_T("\n"));
-			VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
-			err_msg=error_message.get();
+			err_msg=format(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 			return ARC_CANNOT_LOAD_LIBRARY;
 		}
 	}
@@ -2975,8 +2976,7 @@ Reces::ARC_RESULT Reces::test(const tstring& arc_path,tstring& err_msg){
 		if(!m_arc_dll){
 			if(!CFG.general.selected_library_name.empty()&&!loaded_library){
 				STDOUT.outputString(_T("\n"));
-				VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
-				err_msg=error_message.get();
+				err_msg=format(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 				return ARC_CANNOT_LOAD_LIBRARY;
 			}else{
 				STDOUT.outputString(_T("\n"));
@@ -3089,8 +3089,7 @@ Reces::ARC_RESULT Reces::settings(tstring& err_msg){
 
 	if(!m_arc_dll){
 		STDOUT.outputString(_T("\n"));
-		VariableArgument error_message(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
-		err_msg=error_message.get();
+		err_msg=format(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 		return ARC_CANNOT_LOAD_LIBRARY;
 	}
 
@@ -3192,6 +3191,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 			ARC_RESULT result=ARC_FAILURE;
 			tstring err_msg;
 			ARC_RESULT_MSG result_msg(result,err_msg);
+			int env_index=0;
 
 			for(std::list<tstring>::iterator ite_list=extract_file_list.begin(),
 				list_begin=extract_file_list.begin(),
@@ -3260,6 +3260,15 @@ bool Reces::run(CommandArgument& cmd_arg){
 						}
 
 						if(!CFG.compress.each_file){
+							if(!CFG.recompress.run_command.disable()){
+								if(ite_list==list_begin){
+									//環境変数FILEPATHに入力ファイルパスを代入
+									env::set(_T("FILEPATH"),ite_list->c_str());
+								}
+
+								//環境変数FILEPATH[env_index]に入力ファイルパスを代入
+								env::set(format(_T("FILEPATH[%d]"),env_index++).c_str(),ite_list->c_str());
+							}
 							if(CFG.general.remove_source!=RMSRC_DISABLE&&
 							   ite_list!=list_begin){
 								remove_list.push_back(std::make_pair(_T(""),*ite_list));
@@ -3272,7 +3281,14 @@ bool Reces::run(CommandArgument& cmd_arg){
 						}
 
 						//コマンド実行
-						if(!CFG.recompress.run_command.disable())runCommand();
+						if(!CFG.recompress.run_command.disable()){
+							if(CFG.compress.each_file){
+								//環境変数FILEPATHに入力ファイルパスを代入
+								env::set(_T("FILEPATH"),ite_list->c_str());
+							}
+							env::set(_T("FILECOUNT"),format(_T("%d"),(CFG.compress.each_file)?1:extract_file_list.size()).c_str());
+							runCommand();
+						}
 
 						if(isTerminated())break;
 

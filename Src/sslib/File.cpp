@@ -304,19 +304,18 @@ void File::writeBom()const{
 }
 
 //ファイルに書き出す(可変長引数)
-DWORD File::writeEx(const TCHAR* format,...)const{
-	if(!isOpened()||format==NULL)return false;
+DWORD File::writeEx(const TCHAR* fmt,...)const{
+	if(!isOpened()||fmt==NULL)return false;
 
 	DWORD written_chars=0;
-	const TCHAR*buffer=NULL;
+	tstring buffer;
 
 	va_list argp;
-	va_start(argp,format);
-	VariableArgument va(format,argp);
-	buffer=va.get();
+	va_start(argp,fmt);
+	buffer=format(fmt,argp).c_str();
 	va_end(argp);
 
-	if(buffer==NULL)return written_chars;
+	if(buffer.empty())return written_chars;
 #ifdef UNICODE
 
 	//BOMを書き込む
@@ -332,15 +331,15 @@ DWORD File::writeEx(const TCHAR* format,...)const{
 
 		//TODO:UTF16BE,UTF16LEのテストをあまり行っていない
 		case UTF16LE:
-			written_chars=write(buffer,lstrlen(buffer)*sizeof(TCHAR));
+			written_chars=write(buffer.c_str(),buffer.length()*sizeof(TCHAR));
 			break;
 
 		case UTF16BE:{
-			std::vector<BYTE> src_buffer(lstrlen(buffer)*sizeof(TCHAR));
+			std::vector<BYTE> src_buffer(buffer.length()*sizeof(TCHAR));
 
-			lstrcpy((wchar_t*)&src_buffer[0],buffer);
+			lstrcpy((wchar_t*)&src_buffer[0],buffer.c_str());
 
-			std::vector<BYTE> dest_buffer(lstrlen(buffer));
+			std::vector<BYTE> dest_buffer(buffer.length());
 
 			_swab((char*)&src_buffer[0],(char*)&dest_buffer[0],src_buffer.size());
 			written_chars=write((wchar_t*)&dest_buffer[0],dest_buffer.size()*sizeof(TCHAR));
@@ -352,7 +351,7 @@ DWORD File::writeEx(const TCHAR* format,...)const{
 	}
 
 #else
-	written_chars=write(buffer,lstrlen(buffer));
+	written_chars=write(buffer.c_str(),buffer.length());
 #endif
 	return written_chars;
 }

@@ -30,7 +30,9 @@ Library::~Library(){
 
 //ライブラリを読み込む
 bool Library::load(){
-	if(!m_library_name.empty())return Library::load(m_library_name.c_str(),m_library_prefix.c_str());
+	unload();
+
+	if(!m_library_name.empty())return load(m_library_name.c_str(),m_library_prefix.c_str());
 	else return false;
 }
 
@@ -74,15 +76,13 @@ FARPROC WINAPI Library::getAddress(const TCHAR* proc_name_format,...){
 
 	va_list argp;
 	va_start(argp,proc_name_format);
-
-	VariableArgument va(proc_name_format,argp);
-	const TCHAR* proc_name=va.get();
+	tstring proc_name=format(proc_name_format,argp);
 	va_end(argp);
 
 #ifndef UNICODE
-	return ::GetProcAddress(m_module,tstring(m_library_prefix+proc_name).c_str());
+	return ::GetProcAddress(m_module,(m_library_prefix+proc_name).c_str());
 #else
-	return ::GetProcAddress(m_module,str::utf162sjis(m_library_prefix+tstring(proc_name)).c_str());
+	return ::GetProcAddress(m_module,str::utf162sjis(m_library_prefix+proc_name).c_str());
 #endif
 }
 

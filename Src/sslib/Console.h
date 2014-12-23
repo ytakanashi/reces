@@ -87,12 +87,12 @@ public:
 
 	//文字を出力
 	bool write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars);
-	bool write(const TCHAR* format,const va_list argp,LPDWORD written_chars);
+	bool write(const TCHAR* fmt,const va_list argp,LPDWORD written_chars);
 
 	//文字を出力
-	DWORD outputString(const TCHAR* format,...);
+	DWORD outputString(const TCHAR* fmt,...);
 	//色付文字を出力
-	DWORD outputString(int foreground,int background,const TCHAR* format,...);
+	DWORD outputString(int foreground,int background,const TCHAR* fmt,...);
 
 	//指定した範囲をクリア
 	bool clear(DWORD fill_length,COORD begin_pos);

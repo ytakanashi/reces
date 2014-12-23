@@ -97,7 +97,6 @@ CommandArgument::CommandArgument(DWORD opt):
 			switch(*(args()[i].c_str())){
 				case '-':
 				case '/':
-				case ':':
 					if(i+1!=size&&
 					   args()[i]==args()[i+1]){
 						//解析終了

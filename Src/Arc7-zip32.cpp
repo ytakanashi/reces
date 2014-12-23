@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24a by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -123,15 +123,15 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 
 	replaceDelimiter(arc_path_str);
 
-	VariableArgument cmd_line(_T("%s %s %s %s%s%s"),
-							  _T("t"),
-							  _T("-hide"),
-							  _T("--"),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-							  arc_path_str.c_str(),
-							  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
+	tstring cmd_line(format(_T("%s %s %s %s%s%s"),
+									  _T("t"),
+									  _T("-hide"),
+									  _T("--"),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									  arc_path_str.c_str(),
+									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	bool use_password=!CFG.general.password_list.empty();
 
@@ -158,9 +158,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 			//実行
 			tstring dummy(1,'\0');
 
-			dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+			dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 		}else{
-			dll_ret=execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+			dll_ret=execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		}
 	}while(!isTerminated()&&
 		   //正しいパスワードが入力されるまで問い合わせる
@@ -306,41 +306,41 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'に圧縮しています...\n\n"),arc_path);
 
-	VariableArgument cmd_line(_T("%s %s %s %s %s %s "),
-							  _T("a"),
-							  (CFG.compress.create_new)?_T("-y -mmt=on -up0q0"):_T("-y -mmt=on"),
-							  //-y     : 全ての質問に yes を仮定。
-							  //-mmt=on: マルチスレッドモードを設定。
-							  //-u     :
-							  //  p    :ファイルは書庫内に存在するがワイルドカード名と一致しない。
-							  //  q    :ファイルは書庫内に存在するがディスク上には存在しない。
-							  getMethod().cmd,
-							  //getMethod().level+compression_level
-							  (CFG.compress.compression_level!=-1&&!level_str.empty())?level_str.c_str():_T(""),
-							  CFG.general.custom_param.c_str(),
-							  _T("-hide"));
+	tstring cmd_line(format(_T("%s %s %s %s %s %s "),
+									  _T("a"),
+									  (CFG.compress.create_new)?_T("-y -mmt=on -up0q0"):_T("-y -mmt=on"),
+									  //-y     : 全ての質問に yes を仮定。
+									  //-mmt=on: マルチスレッドモードを設定。
+									  //-u     :
+									  //  p    :ファイルは書庫内に存在するがワイルドカード名と一致しない。
+									  //  q    :ファイルは書庫内に存在するがディスク上には存在しない。
+									  getMethod().cmd,
+									  //getMethod().level+compression_level
+									  (CFG.compress.compression_level!=-1&&!level_str.empty())?level_str.c_str():_T(""),
+									  CFG.general.custom_param.c_str(),
+									  _T("-hide")));
 
 	if(use_exclude_list){
 		//ディレクトリを/mcで圧縮(with フィルタ)する場合
 		//-xスイッチで処理対象外リストを指定
-		cmd_line.add(_T("-x@%s%s%s "),
-					 (str::containsWhiteSpace(exclude_list_file_path))?_T("\""):_T(""),
-					 exclude_list_file_path.c_str(),
-					 (str::containsWhiteSpace(exclude_list_file_path))?_T("\""):_T(""));
+		cmd_line.append(format(_T("-x@%s%s%s "),
+										 (str::containsWhiteSpace(exclude_list_file_path))?_T("\""):_T(""),
+										 exclude_list_file_path.c_str(),
+										 (str::containsWhiteSpace(exclude_list_file_path))?_T("\""):_T("")));
 	}
 
-	cmd_line.add(_T("%s %s%s%s @%s%s%s"),
-				 _T("--"),
+	cmd_line.append(format(_T("%s %s%s%s @%s%s%s"),
+									 _T("--"),
 
-				 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-				 arc_path_str.c_str(),
-				 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									 arc_path_str.c_str(),
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
 
-				 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-				 list_file_path.c_str(),
-				 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+									 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+									 list_file_path.c_str(),
+									 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	//実行
 	int dll_ret=-1;
@@ -352,9 +352,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
@@ -415,45 +415,45 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 	replaceDelimiter(arc_path_str);
 	replaceDelimiter(output_dir_str);
 
-	VariableArgument cmd_line(_T("%s %s %s %s "),
-							  (!CFG.general.ignore_directory_structures)?_T("x"):_T("e"),
-							  _T("-y -aoa -mmt=on"),
-							  //-y     : 全ての質問に yes を仮定。
-							  //-aoa   : 全てのファイルを確認しないで上書きします。
-							  //-mmt=on: マルチスレッドモードを設定。
-							  CFG.general.custom_param.c_str(),
-							  _T("-hide"));
+	tstring cmd_line(format(_T("%s %s %s %s "),
+									  (!CFG.general.ignore_directory_structures)?_T("x"):_T("e"),
+									  _T("-y -aoa -mmt=on"),
+									  //-y     : 全ての質問に yes を仮定。
+									  //-aoa   : 全てのファイルを確認しないで上書きします。
+									  //-mmt=on: マルチスレッドモードを設定。
+									  CFG.general.custom_param.c_str(),
+									  _T("-hide")));
 
 	if(use_filter&&
 	   !CFG.general.ignore_directory_structures){
 		//通常解凍(with フィルタ)する場合
 		//-xスイッチで処理対象外リストを指定
-		cmd_line.add(_T("-x@%s%s%s "),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-					 list_file_path.c_str(),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+		cmd_line.append(format(_T("-x@%s%s%s "),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+										 list_file_path.c_str(),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 	}
 
-	cmd_line.add(_T("-o%s%s%s %s %s%s%s"),
-				 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-				 output_dir_str.c_str(),
-				 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
+	cmd_line.append(format(_T("-o%s%s%s %s %s%s%s"),
+									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
+									 output_dir_str.c_str(),
+									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
 
-				 _T("--"),
+									 _T("--"),
 
-				 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-				 arc_path_str.c_str(),
-				 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+									 arc_path_str.c_str(),
+									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
 
 	if(use_filter&&
 	   CFG.general.ignore_directory_structures){
-		cmd_line.add(_T(" @%s%s%s"),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-					 list_file_path.c_str(),
-					 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+		cmd_line.append(format(_T(" @%s%s%s"),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+										 list_file_path.c_str(),
+										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 	}
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
@@ -477,9 +477,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 		if(CFG.no_display.no_log||log_msg==NULL){
 			tstring dummy(1,'\0');
 
-			dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+			dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 		}else{
-			dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+			dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 		}
 	}while(use_password&&
 		   dll_ret!=0&&
@@ -547,27 +547,27 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	//勝手に拡張子が付加されないように'.'をファイル名末尾に追加。
 	arc_path+=_T(".");
 
-	VariableArgument cmd_line(_T("%s %s %s -t%s %s %s%s%s @%s%s%s"),
-							  _T("d"),
-							  _T("-y -mmt=on"),
-							  //-y     : 全ての質問に yes を仮定。
-							  //-mmt=on: マルチスレッドモードを設定。
-							  _T("-hide"),
+	tstring cmd_line(format(_T("%s %s %s -t%s %s %s%s%s @%s%s%s"),
+									  _T("d"),
+									  _T("-y -mmt=on"),
+									  //-y     : 全ての質問に yes を仮定。
+									  //-mmt=on: マルチスレッドモードを設定。
+									  _T("-hide"),
 
-							  //書庫形式指定
-							  getCompressionMethod(arc_path.c_str()).c_str(),
+									  //書庫形式指定
+									  getCompressionMethod(arc_path.c_str()).c_str(),
 
-							  _T("--"),
+									  _T("--"),
 
-							  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-							  arc_path.c_str(),
-							  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
+									  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
+									  arc_path.c_str(),
+									  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
 
-							  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-							  list_file_path.c_str(),
-							  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+									  list_file_path.c_str(),
+									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 
-	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
 
@@ -581,9 +581,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	if(CFG.no_display.no_log||log_msg==NULL){
 		tstring dummy(1,'\0');
 
-		dll_ret=execute(NULL,cmd_line.get(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
 	}else{
-		dll_ret=execute(NULL,cmd_line.get(),log_msg,log_buffer_size);
+		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
@@ -626,29 +626,29 @@ Arc7zip32::ARC_RESULT Arc7zip32::list(const TCHAR* arc_path){
 			}
 		}
 
-		VariableArgument cmd_line(_T("%s %s "),
-								  _T("l"),
-								  _T("-hide"));
+		tstring cmd_line(format(_T("%s %s "),
+										  _T("l"),
+										  _T("-hide")));
 
 		if(use_filter){
 			//-xスイッチで処理対象外リストを指定
-			cmd_line.add(_T("-x@%s%s%s "),
-						 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-						 list_file_path.c_str(),
-						 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""));
+			cmd_line.append(format(_T("-x@%s%s%s "),
+											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
+											 list_file_path.c_str(),
+											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
 		}
 
-		cmd_line.add(_T("%s %s%s%s"),
-					 _T("--"),
-					 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-					 arc_path_str.c_str(),
-					 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""));
+		cmd_line.append(format(_T("%s %s%s%s"),
+										 _T("--"),
+										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+										 arc_path_str.c_str(),
+										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
 
-		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.get());
+		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
 		tstring log_msg;
 
-		execute(NULL,cmd_line.get(),&log_msg,log_buffer_size);
+		execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 
 	}
@@ -684,9 +684,8 @@ void Arc7zip32::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,cons
 	file_tree.tree2list(*fileinfo_list);
 
 	if(CFG.general.ignore_directory_structures){
-		for(std::vector<fileinfo::FILEINFO>::iterator ite=fileinfo_list->begin(),
-			end=fileinfo_list->end();
-			ite!=end;){
+		for(std::vector<fileinfo::FILEINFO>::iterator ite=fileinfo_list->begin();
+			ite!=fileinfo_list->end();){
 			//attr==FILE_ATTRIBUTE_DIRECTORYだけで十分
 			//ただし念のために
 			if(ite->name.rfind(_T("\\"))==ite->name.size()-1||

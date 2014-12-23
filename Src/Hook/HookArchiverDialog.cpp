@@ -2,7 +2,7 @@
 //パスワード入力ダイアログなどをフック
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -132,8 +132,7 @@ bool DLL_EXPORT uninstallPasswordDialogHook(){
 
 	if(g_hook_handle!=NULL){
 		result=UnhookWindowsHookEx(g_hook_handle)!=0;
-		DWORD result=0;
-		SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG,100,&result);
+		SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG,100,NULL);
 		g_hook_handle=NULL;
 	}
 

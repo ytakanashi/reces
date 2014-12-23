@@ -103,6 +103,8 @@
 		<Unit filename="sslib\FileOperation.h" />
 		<Unit filename="sslib\FileSearch.cpp" />
 		<Unit filename="sslib\FileSearch.h" />
+		<Unit filename="sslib\FormatString.cpp" />
+		<Unit filename="sslib\FormatString.h" />
 		<Unit filename="sslib\Library.cpp" />
 		<Unit filename="sslib\Library.h" />
 		<Unit filename="sslib\Misc.cpp" />
@@ -113,8 +115,6 @@
 		<Unit filename="sslib\ProgressBar.h" />
 		<Unit filename="sslib\String.cpp" />
 		<Unit filename="sslib\String.h" />
-		<Unit filename="sslib\VariableArgument.cpp" />
-		<Unit filename="sslib\VariableArgument.h" />
 		<Unit filename="sslib\sslib.h" />
 		<Extensions>
 			<code_completion />

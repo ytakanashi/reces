@@ -2,7 +2,7 @@
 //書庫操作共通
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r23 by x@rgs
+//              reces Ver.0.00r24 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -117,11 +117,11 @@ bool Archiver::RedundantDir::operator()(const fileinfo::FILEINFO& fileinfo){
 			m_has_dir=true;
 		}else{
 			//ファイル
-			if(!m_checked_first_file){
+			if(!m_file_in_root_dir){
 				//最初のファイルを確認
 				//二つ目のファイルが見つかれば二重ディレクトリの疑いは晴れる
-				m_checked_first_file=true;
-			}else if(m_checked_first_file||m_has_dir){
+				m_file_in_root_dir=true;
+			}else if(m_file_in_root_dir||m_has_dir){
 				m_is_double_dir=false;
 				return true;
 			}
@@ -146,7 +146,11 @@ bool Archiver::RedundantDir::operator()(const fileinfo::FILEINFO& fileinfo){
 		//最上層のディレクトリは今のところひとつ
 		m_has_dir=true;
 	}
-	return false;
+
+	//最上層にファイルとディレクトリが存在する
+	if(m_file_in_root_dir)m_is_double_dir=false;
+
+	return m_file_in_root_dir;
 }
 
 //配下のファイルを利用してディレクトリのタイムスタンプを復元
@@ -211,10 +215,10 @@ bool Archiver::DirTimeStamp::addIncompleteDir(const tstring& output_dir,const ts
 
 //書庫内の最小共通区切り文字数を取得
 int Archiver::countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths){
-	static int next_pos=0;
+	static tstring::size_type next_pos=0;
 	struct l{
-		static tstring extractComponent(const tstring& str,int pos){
-			int first_pos=pos,second_pos=first_pos;
+		static tstring extractComponent(const tstring& str,tstring::size_type pos){
+			tstring::size_type first_pos=pos,second_pos=first_pos;
 
 			++(next_pos=second_pos=str.find_first_of(_T("\\/"),first_pos));
 			if(second_pos==tstring::npos)next_pos=second_pos=str.length();
@@ -223,11 +227,11 @@ int Archiver::countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths
 				_T("");
 		}
 
-		static bool isCommonComponent(const std::vector<fileinfo::FILEINFO>& paths,int max_length_index,int pt){
+		static bool isCommonComponent(const std::vector<fileinfo::FILEINFO>& paths,int max_length_index,tstring::size_type pt){
 			bool result=false;
 
 			tstring max_length_str=(extractComponent(paths[max_length_index].name,pt));
-			for(size_t i=0,size=paths.size();i<size;i++){
+			for(int i=0,size=paths.size();i<size;i++){
 				if(i!=max_length_index){
 					tstring str=(extractComponent(paths[i].name,pt));
 
@@ -288,13 +292,12 @@ tstring Archiver::getInformation(){
 
 	if(fileoperation::getFileVersion(name().c_str(),&major_ver,&minor_ver)){
 
-		VariableArgument va(_T("%-12s ver.%d.%02d.%02d.%02d\n"),
-							name().c_str(),
-							major_ver>>16,
-							major_ver&0xffff,
-							minor_ver>>16,
-							minor_ver&0xffff);
-		return va.get();
+		return format(_T("%-12s ver.%d.%02d.%02d.%02d\n"),
+								name().c_str(),
+								major_ver>>16,
+								major_ver&0xffff,
+								minor_ver>>16,
+								minor_ver&0xffff);
 	}
 	return _T("");
 }

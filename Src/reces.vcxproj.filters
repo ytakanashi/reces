@@ -95,9 +95,6 @@
     <ClCompile Include="sslib\String.cpp">
       <Filter>sslib\ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="sslib\VariableArgument.cpp">
-      <Filter>sslib\ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="ArcB2e.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -124,6 +121,9 @@
     </ClCompile>
     <ClCompile Include="Archiver.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\FormatString.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -202,9 +202,6 @@
     <ClInclude Include="sslib\String.h">
       <Filter>sslib\ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="sslib\VariableArgument.h">
-      <Filter>sslib\ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="resources\resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -237,6 +234,9 @@
     </ClInclude>
     <ClInclude Include="Archiver.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\FormatString.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

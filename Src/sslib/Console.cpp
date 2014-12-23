@@ -3,7 +3,7 @@
 
 #include"../StdAfx.h"
 #include"Console.h"
-#include"VariableArgument.h"
+#include"FormatString.h"
 #include<locale.h>
 
 namespace sslib{
@@ -184,25 +184,22 @@ bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
 }
 
 //文字を出力
-bool Console::write(const TCHAR* format,const va_list argp,LPDWORD written_chars){
-	VariableArgument va(format,argp);
-	const TCHAR* buffer=va.get();
+bool Console::write(const TCHAR* fmt,const va_list argp,LPDWORD written_chars){
+	tstring buffer=format(fmt,argp);
 
-	if(!buffer)return false;
-
-	return write(buffer,lstrlen(buffer),written_chars);
+	return write(buffer.c_str(),buffer.size(),written_chars);
 }
 
 //文字を出力
-DWORD Console::outputString(const TCHAR* format,...){
+DWORD Console::outputString(const TCHAR* fmt,...){
 	DWORD written_chars=0;
 
-	if(format==NULL)return written_chars;
+	if(fmt==NULL)return written_chars;
 
 	va_list argp;
-	va_start(argp,format);
+	va_start(argp,fmt);
 
-	write(format,argp,&written_chars);
+	write(fmt,argp,&written_chars);
 
 	va_end(argp);
 
@@ -210,10 +207,10 @@ DWORD Console::outputString(const TCHAR* format,...){
 }
 
 //色付文字を出力
-DWORD Console::outputString(int foreground,int background,const TCHAR* format,...){
+DWORD Console::outputString(int foreground,int background,const TCHAR* fmt,...){
 	DWORD written_chars=0;
 
-	if(format==NULL)return written_chars;
+	if(fmt==NULL)return written_chars;
 
 	int orig_colors=getColors();
 
@@ -224,9 +221,9 @@ DWORD Console::outputString(int foreground,int background,const TCHAR* format,..
 	}
 
 	va_list argp;
-	va_start(argp,format);
+	va_start(argp,fmt);
 
-	write(format,argp,&written_chars);
+	write(fmt,argp,&written_chars);
 
 	va_end(argp);
 
