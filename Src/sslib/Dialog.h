@@ -31,23 +31,23 @@ protected:
 	inline void setExitCode(UINT exit_code){m_exit_code=exit_code;}
 
 	//メッセージハンドラ
-	virtual bool onInitDialog(WPARAM wparam,LPARAM lparam);
-	virtual bool onDestroy();
-	virtual bool onOk();
-	virtual bool onCancel();
-	virtual bool onCommand(WPARAM wparam,LPARAM lparam);
-	virtual bool onSysCommand(WPARAM wparam,LPARAM lparam);
-	virtual bool onNotify(WPARAM wparam,LPARAM lparam);
-	virtual bool onPaint();
-	virtual bool onSize(WPARAM wparam,LPARAM lparam);
-	virtual bool onMove(WPARAM wparam,LPARAM lparam);
-	virtual bool onCtlColorStatic(WPARAM wparam,LPARAM lparam);
-	virtual bool onDropFiles(HDROP drop_handle);
-	virtual bool onMessage(UINT message,WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onInitDialog(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onDestroy();
+	virtual INT_PTR onOk();
+	virtual INT_PTR onCancel();
+	virtual INT_PTR onCommand(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onSysCommand(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onNotify(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onPaint();
+	virtual INT_PTR onSize(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onMove(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onCtlColorStatic(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onDropFiles(HDROP drop_handle);
+	virtual INT_PTR onMessage(UINT message,WPARAM wparam,LPARAM lparam);
 
 public:
 	//モーダルダイアログを表示
-	int doModal(HWND parent_handle=NULL);
+	INT_PTR doModal(HWND parent_handle=NULL);
 	//モードレスダイアログを表示
 	HWND doModeless(HWND parent_handle=NULL,int cmd_show=SW_SHOW);
 	//ダイアログを表示

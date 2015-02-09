@@ -111,9 +111,6 @@ public:
 	//カーソルがある行をクリア
 	bool clearCurrentLine();
 
-	//コンソール上での文字列の幅を取得
-	int getStringWidth(const TCHAR*str);
-
 	//ハンドルを取得
 	inline HANDLE getHandle()const{return m_handle;}
 

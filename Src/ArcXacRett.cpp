@@ -2,7 +2,7 @@
 //Xacrett.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -54,8 +54,11 @@ namespace hook{
 	}
 
 	void init(){
+		//GetTextExtentPointA
 		org_pGetTextExtentPointA=(pGetTextExtentPointA)GetProcAddress(GetModuleHandleA("gdi32"),"GetTextExtentPointA");
+		//GetDlgItem
 		org_pGetDlgItem=(pGetDlgItem)GetProcAddress(GetModuleHandleA("user32"),"GetDlgItem");
+		//SetWindowTextA
 		org_pSetWindowTextA=(pSetWindowTextA)GetProcAddress(GetModuleHandleA("user32"),"SetWindowTextA");
 	}
 

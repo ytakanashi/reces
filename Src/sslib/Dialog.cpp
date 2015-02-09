@@ -22,7 +22,7 @@ INT_PTR CALLBACK messageRouter(HWND dlg_handle,UINT message,WPARAM wparam,LPARAM
 }
 
 //モーダルダイアログを表示
-int Dialog::doModal(HWND parent_handle){
+INT_PTR Dialog::doModal(HWND parent_handle){
 	setDlgType(MODAL);
 	return ::DialogBoxParam(inst(),MAKEINTRESOURCE(id()),parent_handle,messageRouter,reinterpret_cast<LPARAM>(this));
 }
@@ -50,61 +50,61 @@ bool Dialog::endDialog(UINT exit_code){
 	return result;
 }
 
-bool Dialog::onInitDialog(WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onInitDialog(WPARAM wparam,LPARAM lparam){
 	return true;
 }
 
-bool Dialog::onDestroy(){
+INT_PTR Dialog::onDestroy(){
 	setHandle(NULL);
 	::SetWindowLongPtr(handle(),DWLP_USER,0);
 	if(type()!=MODAL)::PostQuitMessage(0);
 	return true;
 }
 
-bool Dialog::onOk(){
+INT_PTR Dialog::onOk(){
 	return true;
 }
 
-bool Dialog::onCancel(){
+INT_PTR Dialog::onCancel(){
 	return true;
 }
 
-bool Dialog::onCommand(WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onCommand(WPARAM wparam,LPARAM lparam){
 	return false;
 }
 
-bool Dialog::onSysCommand(WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onSysCommand(WPARAM wparam,LPARAM lparam){
 	return false;
 }
 
-bool Dialog::onNotify(WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onNotify(WPARAM wparam,LPARAM lparam){
 	return false;
 }
 
-bool Dialog::onPaint(){
+INT_PTR Dialog::onPaint(){
 	return false;
 }
 
-bool Dialog::onSize(WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onSize(WPARAM wparam,LPARAM lparam){
 	return false;
 }
 
-bool Dialog::onMove(WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onMove(WPARAM wparam,LPARAM lparam){
 	return false;
 }
 
-bool Dialog::onCtlColorStatic(WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onCtlColorStatic(WPARAM wparam,LPARAM lparam){
 	//テキストの背景色を透過させる
 	HDC dc=reinterpret_cast<HDC>(wparam);
 	::SetBkMode(dc,TRANSPARENT);
 	return true;
 }
 
-bool Dialog::onDropFiles(HDROP drop_handle){
+INT_PTR Dialog::onDropFiles(HDROP drop_handle){
 	return false;
 }
 
-bool Dialog::onMessage(UINT message,WPARAM wparam,LPARAM lparam){
+INT_PTR Dialog::onMessage(UINT message,WPARAM wparam,LPARAM lparam){
 	return false;
 }
 

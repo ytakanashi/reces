@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -38,7 +38,7 @@ public:
 		return (m_arcdll_ptr&&m_arcdll_ptr->findFirst(wild_name,&m_individual_info))?false:true;
 	}
 	inline bool next(){
-		return (m_arcdll_ptr&&m_arcdll_ptr->findNext(&m_individual_info)!=-1)?true:false;
+		return (m_arcdll_ptr&&m_arcdll_ptr->findNext(&m_individual_info)==0)?true:false;
 	}
 	//書庫内ファイル検索(オープン/クローズは各自で)
 	fileinfo::FILEINFO* getFileInfo(){

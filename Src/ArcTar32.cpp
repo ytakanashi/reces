@@ -2,7 +2,7 @@
 //Tar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -19,7 +19,12 @@ using namespace sslib;
 
 
 ArcTar32::ArcTar32():
-	ArcDll(_T("Tar32"),
+	ArcDll(
+#ifndef _WIN64
+			_T("Tar32"),
+#else
+			_T("Tar64"),
+#endif
 			_T("Tar"),
 			_T("tar.tgz.gz.bz2.tbz.tbz2.xz.txz.lzma.tlz.tlzma.Z.taz.tz.cpio.cpgz.a.lib.rpm.deb"),
 			_T("\\")),

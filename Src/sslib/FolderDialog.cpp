@@ -56,7 +56,7 @@ LRESULT CALLBACK OpenDialogProc(HWND wnd_handle,UINT msg,WPARAM wparam,LPARAM lp
 }
 
 //フックプロシージャ
-UINT CALLBACK OpenHookProc(HWND wnd_handle,UINT message,WPARAM wparam,LPARAM lparam){
+UINT_PTR CALLBACK OpenHookProc(HWND wnd_handle,UINT message,WPARAM wparam,LPARAM lparam){
 	if(message==WM_NOTIFY){
 		FolderDialog* folder_dialog=reinterpret_cast<FolderDialog*>(((LPOFNOTIFY)lparam)->lpOFN->lCustData);
 		LPNMHDR hdr=(LPNMHDR)lparam;

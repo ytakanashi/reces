@@ -2,7 +2,7 @@
 //パスワード入力ダイアログなどをフック
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -77,11 +77,9 @@ LRESULT CALLBACK CBTProc(int code,WPARAM wparam,LPARAM lparam){
 				//unrar32.dll
 				//パスワードダイアログ
 				hook_dialog=HOOK_UNRAR32_PASSWORD;
-			}else if(lstrcmp(window_name,_T("パスワードの入力"))==0){
-				//LMZIP32.dll
-				//パスワードダイアログ
-				hook_dialog=HOOK_LMZIP32_PASSWORD;
-			}else if(lstrcmp(window_name,_T("Please Input Password"))==0){
+			}
+#ifndef _WIN64
+			 else if(lstrcmp(window_name,_T("Please Input Password"))==0){
 				//XacRett.dll
 				//パスワードダイアログ
 				hook_dialog=HOOK_XACRETT_PASSWORD;
@@ -100,6 +98,7 @@ LRESULT CALLBACK CBTProc(int code,WPARAM wparam,LPARAM lparam){
 					return true;
 				}
 			}
+#endif
 
 			if(hook_dialog){
 				bool result=false;

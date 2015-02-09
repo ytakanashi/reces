@@ -320,42 +320,6 @@ bool Console::clearCurrentLine(){
 	return true;
 }
 
-//コンソール上での文字列の幅を取得
-int Console::getStringWidth(const TCHAR*str){
-	int result=0;
-	int length=lstrlen(str);
-	WORD* char_type=new WORD[length];
-
-	if(::GetStringTypeEx(0,CT_CTYPE3,str,length,char_type)){
-		for(int i=0;i<length;i++){
-#ifndef UNICODE
-			if(::IsDBCSLeadByte(str[i])){
-				++i;
-				continue;
-			}
-#endif
-
-			//半角であるかどうか
-			bool half_width=((char_type[i]&C3_HALFWIDTH)||(char_type[i]&C3_ALPHA)||(char_type[i]&C3_DIACRITIC))&&
-							!(char_type[i]&C3_HIRAGANA)&&!(char_type[i]&C3_IDEOGRAPH)&&!(char_type[i]&C3_FULLWIDTH)&&
-								//'Ω'などはC3_ALPHAと等しい
-								char_type[i]!=C3_ALPHA&&
-								//濁点半濁点付全角カタカナと半角カタカナの濁点半濁点判定
-								!((char_type[i]&C3_DIACRITIC)&&(char_type[i]&C3_KATAKANA)&&(char_type[i]&C3_ALPHA)&&!(char_type[i]&C3_HALFWIDTH));
-
-			if(IS_HIGH_SURROGATE(str[i])&&IS_LOW_SURROGATE(str[i+1])){
-//			wchar_t wch[]={data[i],data[++i],'\0'};
-				++i;
-			}
-			result+=(half_width)?1:2;
-		}
-	}
-
-	SAFE_DELETE_ARRAY(char_type);
-
-	return result;
-}
-
 
 //namespace sslib
 }

@@ -12,6 +12,8 @@ public:
 		m_handle(INVALID_HANDLE_VALUE),
 		m_file_data(),
 		m_base_path(),
+		m_wildcard(),
+		m_wildcard_list(),
 		m_first(true){
 	}
 	virtual ~FileSearch(){close();}
@@ -21,7 +23,11 @@ protected:
 	WIN32_FIND_DATA m_file_data;
 	tstring m_base_path;
 	tstring m_wildcard;
+	std::list<tstring> m_wildcard_list;
 	bool m_first;
+
+private:
+	bool match(const TCHAR* file_path);
 
 public:
 	//最初のファイルの情報を取得
@@ -43,7 +49,7 @@ public:
 	}
 
 	//ファイルのサイズを取得
-	inline long long getSize(){
+	inline long long getSize()const{
 		return (long long)MAKEQWORD(m_file_data.nFileSizeHigh,m_file_data.nFileSizeLow);
 	}
 

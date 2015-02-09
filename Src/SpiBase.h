@@ -1,7 +1,7 @@
 ﻿//SpiBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -49,13 +49,16 @@ public:
 
 typedef struct fileInfo{
 	unsigned char method[8];						//圧縮法の種類
-	unsigned long position;							//ファイル上での位置
-	unsigned long compsize;							//圧縮されたサイズ
-	unsigned long filesize;							//元のファイルサイズ
-	long timestamp;									//ファイルの更新日時
+	ULONG_PTR position;							//ファイル上での位置
+	ULONG_PTR compsize;							//圧縮されたサイズ
+	ULONG_PTR filesize;							//元のファイルサイズ
+	ULONG_PTR timestamp;									//ファイルの更新日時
 	char path[200];									//相対パス
 	char filename[200];								//ファイルネーム
 	unsigned long crc;								//CRC
+#ifdef _WIN64
+	char dummy[4];
+#endif
 }fileInfo;
 
 public:

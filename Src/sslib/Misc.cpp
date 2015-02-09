@@ -60,7 +60,8 @@ namespace thread{
 		if(exit_code==STILL_ACTIVE){
 			::PostThreadMessage(info.id,WM_QUIT,0,0);
 			::WaitForSingleObject(info.handle,INFINITE);
-			return ::CloseHandle(info.handle)!=0;
+			SAFE_CLOSE(info.handle);
+			return true;
 		}
 		return true;
 	}

@@ -1,7 +1,7 @@
 ﻿//HookArchiverDialog.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -25,7 +25,6 @@ const TCHAR EV_END_HOOK[]=_T("_EV_END_HOOK_");
 enum HOOK_DIALOG_TYPE{
 	HOOK_7ZIP32_PASSWORD=1,
 	HOOK_UNRAR32_PASSWORD,
-	HOOK_LMZIP32_PASSWORD,
 	HOOK_XACRETT_PASSWORD,
 	HOOK_XACRETT_EXTRACT
 };

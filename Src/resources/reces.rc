@@ -9,16 +9,10 @@
 
 
 
-
-LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
-IDR_HOOK_LIB       BINARY         "..\\Hook\\DlgHook.dll"
-
-
-
 //
 // Icon resources
 //
-LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 IDI_ICON1          ICON           ".\\reces.ico"
 
 
@@ -26,10 +20,10 @@ IDI_ICON1          ICON           ".\\reces.ico"
 //
 // Version Information resources
 //
-LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 1 VERSIONINFO
-    FILEVERSION     0,0,0,24
-    PRODUCTVERSION  0,0,0,24
+    FILEVERSION     0,0,0,25
+    PRODUCTVERSION  0,0,0,25
     FILEOS          VOS_NT_WINDOWS32
     FILETYPE        VFT_UNKNOWN
     FILESUBTYPE     VFT2_UNKNOWN
@@ -43,12 +37,12 @@ LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
             VALUE "Comments", "reces"
             VALUE "CompanyName", "Frost Moon Project"
             VALUE "FileDescription", "reces"
-            VALUE "FileVersion", "0.00r24"
+            VALUE "FileVersion", "0.00r25"
             VALUE "InternalName", "reces"
             VALUE "LegalCopyright", "Coded by x@rgs"
             VALUE "OriginalFilename", "reces.exe"
             VALUE "ProductName", "reces"
-            VALUE "ProductVersion", "0.00r24"
+            VALUE "ProductVersion", "0.00r25"
         }
     }
     BLOCK "VarFileInfo"

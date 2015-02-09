@@ -23,13 +23,14 @@ WIN32_FIND_DATA* FileSearch::first(const TCHAR* search_dir,const TCHAR* wildcard
 		search_path+=_T("*");
 		//ワイルドカードは自前で処理
 		m_wildcard=wildcard;
+		str::splitString(&m_wildcard_list,m_wildcard.c_str(),';');
 
 		m_handle=::FindFirstFileEx(path::addLongPathPrefix(search_path).c_str(),FindExInfoStandard,&m_file_data,FindExSearchNameMatch,NULL,0);
 	}
 
 	while(lstrcmp(m_file_data.cFileName,_T("."))==0||lstrcmp(m_file_data.cFileName,_T(".."))==0||
 		  //ワイルドカードは自前で処理
-		  !str::matchWildcards(m_file_data.cFileName,m_wildcard.c_str())){
+		  !match(m_file_data.cFileName)){
 		if(!::FindNextFile(m_handle,&m_file_data)){
 			close();
 			break;
@@ -52,7 +53,7 @@ WIN32_FIND_DATA* FileSearch::next(){
 
 	while(lstrcmp(m_file_data.cFileName,_T("."))==0||lstrcmp(m_file_data.cFileName,_T(".."))==0||
 		  //ワイルドカードは自前で処理
-		  !str::matchWildcards(m_file_data.cFileName,m_wildcard.c_str())){
+		  !match(m_file_data.cFileName)){
 		if(!::FindNextFile(m_handle,&m_file_data)){
 			return NULL;
 		}
@@ -73,6 +74,17 @@ bool FileSearch::close(){
 	return result;
 }
 
+bool FileSearch::match(const TCHAR* file_path){
+	for(std::list<tstring>::iterator ite=m_wildcard_list.begin(),
+		end=m_wildcard_list.end();
+		ite!=end;
+		++ite){
+		if(str::matchWildcards(file_path,ite->c_str())){
+			return true;
+		}
+	}
+	return false;
+}
 
 
 //namespace sslib

@@ -1,6 +1,6 @@
 ﻿_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 【 ソフト名 】　reces
-【バージョン】　0.00r24
+【バージョン】　0.00r25
 【 製作者名 】　x@rgs
 【 動作環境 】　Windows XP以降
 【 製作言語 】　C++
@@ -30,14 +30,13 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  ・Total Commander Plugin(*.wcx)で更に多くの書庫に対応可能。
  ・b2eスクリプト(*.b2e)で書庫操作以外の処理も可能。
  ・UNICODE文字、4GB以上のファイルに対応。*1
- ・長いパス(MAX_PATH以上)のzip,7zファイルの処理が可能。*2
+ ・長いパス(MAX_PATH以上)のzip,7zファイルの処理が可能。
  ・ヘッダ暗号化(ファイル名暗号化)の7zやrarをサポート。
 
  [書庫処理]
- ・LMZIP32.dllを使用することで、不正な書庫でファイル名の文字化けが起きにくい。
- ・zip.wcxを使用することで、UTF-8-MACで格納された書庫も文字化けしない。
+ ・ファイル名の文字化けが起きにくい。
  ・プログレスバーを自前で表示し、無駄なウインドウを表示させない。
- ・ディレクトリのタイムスタンプ復元が可能。 *3
+ ・ディレクトリのタイムスタンプ復元が可能。 *2
  ・ファイルの分割/結合が出来る。
  ・二重ディレクトリ防止機能あり。
  ・基底ディレクトリを含まない圧縮が可能。
@@ -49,75 +48,93 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  ・指定した文字、サイズ、日付などの各種フィルタを指定することが出来る。
  ・設定ファイルへの書き出し/読み込みに対応。
  ・パスワードリストを用いた総当たり解凍が出来る。
- ・レジストリは一切使用しない。 *4
+ ・レジストリは一切使用しない。 *3
 
    *1 対応している書庫ライブラリに限ります。
-   *2 7-zip32.dll Ver.9.22.00.01以上が必要です。
-   *3 タイムスタンプが保持され、かつ取得出来る場合に限ります。
-      出来ない場合、配下のディレクトリやファイルから取得します。(r16より)
-   *4 ライブラリ側が使用する場合もありますのでご注意下さい。
+   *2 タイムスタンプが保持され、かつ取得出来る場合に限ります。
+      出来ない場合、配下のディレクトリやファイルから取得します。(r16より、/DIRTSオプションで)
+   *3 ライブラリ側が使用する場合もありますのでご注意下さい。
 
 
 
 ●ファイル構成
+ 7-zip32.dll             ----- 7-zip32.dll文字化け対策版
  NYSL_withfaq.TXT        ----- ライセンスファイル
  Readme.txt              ----- このファイル
- reces.exe               ----- reces本体ファイル
+ reces.exe               ----- reces本体(32bit版)ファイル
  Src.7z                  ----- recesソースファイル
  unrar32.dll             ----- RuRuRu氏によるunrar32.dll x64/ユニコード対応版
+
+ ./x64
+    7-zip64.dll          ----- 7-zip64.dll文字化け対策版
+    reces.exe            ----- reces本体(64bit版)ファイル
+    unrar64j.dll         ----- RuRuRu氏によるunrar64j.dll x64/ユニコード対応版
 
 
 
 ●インストール
- 1.「reces000r24.zip」を適当なディレクトリに解凍して下さい。
+ 1.「reces000r25.zip」を適当なディレクトリに解凍して下さい。
  2.以下の各書庫操作ライブラリをパスの通ったディレクトリへコピーして下さい。
    *.spi、*.wcxについては、Pluginsディレクトリを作成し、そこへコピーすることをお勧めします。
 
-   7-zip32.dll(再圧縮、圧縮、解凍)
-   tar32.dll(再圧縮、圧縮、解凍)
-   UNLHA32.DLL(再圧縮、圧縮、解凍)
-   unrar.dll,unrar32.dll(解凍)
-   UnIso32.dll(解凍)
-   XacRett.dll(解凍)
-   b2e32.dll(直接操作のみ)
-   LMZIP32.dll(解凍)
-   *.spi(解凍)
-   *.wcx(解凍)
+    == ライブラリ ======================================================================
+   ||    32bit版    |       64bit版        ||        対応          ||      入手先      ||
+   ||-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*||-*-*-*-*-*-*-*-*-*||
+   ||  7-zip32.dll  |     7-zip64.dll      ||  再圧縮、圧縮、解凍  ||       同梱       ||
+   ||  tar32.dll    |     tar64.dll        ||  再圧縮、圧縮、解凍  ||  *1 64bit版は *2 ||
+   ||  UNLHA32.DLL  |     ------------     ||  再圧縮、圧縮、解凍  ||        *1        ||
+   ||  unrar32.dll  |     unrar64j.dll     ||  解凍                ||       同梱       ||
+   ||  UnIso32.dll  |     ------------     ||  解凍                ||        *1        ||
+   ||  XacRett.dll  |     ------------     ||  解凍                ||        *3        ||
+   ||  b2e32.dll    |     ------------     ||  直接操作のみ        ||        *1        ||
+   ||     *.spi     |        *.sph         ||  解凍                ||                  ||
+   ||               |  *.spi+ZBYPASSA.SPH  ||                      ||        *5        ||
+   ||     *.wcx     |    *.wcx,*.wcx64     ||  解凍                ||                  ||
+   ||    -------    |     UNBYPASS.DLL     ||  再圧縮、圧縮、解凍  ||        *5        ||
+    ===================================================================================
 
-   XacRett.dllとLMZIP32.dll以外の統合アーカイバライブラリは、
+   *1
       統合アーカイバプロジェクト(http://www.csdinc.co.jp/archiver/)
-   よりダウンロードすることが出来ますが、
-   Claybird氏「LhaForge」付属の「caldix」を使用すると、より簡単にインストールすることが出来ます。
-   XacRett.dllは、
+   *2
+      綾川的趣味之接続集(http://homepage1.nifty.com/Ayakawa/index.html)
+   *3
       Bonty's HomePage(http://hp.vector.co.jp/authors/VA030681/index.htm)
-   LMZIP32.dllは、
+   *4
       Yanagi's Home Page(http://homepage2.nifty.com/NYanagi/index.html)
-   unrar.dllは、
-      RARLAB(http://www.rarlab.com/)
-   よりダウンロードすることが出来ます。
+   *5
+      TORO's Library(http://homepage1.nifty.com/toro/index.html)
 
- ・ただし、unrar32.dllについて、現在統合アーカイバプロジェクトで配布されているVer.0.12は、
+ ・7-zip32.dllについて、現在統合アーカイバプロジェクトで配布されている9.22.00.01は、
+   一部ファイル名が文字化けしてしまいます。
+   そこでrecesでは、「7-zip32.dll/7-zip64.dll文字化け対策版」を同梱しています。
+   最新版はFrost Moon Project(http://www16.atpages.jp/rayna/index.html)にて入手することが出来ます。
+
+ ・unrar32.dllについて、現在統合アーカイバプロジェクトで配布されているVer.0.12は、
    文字コードの問題により、正常にファイルが解凍されない場合があります。
-   そこでrecesでは、RuRuRu氏によるunrar32.dll x64/ユニコード対応版を同梱しています。
+   そこでrecesでは、RuRuRu氏による「unrar32.dll x64/ユニコード対応版」を同梱しています。
    最新版はRu^3 Honpo(http://www.vesta.dti.ne.jp/~tsato/index.html)にて入手することが出来ます。
 
- ・rar書庫を取り扱うにあたり、必ず「UNRAR.dll」を最新版にバージョンアップして下さい。
+ ・rar書庫を取り扱うにあたり、必ず「unrar.dll」「unrar64.dll」を最新版にバージョンアップして下さい。
    RARLAB(http://www.rarlab.com/)の「RAR」->「Extras」->「UNRAR.dll」からダウンロードすることが出来ます。
 
- ・必ず「7-zip32.dll」を最新版にバージョンアップして下さい。
+ ・reces x64版ではUNLHA32.DLLやXacRett.dllが使用できないため、
+   Unicodeにも対応した、Total7zip.wcx64(http://www.totalcmd.net/plugring/Total7zip.html)の導入をお勧めします。
+   「Total7zip.wcx64」と「64」ディレクトリをパスの通ったディレクトリにコピーして下さい。
+   以下の形式に対応しています。
+      7z,XZ,BZIP2,GZIP,TAR,ZIP,ARJ,CAB,CHM,CPIO,CramFS,DEB,
+      DMG,FAT,HFS,ISO,LZH,LZMA,MBR,MSI,NSIS,NTFS,RAR,RPM,
+      SquashFS,UDF,VHD,WIM,XAR,Z
 
  ・ライブラリの優先順位は、
-      LMZIP32.dll
-      UNLHA32.dll
-      unrar32.dll
-      tar32.dll
+      UNLHA32.dll / UNLHA32.dll+UNBYPASS.DLL
+      unrar32.dll / unrar64j.dll
+      tar32.dll   / tar64.dll
       UnIso32.dll
-      7-zip32.dll
+      7-zip32.dll / 7-zip64.dll
       XacRett.dll
-      Susie Plug-in(*.spi)
-      Total Commander Plugin(*.wcx)
+      Susie Plug-in(*.spi / *.sph, *.spi+ZBYPASSA.SPH)
+      Total Commander Plugin(*.wcx / *.wcx64)
    です。
-   ただし、zip書庫について、入力ファイルがMAX_PATH以上のパスであれば、LMZIP32.dllより7-zip32.dllを優先します。
 
  ・Susie Plug-inのデフォルトの読込先はreces.exeがあるディレクトリです。
    別のディレクトリを指定するには「/Ds」オプションを使用して下さい。
@@ -139,7 +156,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
       iso
       ace,arc,arg,arj,asd,b2a,b64,bel,bin,boo,bza,gza,C,cab,cpt,dmg,dz,F,xF,gca,hqx,imp,ish,jak,ntx,pit,pak,wad,pff,rez,sp,spl,uue,xxe,zac,zoo
 
- 3.「reces.exe」「unrar32.dll」をパスの通ったディレクトリへコピーして下さい。
+ 3.「reces.exe」「*.dll」をパスの通ったディレクトリへコピーして下さい。
 
 
 
@@ -153,6 +170,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  ・「reces [/<options>...] [/@<listfiles>...] [<files>...]」
     に従い実行します。
  ・各ライブラリのドキュメントファイルも併せてご覧下さい。
+ ・実行中にCtrl+Cで処理を中断します。
 
  [オプション]
  /m<r|R|c|C|e|E|l|L|s|S|v>
@@ -253,7 +271,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         /mt[library]
           ・書庫をテストします。
-          ・LMZIP32.dll、7-zip32.dll、UNLHA32.dll、UnIso32.dll以外の統合アーカイバライブラリはCheckArchive()の値を返すだけです。
+          ・7-zip32.dll、UNLHA32.dll、UnIso32.dll以外の統合アーカイバライブラリはCheckArchive()の値を返すだけです。
           ・ライブラリを指定しなければ、拡張子から推測を行います。(統合アーカイバのみ)
           ・Susie Plug-inは対応していません。
           ・Total Commander Pluginは対応しています。ただし、使用するライブラリを指定する必要があります。
@@ -266,7 +284,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
           ・/ms[library][:prefix]以降の文字列をコマンドとして送ります。
           ・ワイルドカードは展開されません。
           ・tar32.dllを操作するには、「--inverse-procresult=1」オプションが必要です。
-          ・LMZIP32.dllで圧縮処理を行うには、「/msLMZip32.dll:Zip」とします。
           ・b2e32.dllはこの機能でのみ対応しています。
           ・Susie Plug-in、Total Commander Pluginは対応していません。
           ・recesで対応していないアーカイバライブラリは[prefix]を指定することで扱うことが出来ます。
@@ -387,7 +404,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
    ・作成する書庫から基底ディレクトリを除外します。 {mr/mc}
    ・Rar.exeの-ep1 -r DIR\、Archon2の-o1オプションに相当します。
 
- /eb[level|x]
+ /eb[[level]|x]
    ・共通するパスを除外して解凍します。 {mr/me}
    ・解凍レンジの「パス情報を最適化して展開する」や、tarの「--strip-components」に相当します。
    ・levelで除外するパスの数を指定します。
@@ -630,18 +647,13 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
    ・複数ファイル処理時は、先頭のファイルのタイムスタンプを使用します。
 
 
- /DIRTS[-|0|1]
+ /DIRTS
    ・ディレクトリのタイムスタンプを復元します。 {mr/me}
+   ・同梱の7-zip32.dllであれば、このオプションが無くとも復元してくれます。
    ・タイムスタンプを持たない場合や、ライブラリの仕様により取得が出来ない場合、
      そのディレクトリ以下のファイルのタイムスタンプを採用します。
    ・解凍後に再度書庫ファイル情報の取得を行うため、
      ファイル数が多い程処理に時間を要します。
-
-        /DIRTS<-|0>
-          ・無効
-
-        /DIRTS[1]
-          ・有効 (デフォルトです。)
 
 
  /r[command]
@@ -671,19 +683,14 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
    ・「/@」で読み込むファイルに対し適用するには、「/@」より前に記述する必要があります。
 
 
- /UESC[-|0|1]
+ /UESC
    ・ファイル名に含まれるUnicodeエスケープシーケンスをデコードします。
      「#U9060#U304f#U30a8#U30b9#U30b1#U30a4#U30d7」
           ↓
      「遠くエスケイプ」
    ・文字化け対策です。
-   ・LMZIP32.dllであれば、このオプションを使用せずとも文字化けしません。
-
-        /UESC<-|0>
-          ・無効 (デフォルトです。)
-
-        /UESC[1]
-          ・有効
+   ・同梱の7-zip32.dllであれば、
+     このオプションを使用せずとも文字化けしません。
 
 
  /{<filename>
@@ -847,35 +854,9 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
      (解凍レンジの「パス情報を最適化して展開する」相当)
      reces /me /c /ebx arc.zip
 
- 例9.Macで圧縮されたzipファイルを文字化けさせずに解凍する。
-     以下3つの方法を確認しています。
-     zip.wcxを用いるとUnicode文字も正しく解凍されます。
-     ただし、濁点・半濁点等々が分解されたままです。
-
-     1.Alexander Koblov氏ほかによるDouble Commander(http://doublecmd.sourceforge.net/)付属の
-        ・WCX plugin for working with *.zip, *.gz, *.bz2, *.tar, *.tgz, *.tbz archives
-          (zip.wcx)
-          (doublecmd\plugins\wcx\zip\にあります)
-     をwcx用ディレクトリ[例:C:\wcx]に用意し、
-     reces /mezip.wcx /DwC:\wcx mojibake.zip
-
-     2.Nobuyuki Honda氏(http://www.nk2.org/)の
-        ・Yet Another ZIP Extract Plug-in for Susie32
-          (amzip.spi)
-     をspi用ディレクトリ[例:C:\spi]に用意し、
-     reces /meamzip.spi /DsC:\spi mojibake.zip
-
-     3.Yak!氏(http://yak3.myhome.cx:8080/junks/)の
-        ・対 zip UTF-8 強制試行版 7z.dll (UTF-8 MAC 対応)
-          (7z.dll)
-        ・ax7z.spi for 7-zip 4.57+ s
-          (ax7z_s.spi)
-     をspi用ディレクトリ[例:C:\spi]に用意し、
-     reces /meax7z_s.spi /DsC:\spi mojibake.zip
-
- 例10.7z.dllを利用して解凍する。
+ 例9.7z.dllを利用して解凍する。
      ・Unicode文字に対応しているTotal7zip.wcx(http://www.totalcmd.net/plugring/Total7zip.html)を利用します。
-     ・ax7z_s.spiでも7z.dllの利用が出来ますが、Unicode文字に対応していません。
+     ・x64版ではUNLHA32.DLLが使用できないため、7z.dll+Total7zip.wcx64の導入をお勧めします。
      ・下記拡張子の解凍が出来ます。
             7z,XZ,BZIP2,GZIP,TAR,ZIP,ARJ,CAB,CHM,CPIO,CramFS,DEB,
             DMG,FAT,HFS,ISO,LZH,LZMA,MBR,MSI,NSIS,NTFS,RAR,RPM,
@@ -883,10 +864,9 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
             (各種自己解凍形式含む)
      ・ただし、処理を行うとTotal7zip.xmlが作成されてしまいます。
        対処方法についてはSrc.7z/Src/Note.txtをご覧下さい。
-     ・Total7zip.wcxと同じディレクトリに7z.dllをコピーして下さい。
      reces /meTotal7zip.wcx /c arc.zip
 
- 例11.arc書庫(FreeArc)を解凍する。
+ 例10.arc書庫(FreeArc)を解凍する。
      ・「multiarc.wcx」(http://wcx.sourceforge.net/)とFreeArc付属の「freearc.addon」を利用します。
           reces /mSmultiarc.wcx
           「Import Addon」->「Addons/TotalCommander MultiArc plugin/freearc.addon」を選択。
@@ -990,7 +970,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
       ・UNLHA32.dll
       ・unrar32.dll
       ・UnIso32.dll
-      ・LMZIP32.dll
       ・Total Commander Plugin(プラグイン側が対応している場合)
    のみです。
    現在、Susie Plug-inでUnicode文字は扱えません。
@@ -1003,14 +982,11 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
       エラーメッセージ非表示オプション「/ne」を併用することをお勧めします。
      「reces /me /c12 /ne .」
  ・7-zip32.dllはVer.9.22.00.01よりMAX_PATH以上のパスに対応していますが、recesでは完全に対応出来ているかは未確認です。
- ・通常はLMZIP32.dllから確認を行いますが、入力ファイルがMAX_PATH以上であれば7-zip32.dllを優先します。
  ・dirコマンドとパイプの組み合わせでは対応できない一部環境依存文字のファイルを処理するには、
    直接若しくはリストファイルから指定して下さい。
  ・r16より引数の処理を自前で行っている為、一部文字列の処理が従来と異なる可能性があります。
 
  [再圧縮/圧縮]
- ・LMZIP32.dllによる圧縮は「/mr」「/mc」では対応していません。
-   ただし、「/msLMZIP32.dll:Zip」とすれば可能です。コマンドの詳細はLMZIP32.dll付属ドキュメントを参考にして下さい。
  ・同名書庫ファイルが存在する状態での再圧縮/圧縮動作は、Ver.0.00r12より追加圧縮扱いとなりました。
    従来の新規圧縮(上書き作成)には「/N」オプションを指定して下さい。
  ・現在7-zip32.dllによるzip圧縮でパスワードにマルチバイト文字(日本語など)は使用出来ません。
@@ -1031,6 +1007,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  ・b2e32.dllは「/ms」でのみ使用可能です。
  ・Susie Plug-inでの対応書庫確認は、ファイルの拡張子で行います。
  ・サイズ指定にはTBを表す「t」が使用可能ですが、テストを行っていませんので、十分注意して下さい。
+ ・UNBYPASS.DLLは現在UNLHA32.dllとの組み合わせのみ対応しています。
 
 
 
@@ -1039,7 +1016,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  OS:Microsoft Windows 7 Home Premium 64-bit (6.1, Build 7600)
  CPU:Intel(R) Core(TM) i5 CPU M 460 @ 2.53GHz (4 CPUs), ~2.5GHz
  memory:4096MB RAM
- compiler:Microsoft Visual C++ 2010 Express/gcc version 4.9.2 (tdm-1)
+ compiler:Microsoft Visual C++ 2010 Express/gcc version 4.9.2 (tdm-1,tdm64-1)
  debugger:Microsoft Visual C++ 2010 Express/gdb 7.3 with Code::Blocks 10.05
  editor:xyzzy version 0.2.2.235/ResEdit 1.6.3 Unicode build.
 
@@ -1062,15 +1039,13 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
    Bonty氏(Archon2,XacRett.dll)
    高田 謙氏(undll.exe,UnIso32.dll)
    秋田 稔氏(7-zip32.dll)
+   市丸 剛氏(7-zip64.dll,tar64.dll)
    吉岡 恒夫氏/Claybird氏(tar32.dll)
    Ｍｉｃｃｏ氏(UNLHA32.dll)
-   Alexander Roshal氏(unrar.dll)
+   Alexander Roshal氏(unrar.dll,unrar64.dll)
    RuRuRu氏(unrar32.dll x64/ユニコード対応版)
-   N.Yanagi氏(LMZIP32.dll)
-   Nobuyuki Honda氏(amzip.spi)
-   Yak!氏(ax7z_s.spi,改変版7z.dll)
-   Alexander Koblov氏ほか(Double Commander,zip.wcx)
    Total7zip氏(Total7zip.wcx)
+   TORO氏(UNBYPASS.DLL,ZBYPASSA.SPH)
  ...他多数!!!
  大変可愛らしいアイコンを提供していただいた「なつだ」氏、
  そしてユーザの皆様方に、
@@ -1079,15 +1054,19 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 ●ライセンス
- 本ソフトはNYSL Version 0.9982に準拠して配布されています。
- ライセンスの条文については同梱の「NYSL_withfaq.TXT」をご覧下さい。
- 各種書庫操作ライブラリについてはそれぞれのライセンスに従います。
+ ・本ソフトはNYSL Version 0.9982に準拠して配布されています。
+   ライセンスの条文については同梱の「NYSL_withfaq.TXT」をご覧下さい。
+ ・「7-zip32.dll/7-zip64.dll文字化け対策版」(http://www16.atpages.jp/rayna/index.html)は
+   GNU Lesser General Public License (LGPL)の下で配布されています。
+      http://www.gnu.org/copyleft/lesser.ja.html
+ ・RuRuRu氏による「unrar32.dll x64/ユニコード対応版」(http://www.vesta.dti.ne.jp/~tsato/index.html)は
+   オリジナルのunrar32.dllと同様のライセンスの下で配布されています。
+      https://github.com/rururutan/unrar32
+      http://www.csdinc.co.jp/archiver/lib/unrar32.html
 
 
 
 ●その他
- 本ソフトの派生作品を配布される、または本ソフトについてWeb、雑誌などの媒体にて掲載されると言った場合には、
- サイトにて紹介させていただきますので、お気軽にご連絡下さい。
  サポート(ご意見、ご感想、不具合報告、要望等)は
  Y.R.Takanashi@gmail.com
  若しくは
@@ -1100,6 +1079,20 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 ●開発履歴
+ 〇Ver.0.00r25 - 2015/02/09
+ ・LMZIP32.dllのサポートを中止。
+ ・64bit版を同梱するように。
+ ・RuRuRu氏によるunrar64j.dll x64/ユニコード対応版を同梱するように。
+ ・7-zip32.dll/7-zip64.dll文字化け対策版を同梱するように。
+ ・UNBYPASS.DLLに対応(現在、UNLHA32.dllのみ)。
+ ・ZBYPASSA.SPHに対応。
+ ・/DIRTS(ディレクトリタイムスタンプ復元)をデフォルトで行わないように。
+ ・/DIRTSと/UESCを値指定しないオプションに変更。
+ ・Ctrl-Cでクラッシュしてしまう不具合を(極力)修正。
+ ・進捗状況(処理中|済ファイル数/全ファイル数)を表示するように。
+ ・アイコンファイルの容量を削減。
+
+
  〇Ver.0.00r24 - 2014/12/23
  ・/mtで対象書庫にライブラリが対応しているかの確認を行わないように。
  ・/msで先頭の引数がライブラリに渡されない不具合を修正。

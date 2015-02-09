@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -255,7 +255,6 @@ HARC ArcDllBase::openArchive(const HWND wnd_handle,const TCHAR* file_name,const 
 	OPENARCHIVE_PTR p_openArchive;
 
 	closeArchive();
-
 	if(queryFunctionList(ISARC_OPEN_ARCHIVE)){
 		if((p_openArchive=(OPENARCHIVE_PTR)getAddress(_T("OpenArchive")))!=NULL){
 			if(getRunning()==false){

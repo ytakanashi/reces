@@ -708,7 +708,7 @@ bool extractFromResource(const HINSTANCE instance_handle,const WORD id,const TCH
 	::CopyMemory(base_addr,resource_data,resource_size);
 
 	::UnmapViewOfFile(base_addr);
-	::CloseHandle(file_map_handle);
+	SAFE_CLOSE(file_map_handle);
 	return true;
 }
 #endif

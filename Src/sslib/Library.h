@@ -33,6 +33,8 @@ public:
 	inline const HMODULE module()const{return m_module;}
 	//ライブラリ名取得
 	inline const tstring name()const{return m_library_name;}
+	//プレフィックスを取得
+	inline const tstring prefix()const{return m_library_prefix;}
 	//ライブラリ読み込み済み
 	inline bool isLoaded()const{return m_module!=NULL;}
 };

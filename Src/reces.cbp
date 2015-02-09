@@ -32,6 +32,34 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="Debug | x64">
+				<Option output="..\bin\Debug\x64\reces" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Debug\x64\" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_x64" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WIN64" />
+				</Compiler>
+			</Target>
+			<Target title="Release | x64">
+				<Option output="..\bin\Release\x64\reces" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\x64\" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_x64" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-D_WIN64" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -44,8 +72,14 @@
 		</Linker>
 		<Unit filename="Arc7-zip32.cpp" />
 		<Unit filename="Arc7-zip32.h" />
-		<Unit filename="ArcB2e.cpp" />
-		<Unit filename="ArcB2e.h" />
+		<Unit filename="ArcB2e.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="ArcB2e.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="ArcCAL.cpp" />
 		<Unit filename="ArcCAL.h" />
 		<Unit filename="ArcCfg.h" />
@@ -53,35 +87,77 @@
 		<Unit filename="ArcDll.h" />
 		<Unit filename="ArcDllBase.cpp" />
 		<Unit filename="ArcDllBase.h" />
-		<Unit filename="ArcLMZip32.cpp" />
-		<Unit filename="ArcLMZip32.h" />
 		<Unit filename="ArcTar32.cpp" />
 		<Unit filename="ArcTar32.h" />
-		<Unit filename="ArcUniso32.cpp" />
-		<Unit filename="ArcUniso32.h" />
-		<Unit filename="ArcUnlha32.cpp" />
-		<Unit filename="ArcUnlha32.h" />
+		<Unit filename="ArcUniso32.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="ArcUniso32.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="ArcUnlha32.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="ArcUnlha32.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="ArcUnrar32.cpp" />
 		<Unit filename="ArcUnrar32.h" />
-		<Unit filename="ArcXacrett.cpp" />
-		<Unit filename="ArcXacrett.h" />
+		<Unit filename="ArcXacrett.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="ArcXacrett.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="Archiver.cpp" />
 		<Unit filename="Archiver.h" />
+		<Unit filename="Compress.cpp" />
+		<Unit filename="Compress.h" />
+		<Unit filename="Extract.cpp" />
+		<Unit filename="Extract.h" />
 		<Unit filename="FileInfo.cpp" />
 		<Unit filename="FileInfo.h" />
+		<Unit filename="List.cpp" />
+		<Unit filename="List.h" />
+		<Unit filename="ParseOptions.cpp" />
+		<Unit filename="ParseOptions.h" />
 		<Unit filename="PrivateProfile.cpp" />
 		<Unit filename="PrivateProfile.h" />
+		<Unit filename="SendCommands.cpp" />
+		<Unit filename="SendCommands.h" />
+		<Unit filename="Settings.cpp" />
+		<Unit filename="Settings.h" />
 		<Unit filename="Spi.cpp" />
 		<Unit filename="Spi.h" />
 		<Unit filename="SpiBase.cpp" />
 		<Unit filename="SpiBase.h" />
 		<Unit filename="StdAfx.h" />
+		<Unit filename="Test.cpp" />
+		<Unit filename="Test.h" />
 		<Unit filename="Wcx.cpp" />
 		<Unit filename="Wcx.h" />
 		<Unit filename="WcxBase.cpp" />
 		<Unit filename="WcxBase.h" />
 		<Unit filename="reces.cpp" />
 		<Unit filename="reces.h" />
+		<Unit filename="recesBase.cpp" />
+		<Unit filename="recesBase.h" />
+		<Unit filename="resources\DlgHook32.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="resources\DlgHook64.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="Debug | x64" />
+			<Option target="Release | x64" />
+		</Unit>
 		<Unit filename="resources\reces.ico" />
 		<Unit filename="resources\reces.rc">
 			<Option compilerVar="WINDRES" />

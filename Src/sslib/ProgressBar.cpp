@@ -66,7 +66,7 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 		m_stdout.setPosition(new_pos);
 	}else{
 		//プログレスバー表示
-		int per_pos_x=_tprintf(_T("%3d%% ["),fraction_done);
+		int per_pos_x=m_stdout.outputString(_T("%3d%% ["),fraction_done);
 		if(m_first_time){
 			//']'のy座標を保存
 			m_progress_right_end_pos_x=per_pos_x+m_progress_length;
@@ -88,7 +88,7 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 			if(m_last_dots)m_stdout.clear(m_last_dots-dots);
 		}
 		m_stdout.setPosition(m_progress_right_end_pos_x,m_begin_pos.Y);
-		_tprintf(_T("]\n"));
+		m_stdout.outputString(_T("]\n"));
 	}
 
 	m_last_dots=dots;
@@ -98,7 +98,15 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 
 		//メッセージ表示
 		tstring msg_str=format(_T("   => \'%s\'"),msg);
-		msg_width=m_stdout.getStringWidth(msg_str.c_str());
+
+		msg_width=::WideCharToMultiByte(CP_ACP,
+										0,
+										msg_str.c_str(),
+										msg_str.length(),
+										NULL,
+										0,
+										"　",
+										NULL);
 		m_stdout.outputString(msg_str.c_str());
 
 		//"   =>"がある行を探し、移動

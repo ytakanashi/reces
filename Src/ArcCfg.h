@@ -1,7 +1,7 @@
 ﻿//ArcCfg.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -24,7 +24,8 @@ public:
 		m_list_temp_dir(),
 		m_password_input_cancelled(false),
 		m_hook_dialog_type(0),
-		m_extracting_wnd_handle(NULL){}
+		m_extracting_wnd_handle(NULL),
+		m_wait(0){}
 	~ArcCfg(){}
 
 private:
@@ -48,6 +49,10 @@ public:
 	//今のところXacrett.dllの為のみに用意
 	//ArcDll側にsetCallback()で渡す
 	HWND m_extracting_wnd_handle;
+
+	//隠しオプション
+	//解凍時のみ有効
+	int m_wait;
 
 public:
 	static ArcCfg* inst(){

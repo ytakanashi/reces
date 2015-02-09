@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -194,7 +194,7 @@ struct EXTRACT{
 		create_dir(false),
 		password_list_path(),
 		create_dir_optimization(),
-		directory_timestamp(true){}
+		directory_timestamp(false){}
 };
 
 struct OUTPUTFILELIST{

@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.37
+//                  sslib ver.1.38
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -24,8 +24,11 @@ template<typename T>bool strvalid(T str){
 }
 
 //delete後NULL代入
-#define SAFE_DELETE(v){delete (v);(v)=0;}
-#define SAFE_DELETE_ARRAY(a){delete[] (a);(a)=0;}
+#define SAFE_DELETE(v){delete (v);(v)=NULL;}
+#define SAFE_DELETE_ARRAY(a){delete[] (a);(a)=NULL;}
+//CloseHandle()後NULL代入
+#define SAFE_CLOSE(h)if(h){CloseHandle(h);(h)=NULL;}
+#define SAFE_CLOSE_EX(h,v)if(h){CloseHandle(h);(h)=(v);}
 //配列の要素数
 #define ARRAY_SIZEOF(array) (sizeof(array)/sizeof(array[0]))
 //メンバの要素数
@@ -97,6 +100,9 @@ extern void createInstance();
 #include"gui/ListView.h"
 #endif
 
+
+//Ver.1.38(150209)
+//reces Ver.0.00r25/gui4reces Ver.0.0.1.2で使用
 
 //Ver.1.37(141223)
 //reces Ver.0.00r24で使用

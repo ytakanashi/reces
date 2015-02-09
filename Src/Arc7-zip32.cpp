@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -18,7 +18,12 @@ using namespace sslib;
 
 
 Arc7zip32::Arc7zip32():
-	ArcDll(_T("7-zip32"),
+	ArcDll(
+#ifndef _WIN64
+			_T("7-zip32"),
+#else
+			_T("7-zip64"),
+#endif
 			_T("SevenZip"),
 			_T("zip.7z.jar"),
 			_T("\\")){
@@ -76,17 +81,6 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
 
 		return rapid_result;
 	}
-#endif
-
-#if SEVENZIP_OLD_VERSION
-	//7-zip32 v.9.20.00.02で
-	//ウインドウを持たないプロセスが暗号化書庫に対し
-	//CheckArchive(CHECKARCHIVE_BASIC)すると
-	//falseを返す不具合対策
-	sslib::Window dummy_window(::GetModuleHandle(NULL),NULL,false,true);
-
-	dummy_window.registerWindow(_T("_DUMMY_WINDOW_"),0);
-	dummy_window.createWindow(0,0,NULL,0,0,0,0);
 #endif
 
 	bool use_password=!CFG.general.password_list.empty();

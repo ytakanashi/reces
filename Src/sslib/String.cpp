@@ -357,7 +357,7 @@ bool decodeUnicodeEscape(std::wstring& result,const TCHAR*src,bool support_32bit
 				TCHAR tmp[9]={};
 
 				lstrcpyn(tmp,src+2,digit+1);
-				decoded_str[i++]=_tcstoul(tmp,NULL,16);
+				decoded_str[i++]=static_cast<TCHAR>(_tcstoul(tmp,NULL,16));
 				src+=digit+2;
 				decoded=true;
 			}

@@ -10,7 +10,7 @@ public:
 
 	virtual ~Control(){
 		if(m_sub_class){
-			::SetWindowLongPtr(handle(),GWL_WNDPROC,reinterpret_cast<LONG_PTR>(m_default_proc));
+			::SetWindowLongPtr(handle(),GWLP_WNDPROC,reinterpret_cast<LONG_PTR>(m_default_proc));
 		}
 	}
 

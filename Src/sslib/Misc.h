@@ -40,7 +40,7 @@ public:
 	Event():m_event(NULL){
 		m_event=::CreateEvent(NULL,true,false,NULL);
 	}
-	virtual ~Event(){::CloseHandle(m_event);}
+	virtual ~Event(){SAFE_CLOSE(m_event);}
 
 	bool signal(){
 		return ::SetEvent(m_event)!=0;
@@ -123,6 +123,7 @@ private:
 	DWORD m_time;
 	LARGE_INTEGER m_freq,m_begin;
 };
+
 
 
 //namespace misc

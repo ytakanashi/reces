@@ -87,7 +87,7 @@ bool File::close(){
 	if(handle()!=::GetStdHandle(STD_INPUT_HANDLE)&&
 	   handle()!=::GetStdHandle(STD_OUTPUT_HANDLE)&&
 	   handle()!=::GetStdHandle(STD_ERROR_HANDLE)){
-		::CloseHandle(handle());
+		SAFE_CLOSE_EX(m_file_handle,INVALID_HANDLE_VALUE);
 	}
 	m_file_handle=INVALID_HANDLE_VALUE;
 	m_file_path.clear();

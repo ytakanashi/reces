@@ -2,7 +2,7 @@
 //Unrar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r24 by x@rgs
+//              reces Ver.0.00r25 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -127,7 +127,12 @@ namespace hook{
 }
 
 ArcUnrar32::ArcUnrar32():
-	ArcDll(_T("Unrar32"),
+	ArcDll(
+#ifndef _WIN64
+			_T("Unrar32"),
+#else
+			_T("Unrar64j"),
+#endif
 			_T("Unrar"),
 			_T("rar"),
 			_T("\\")){

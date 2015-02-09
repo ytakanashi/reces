@@ -30,8 +30,8 @@ Control::Control(HWND parent_handle,UINT resource_id,bool sub_class):
 		::SetWindowLongPtr(handle(),GWLP_USERDATA,reinterpret_cast<LONG_PTR>(this));
 
 		//サブクラス化
-		m_default_proc=reinterpret_cast<WNDPROC>(::GetWindowLongPtr(handle(),GWL_WNDPROC));
-		::SetWindowLongPtr(handle(),GWL_WNDPROC,reinterpret_cast<LONG_PTR>(controlMessageRouter));
+		m_default_proc=reinterpret_cast<WNDPROC>(::GetWindowLongPtr(handle(),GWLP_WNDPROC));
+		::SetWindowLongPtr(handle(),GWLP_WNDPROC,reinterpret_cast<LONG_PTR>(controlMessageRouter));
 	}
 }
 
