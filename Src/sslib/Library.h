@@ -30,7 +30,7 @@ public:
 	void clearPrefix();
 	//関数のアドレスを取得
 	FARPROC WINAPI getAddress(const TCHAR* proc_name_format,...);
-	inline const HMODULE module()const{return m_module;}
+	inline HMODULE module()const{return m_module;}
 	//ライブラリ名取得
 	inline const tstring name()const{return m_library_name;}
 	//プレフィックスを取得

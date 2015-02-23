@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -16,106 +16,108 @@ using namespace sslib;
 
 CONFIG Config::m_cfg;
 const CONFIG Config::m_default_cfg;
+#define CFG_EQUAL(v)(m_cfg.v!=m_default_cfg.v)
+#define CFG_VALUE(v)m_cfg.v,(CFG_EQUAL(v))
 
 //PrivateProfileファイルへ書き込む
 bool Config::save(){
 	//動作モード
-	write(_T("Mode"),_T("Mode"),m_cfg.mode,m_cfg.mode!=m_default_cfg.mode);
+	write(_T("Mode"),_T("Mode"),CFG_VALUE(mode));
 
 	//一般
 	//バックグラウンドで動作
-	write(_T("General"),_T("Background"),m_cfg.general.background_mode,m_cfg.general.background_mode!=m_default_cfg.general.background_mode);
+	write(_T("General"),_T("Background"),CFG_VALUE(general.background_mode));
 	//処理終了後ウインドウを閉じる
-	write(_T("General"),_T("Quit"),m_cfg.general.quit,m_cfg.general.quit!=m_default_cfg.general.quit);
+	write(_T("General"),_T("Quit"),CFG_VALUE(general.quit));
 	//ディレクトリ階層を無視して圧縮/解凍
-	write(_T("General"),_T("IgnoreDirectoryStructures"),m_cfg.general.ignore_directory_structures,m_cfg.general.ignore_directory_structures!=m_default_cfg.general.ignore_directory_structures);
+	write(_T("General"),_T("IgnoreDirectoryStructures"),CFG_VALUE(general.ignore_directory_structures));
 	//指定したライブラリ名
-	write(_T("General"),_T("LibraryName"),m_cfg.general.selected_library_name.c_str(),!m_cfg.general.selected_library_name.empty());
+	write(_T("General"),_T("LibraryName"),CFG_VALUE(general.selected_library_name));
 	//指定したライブラリのプレフィックス(msのみ)
-	write(_T("General"),_T("LibraryPrefix"),m_cfg.general.selected_library_prefix.c_str(),!m_cfg.general.selected_library_prefix.empty());
+	write(_T("General"),_T("LibraryPrefix"),CFG_VALUE(general.selected_library_prefix));
 	//出力先ディレクトリ
-	write(_T("General"),_T("OutputDir"),m_cfg.general.output_dir.c_str(),!m_cfg.general.output_dir.empty());
+	write(_T("General"),_T("OutputDir"),CFG_VALUE(general.output_dir));
 	//カレントディレクトリ基準で'/od','/of'の相対パスを処理
-	write(_T("General"),_T("DefaultBaseDir"),m_cfg.general.default_base_dir,m_cfg.general.default_base_dir!=m_default_cfg.general.default_base_dir);
+	write(_T("General"),_T("DefaultBaseDir"),CFG_VALUE(general.default_base_dir));
 	//出力ファイルが重複する場合リネーム
-	write(_T("General"),_T("AutoRename"),m_cfg.general.auto_rename,m_cfg.general.auto_rename!=m_default_cfg.general.auto_rename);
+	write(_T("General"),_T("AutoRename"),CFG_VALUE(general.auto_rename));
 	//ソースを削除
-	write(_T("General"),_T("RemoveSource"),m_cfg.general.remove_source,m_cfg.general.remove_source!=m_default_cfg.general.remove_source);
+	write(_T("General"),_T("RemoveSource"),CFG_VALUE(general.remove_source));
 	//ユーザ独自のパラメータ
-	write(_T("General"),_T("CustomParam"),m_cfg.general.custom_param.c_str(),!m_cfg.general.custom_param.empty());
+	write(_T("General"),_T("CustomParam"),CFG_VALUE(general.custom_param));
 	//spiがあるディレクトリ
-	write(_T("General"),_T("SpiDir"),m_cfg.general.spi_dir.c_str(),!m_cfg.general.spi_dir.empty());
+	write(_T("General"),_T("SpiDir"),CFG_VALUE(general.spi_dir));
 	//b2eがあるディレクトリ
-	write(_T("General"),_T("B2eDir"),m_cfg.general.b2e_dir.c_str(),!m_cfg.general.b2e_dir.empty());
+	write(_T("General"),_T("B2eDir"),CFG_VALUE(general.b2e_dir));
 	//wcxがあるディレクトリ
-	write(_T("General"),_T("WcxDir"),m_cfg.general.wcx_dir.c_str(),!m_cfg.general.wcx_dir.empty());
+	write(_T("General"),_T("WcxDir"),CFG_VALUE(general.wcx_dir));
 	//Unicodeエスケープシーケンスをデコードする
-	write(_T("General"),_T("DecodeUnicodeEscape"),m_cfg.general.decode_uesc,m_cfg.general.decode_uesc!=m_default_cfg.general.decode_uesc);
+	write(_T("General"),_T("DecodeUnicodeEscape"),CFG_VALUE(general.decode_uesc));
 
 
 	//非表示
 	//進捗状況を表示しない
-	write(_T("NoDisplay"),_T("Information"),m_cfg.no_display.no_information,m_cfg.no_display.no_information!=m_default_cfg.no_display.no_information);
+	write(_T("NoDisplay"),_T("Information"),CFG_VALUE(no_display.no_information));
 	//ログを表示しない
-	write(_T("NoDisplay"),_T("Log"),m_cfg.no_display.no_log,m_cfg.no_display.no_log!=m_default_cfg.no_display.no_log);
+	write(_T("NoDisplay"),_T("Log"),CFG_VALUE(no_display.no_log));
 	//パスワードを表示しない
-	write(_T("NoDisplay"),_T("Password"),m_cfg.no_display.no_password,m_cfg.no_display.no_password!=m_default_cfg.no_display.no_password);
+	write(_T("NoDisplay"),_T("Password"),CFG_VALUE(no_display.no_password));
 	//エラーメッセージを表示しない
-	write(_T("NoDisplay"),_T("ErrorMessage"),m_cfg.no_display.no_errmsg,m_cfg.no_display.no_errmsg!=m_default_cfg.no_display.no_errmsg);
+	write(_T("NoDisplay"),_T("ErrorMessage"),CFG_VALUE(no_display.no_errmsg));
 
 
 	//再圧縮
 	//コマンド実行
 	//対話形式で指定
-	write(_T("RunCommand"),_T("Interactive"),m_cfg.recompress.run_command.interactive,m_cfg.recompress.run_command.interactive!=m_default_cfg.recompress.run_command.interactive);
+	write(_T("RunCommand"),_T("Interactive"),CFG_VALUE(recompress.run_command.interactive));
 	//コマンド
-	write(_T("RunCommand"),_T("Command"),m_cfg.recompress.run_command.command.c_str(),!m_cfg.recompress.run_command.command.empty());
+	write(_T("RunCommand"),_T("Command"),CFG_VALUE(recompress.run_command.command));
 
 
 	//圧縮
 	//圧縮形式
 	write(_T("Compress"),_T("Type"),m_cfg.compress.compression_type.c_str(),!m_cfg.compress.compression_type.empty()&&!str::isEqualStringIgnoreCase(m_cfg.compress.compression_type,tstring(_T("zip"))));
 	//個別圧縮
-	write(_T("Compress"),_T("EachFile"),m_cfg.compress.each_file,m_cfg.compress.each_file!=m_default_cfg.compress.each_file);
+	write(_T("Compress"),_T("EachFile"),CFG_VALUE(compress.each_file));
 	//書庫新規作成
-	write(_T("Compress"),_T("CreateNew"),m_cfg.compress.create_new,m_cfg.compress.create_new!=m_default_cfg.compress.create_new);
+	write(_T("Compress"),_T("CreateNew"),CFG_VALUE(compress.create_new));
 	//基底ディレクトリを含まない
 	if(m_cfg.compress.exclude_base_dir<-1)m_cfg.compress.exclude_base_dir=-1;
-	write(_T("Compress"),_T("ExcludeBaseDir"),m_cfg.compress.exclude_base_dir,m_cfg.compress.exclude_base_dir!=m_default_cfg.compress.exclude_base_dir);
+	write(_T("Compress"),_T("ExcludeBaseDir"),CFG_VALUE(compress.exclude_base_dir));
 	//圧縮率
-	write(_T("Compress"),_T("Level"),m_cfg.compress.compression_level,m_cfg.compress.compression_level!=m_default_cfg.compress.compression_level);
+	write(_T("Compress"),_T("Level"),CFG_VALUE(compress.compression_level));
 	//書庫分割数値
-	write(_T("Compress"),_T("Split"),m_cfg.compress.split_value.c_str(),!m_cfg.compress.split_value.empty());
+	write(_T("Compress"),_T("Split"),CFG_VALUE(compress.split_value));
 	//出力ファイル名
-	write(_T("Compress"),_T("OutputFile"),m_cfg.compress.output_file.c_str(),!m_cfg.compress.output_file.empty());
+	write(_T("Compress"),_T("OutputFile"),CFG_VALUE(compress.output_file));
 	//'/of'以下の引数をそのまま使用
-	write(_T("Compress"),_T("RawFileName"),m_cfg.compress.raw_file_name,m_cfg.compress.raw_file_name!=m_default_cfg.compress.raw_file_name);
+	write(_T("Compress"),_T("RawFileName"),CFG_VALUE(compress.raw_file_name));
 	//更新日時を元書庫と同じにする
-	write(_T("Compress"),_T("CopyTimestamp"),m_cfg.compress.copy_timestamp,m_cfg.compress.copy_timestamp!=m_default_cfg.compress.copy_timestamp);
+	write(_T("Compress"),_T("CopyTimestamp"),CFG_VALUE(compress.copy_timestamp));
 
 
 	//解凍
 	//ディレクトリを作成する
-	write(_T("Extract"),_T("CreateDir"),m_cfg.extract.create_dir,m_cfg.extract.create_dir!=m_default_cfg.extract.create_dir);
+	write(_T("Extract"),_T("CreateDir"),CFG_VALUE(extract.create_dir));
 	//二重ディレクトリを防ぐ
-	write(_T("Extract"),_T("DoubleDir"),m_cfg.extract.create_dir_optimization.remove_redundant_dir.double_dir,m_cfg.extract.create_dir_optimization.remove_redundant_dir.double_dir!=m_default_cfg.extract.create_dir_optimization.remove_redundant_dir.double_dir);
+	write(_T("Extract"),_T("DoubleDir"),CFG_VALUE(extract.create_dir_optimization.remove_redundant_dir.double_dir));
 	//ファイル単体の場合作成しない
-	write(_T("Extract"),_T("OnlyFile"),m_cfg.extract.create_dir_optimization.remove_redundant_dir.only_file,m_cfg.extract.create_dir_optimization.remove_redundant_dir.only_file!=m_default_cfg.extract.create_dir_optimization.remove_redundant_dir.only_file);
+	write(_T("Extract"),_T("OnlyFile"),CFG_VALUE(extract.create_dir_optimization.remove_redundant_dir.only_file));
 	//ディレクトリ名末尾の数字を削除
-	write(_T("Extract"),_T("OmitLastNumber"),m_cfg.extract.create_dir_optimization.omit_number_and_symbol.number,m_cfg.extract.create_dir_optimization.omit_number_and_symbol.number!=m_default_cfg.extract.create_dir_optimization.omit_number_and_symbol.number);
+	write(_T("Extract"),_T("OmitLastNumber"),CFG_VALUE(extract.create_dir_optimization.omit_number_and_symbol.number));
 	//ディレクトリ名末尾の記号を削除
-	write(_T("Extract"),_T("OmitLastSymbol"),m_cfg.extract.create_dir_optimization.omit_number_and_symbol.symbol,m_cfg.extract.create_dir_optimization.omit_number_and_symbol.symbol!=m_default_cfg.extract.create_dir_optimization.omit_number_and_symbol.symbol);
+	write(_T("Extract"),_T("OmitLastSymbol"),CFG_VALUE(extract.create_dir_optimization.omit_number_and_symbol.symbol));
 	//作成するディレクトリの更新日時を書庫と同じにする
-	write(_T("Extract"),_T("CopyTimestamp"),m_cfg.extract.create_dir_optimization.copy_timestamp,m_cfg.extract.create_dir_optimization.copy_timestamp!=m_default_cfg.extract.create_dir_optimization.copy_timestamp);
+	write(_T("Extract"),_T("CopyTimestamp"),CFG_VALUE(extract.create_dir_optimization.copy_timestamp));
 	//パスワードリストファイル
-	write(_T("Extract"),_T("PasswordList"),m_cfg.extract.password_list_path.c_str(),!m_cfg.extract.password_list_path.empty());
+	write(_T("Extract"),_T("PasswordList"),CFG_VALUE(extract.password_list_path));
 	//ディレクトリのタイムスタンプを復元する
-	write(_T("Extract"),_T("DirTimestamp"),m_cfg.extract.directory_timestamp,m_cfg.extract.directory_timestamp!=m_default_cfg.extract.directory_timestamp);
+	write(_T("Extract"),_T("DirTimestamp"),CFG_VALUE(extract.directory_timestamp));
 
 
 	//一覧出力
 	//FindFirst()/FindNext()/GetFileName()で出力する
-	write(_T("OutputFileList"),_T("APIMode"),m_cfg.output_file_list.api_mode,m_cfg.output_file_list.api_mode!=m_default_cfg.output_file_list.api_mode);
+	write(_T("OutputFileList"),_T("APIMode"),CFG_VALUE(output_file_list.api_mode));
 
 
 	tstring attr_str;
@@ -124,8 +126,8 @@ bool Config::save(){
 	//処理対象フィルタ
 	if(!m_cfg.general.filefilter.empty()||
 	   !isEmptySection(_T("FileFilter"))){
-		write(_T("FileFilter"),_T("MinSize"),format(_T("%I64d"),m_cfg.general.filefilter.min_size).c_str(),m_cfg.general.filefilter.min_size!=m_default_cfg.general.filefilter.min_size);
-		write(_T("FileFilter"),_T("MaxSize"),format(_T("%I64d"),m_cfg.general.filefilter.max_size).c_str(),m_cfg.general.filefilter.max_size!=m_default_cfg.general.filefilter.max_size);
+		write(_T("FileFilter"),_T("MinSize"),CFG_VALUE(general.filefilter.min_size));
+		write(_T("FileFilter"),_T("MaxSize"),CFG_VALUE(general.filefilter.max_size));
 
 
 		if(m_cfg.general.filefilter.attr!=m_default_cfg.general.filefilter.attr||
@@ -138,8 +140,8 @@ bool Config::save(){
 			write(_T("FileFilter"),_T("Attribute"),attr_str.c_str(),m_cfg.general.filefilter.attr!=m_default_cfg.general.filefilter.attr);
 		}
 
-		write(_T("FileFilter"),_T("OldestDate"),str::longlong2datetime(m_cfg.general.filefilter.oldest_date).c_str(),m_cfg.general.filefilter.oldest_date!=m_default_cfg.general.filefilter.oldest_date);
-		write(_T("FileFilter"),_T("NewestDate"),str::longlong2datetime(m_cfg.general.filefilter.newest_date).c_str(),m_cfg.general.filefilter.newest_date!=m_default_cfg.general.filefilter.newest_date);
+		write(_T("FileFilter"),_T("OldestDate"),str::longlong2datetime(m_cfg.general.filefilter.oldest_date).c_str(),CFG_EQUAL(general.filefilter.oldest_date));
+		write(_T("FileFilter"),_T("NewestDate"),str::longlong2datetime(m_cfg.general.filefilter.newest_date).c_str(),CFG_EQUAL(general.filefilter.newest_date));
 
 		if(!m_cfg.general.filefilter.pattern_list.empty()||
 		   keyExists(_T("FileFilter"),_T("Pattern"))){
@@ -153,15 +155,15 @@ bool Config::save(){
 			write(_T("FileFilter"),_T("Pattern"),pattern.c_str(),!pattern.empty());
 		}
 
-		write(_T("FileFilter"),_T("Recursive"),m_cfg.general.filefilter.recursive,m_cfg.general.filefilter.recursive!=m_default_cfg.general.filefilter.recursive);
+		write(_T("FileFilter"),_T("Recursive"),CFG_VALUE(general.filefilter.recursive));
 	}
 
 
 	//処理対象外フィルタ
 	if(!m_cfg.general.file_ex_filter.empty()||
 	   !isEmptySection(_T("FileExFilter"))){
-		write(_T("FileExFilter"),_T("MinSize"),format(_T("%I64d"),m_cfg.general.file_ex_filter.min_size).c_str(),m_cfg.general.file_ex_filter.min_size!=m_default_cfg.general.file_ex_filter.min_size);
-		write(_T("FileExFilter"),_T("MaxSize"),format(_T("%I64d"),m_cfg.general.file_ex_filter.max_size).c_str(),m_cfg.general.file_ex_filter.max_size!=m_default_cfg.general.file_ex_filter.max_size);
+		write(_T("FileExFilter"),_T("MinSize"),CFG_VALUE(general.file_ex_filter.min_size));
+		write(_T("FileExFilter"),_T("MaxSize"),CFG_VALUE(general.file_ex_filter.max_size));
 
 
 		if(m_cfg.general.file_ex_filter.attr!=m_default_cfg.general.file_ex_filter.attr||
@@ -176,10 +178,10 @@ bool Config::save(){
 			write(_T("FileExFilter"),_T("Attribute"),attr_str.c_str(),m_cfg.general.file_ex_filter.attr!=m_default_cfg.general.file_ex_filter.attr);
 		}
 
-		write(_T("FileExFilter"),_T("IncludeEmptyDir"),m_cfg.general.file_ex_filter.include_empty_dir,m_cfg.general.file_ex_filter.include_empty_dir!=m_default_cfg.general.file_ex_filter.include_empty_dir);
+		write(_T("FileExFilter"),_T("IncludeEmptyDir"),CFG_VALUE(general.file_ex_filter.include_empty_dir));
 
-		write(_T("FileExFilter"),_T("OldestDate"),str::longlong2datetime(m_cfg.general.file_ex_filter.oldest_date).c_str(),m_cfg.general.file_ex_filter.oldest_date!=m_default_cfg.general.file_ex_filter.oldest_date);
-		write(_T("FileExFilter"),_T("NewestDate"),str::longlong2datetime(m_cfg.general.file_ex_filter.newest_date).c_str(),m_cfg.general.file_ex_filter.newest_date!=m_default_cfg.general.file_ex_filter.newest_date);
+		write(_T("FileExFilter"),_T("OldestDate"),str::longlong2datetime(m_cfg.general.file_ex_filter.oldest_date).c_str(),CFG_EQUAL(general.file_ex_filter.oldest_date));
+		write(_T("FileExFilter"),_T("NewestDate"),str::longlong2datetime(m_cfg.general.file_ex_filter.newest_date).c_str(),CFG_EQUAL(general.file_ex_filter.newest_date));
 
 
 		if(m_cfg.general.file_ex_filter.pattern_list!=m_default_cfg.general.file_ex_filter.pattern_list||
@@ -196,7 +198,7 @@ bool Config::save(){
 			write(_T("FileExFilter"),_T("Pattern"),pattern.c_str(),!pattern.empty());
 		}
 
-		write(_T("FileExFilter"),_T("Recursive"),m_cfg.general.file_ex_filter.recursive,m_cfg.general.file_ex_filter.recursive!=m_default_cfg.general.file_ex_filter.recursive);
+		write(_T("FileExFilter"),_T("Recursive"),CFG_VALUE(general.file_ex_filter.recursive));
 	}
 
 

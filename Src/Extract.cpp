@@ -2,7 +2,7 @@
 //解凍
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -15,7 +15,7 @@ using namespace sslib;
 
 
 Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg){
-	if(isTerminated())return ARC_USER_CANCEL;
+	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 	bool split_file=false;
 	tstring join_file_name;
@@ -160,7 +160,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 		}
 	}
 
-	if(isTerminated())return ARC_USER_CANCEL;
+	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 	info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
 
@@ -219,7 +219,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			}
 		}
 
-		if(isTerminated())return ARC_USER_CANCEL;
+		if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 		tstring output_dir(path::getParentDirectory(arc_path));
 		bool created_dir=false;
@@ -381,8 +381,6 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 
 				created_dir=fileoperation::createDirectory(output_dir.c_str());
 				if(!created_dir){
-					//コールバック関数の登録を解除
-					m_arc_dll->clearCallback();
 					err_msg=format(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
 					return ARC_CANNOT_CREATE_DIRECTORY;
 				}
@@ -399,7 +397,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 		//コールバック関数を登録
 		m_arc_dll->setCallback(m_progressbar_thread.id);
 
-		if(isTerminated())return ARC_USER_CANCEL;
+		if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 		//解凍
 		tstring log;

@@ -2,7 +2,7 @@
 //Uniso32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -95,11 +95,11 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 		//リストファイルに解凍対象ファイルのみ出力
 		outputFileListEx(arc_path_str.c_str(),
-							 CFG.general.filefilter,
-							 CFG.general.file_ex_filter,
-							 list_file,
-							 //フィルタ適用を逆にする
-							 REVERSE_FILTER);
+						 CFG.general.filefilter,
+						 CFG.general.file_ex_filter,
+						 //フィルタ適用を逆にする
+						 REVERSE_FILTER,
+						 &list_file);
 		list_file.close();
 	}
 
@@ -223,11 +223,11 @@ ArcUniso32::ARC_RESULT ArcUniso32::list(const TCHAR* arc_path){
 			if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 				//リストファイルに解凍対象ファイルのみ出力
 				outputFileListEx(arc_path_str.c_str(),
-									 CFG.general.filefilter,
-									 CFG.general.file_ex_filter,
-									 list_file,
-									 //フィルタ適用を逆にする
-									 REVERSE_FILTER);
+								 CFG.general.filefilter,
+								 CFG.general.file_ex_filter,
+								 //フィルタ適用を逆にする
+								 REVERSE_FILTER,
+								 &list_file);
 				list_file.close();
 			}else{
 				use_filter=false;

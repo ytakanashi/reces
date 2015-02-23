@@ -18,6 +18,9 @@
 					<Add option="-DDEBUG" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
+				<Linker>
+					<Add option="-Wl,--large-address-aware" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="..\bin\Release\reces" prefix_auto="1" extension_auto="1" />
@@ -30,6 +33,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-Wl,--large-address-aware" />
 				</Linker>
 			</Target>
 			<Target title="Debug | x64">
@@ -97,10 +101,7 @@
 			<Option target="Debug" />
 			<Option target="Release" />
 		</Unit>
-		<Unit filename="ArcUnlha32.cpp">
-			<Option target="Debug" />
-			<Option target="Release" />
-		</Unit>
+		<Unit filename="ArcUnlha32.cpp" />
 		<Unit filename="ArcUnlha32.h">
 			<Option target="Debug" />
 			<Option target="Release" />

@@ -31,6 +31,11 @@ public:
 		*result=static_cast<T>(::GetPrivateProfileInt(section,key,default_value,m_cfg_path.c_str()));
 		return keyExists(section,key);
 	}
+	bool getData(const TCHAR* section,const TCHAR* key,bool* result,const bool default_value=0){
+		*result=::GetPrivateProfileInt(section,key,default_value,m_cfg_path.c_str())!=0;
+		return keyExists(section,key);
+	}
+
 
 	//GetPrivateProfileString()でデータを取得
 	bool getStringData(const TCHAR* section,const TCHAR* key,TCHAR* result,int result_buffer,const TCHAR* default_value=NULL);
@@ -41,6 +46,12 @@ public:
 	bool getDataEx(const TCHAR* section,const TCHAR* key,T* result,const T default_value=(T)0){
 		if(keyExists(section,key)){
 			*result=static_cast<T>(::GetPrivateProfileInt(section,key,default_value,m_cfg_path.c_str()));
+		}
+		return keyExists(section,key);
+	}
+	bool getDataEx(const TCHAR* section,const TCHAR* key,bool* result,const bool default_value=0){
+		if(keyExists(section,key)){
+			*result=::GetPrivateProfileInt(section,key,default_value,m_cfg_path.c_str())!=0;
 		}
 		return keyExists(section,key);
 	}

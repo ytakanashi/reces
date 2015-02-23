@@ -39,7 +39,7 @@ ProgressBar::~ProgressBar(){
 bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 	if(!total||done>total)return false;
 
-	unsigned int fraction_done=done*100/total;
+	unsigned int fraction_done=static_cast<unsigned int>(done*100/total);
 	int dots=int(((float)fraction_done/100)*m_progress_length);
 
 	if(dots<0)dots=0;

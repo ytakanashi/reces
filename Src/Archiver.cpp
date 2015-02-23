@@ -2,7 +2,7 @@
 //書庫操作共通
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -162,7 +162,7 @@ bool Archiver::DirTimeStamp::recover(const TCHAR* dir,const FILETIME& arc_ft,con
 		static bool getFILETIME(FILETIME* ft,const TCHAR* dir){
 			FileSearch fs;
 
-			for(fs.first(dir);fs.next();){
+			for(fs.first(dir);!IS_TERMINATED&&fs.next();){
 				if(fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
 					if(!m_recovered_dirs.empty()&&std::binary_search(m_recovered_dirs.begin(),m_recovered_dirs.end(),fs.filepath())){
 						File d(fs.filepath().c_str());
@@ -329,7 +329,7 @@ bool Archiver::setBackgroundMode(bool mode){
 
 //処理を中止する
 void Archiver::abort(){
-	if(!isTerminated()){
+	if(!IS_TERMINATED){
 		terminateApp();
 	}
 }

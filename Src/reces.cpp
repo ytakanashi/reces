@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -505,7 +505,7 @@ bool Reces::runCommand(){
 				//Enterで抜ける
 				break;
 			}
-		}while(!isTerminated()&&
+		}while(!IS_TERMINATED&&
 			   line!=NULL);
 	}else{
 		if(!CFG.recompress.run_command.command.empty()){
@@ -569,9 +569,9 @@ bool Reces::searchSpi(const TCHAR* search_dir){
 	if(path::getFullPath(&full_path[0],full_path.size(),search_dir)&&
 	   path::fileExists(&full_path[0])){
 #ifndef _WIN64
-		for(fs.first(&full_path[0],_T("*.spi"));fs.next();){
+		for(fs.first(&full_path[0],_T("*.spi"));!IS_TERMINATED&&fs.next();){
 #else
-		for(fs.first(&full_path[0],_T("*.sph"));fs.next();){
+		for(fs.first(&full_path[0],_T("*.sph"));!IS_TERMINATED&&fs.next();){
 #endif
 			if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
 				dprintf(_T("spi: %s\n"),fs.filepath().c_str());
@@ -596,7 +596,7 @@ bool Reces::searchWcx(const TCHAR* search_dir){
 
 	if(path::getFullPath(&full_path[0],full_path.size(),search_dir)&&
 	   path::fileExists(&full_path[0])){
-		for(fs.first(&full_path[0],_T("*.wcx;*.wcx64"));fs.next();){
+		for(fs.first(&full_path[0],_T("*.wcx;*.wcx64"));!IS_TERMINATED&&fs.next();){
 			if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
 				dprintf(_T("wcx: %s\n"),fs.filepath().c_str());
 				Wcx* wcx=new Wcx(fs.filepath().c_str());
@@ -631,7 +631,7 @@ unsigned __stdcall Reces::manageProgressBar(void* param){
 					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}
 			}else if(msg.message==Archiver::WM_UPDATE_PROGRESSBAR){
-				if(!this_ptr->isTerminated()&&
+				if(!this_ptr->IS_TERMINATED&&
 				   this_ptr->m_progressbar&&
 				   msg.wParam){
 					Archiver::ARC_PROCESSING_INFO arc_processing_info=
@@ -704,7 +704,7 @@ unsigned __stdcall Reces::dialogHookProc(void* param){
 						}
 					}
 
-					if(this_ptr->isTerminated()){
+					if(this_ptr->IS_TERMINATED){
 						//OK押下
 						::SendMessage(::GetDlgItem(::GetParent(target_handle),IDOK),BM_CLICK,0,0);
 					}else{
@@ -917,7 +917,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 					misc::Lock lock(m_arc_cs);
 					SAFE_CLOSE(m_arc_thread);
 				}
-				if(isTerminated())break;
+				if(IS_TERMINATED)break;
 
 				switch(result){
 					case ARC_SUCCESS:{
@@ -991,7 +991,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 							runCommand();
 						}
 
-						if(isTerminated())break;
+						if(IS_TERMINATED)break;
 
 						::SetCurrentDirectory(ARCCFG->m_recmp_temp_dir.c_str());
 
@@ -1008,7 +1008,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 							misc::Lock lock(m_arc_cs);
 							SAFE_CLOSE(m_arc_thread);
 						}
-						if(isTerminated())break;
+						if(IS_TERMINATED)break;
 
 						if(!m_cur_file.auto_renamed&&
 						   CFG.general.remove_source!=RMSRC_DISABLE){
@@ -1021,7 +1021,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 						switch(result){
 							case ARC_SUCCESS:{
-								if(!isTerminated()){
+								if(!IS_TERMINATED){
 									if(CFG.compress.copy_timestamp){
 										//タイムスタンプを設定
 										copyArcTimestamp(
@@ -1172,11 +1172,11 @@ bool Reces::run(CommandArgument& cmd_arg){
 					misc::Lock lock(m_arc_cs);
 					SAFE_CLOSE(m_arc_thread);
 				}
-				if(isTerminated())break;
+				if(IS_TERMINATED)break;
 
 				switch(result){
 					case ARC_SUCCESS:
-						if(!isTerminated()){
+						if(!IS_TERMINATED){
 							if(CFG.compress.copy_timestamp){
 								//タイムスタンプを設定
 								copyArcTimestamp(
@@ -1239,7 +1239,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			for(std::list<tstring>::iterator ite=extract_file_list.begin(),
 				end=extract_file_list.end();
-				ite!=end&&!isTerminated();
+				ite!=end&&!IS_TERMINATED;
 				++ite){
 
 				ARCCFG->m_password_input_cancelled=false;
@@ -1257,11 +1257,11 @@ bool Reces::run(CommandArgument& cmd_arg){
 					misc::Lock lock(m_arc_cs);
 					SAFE_CLOSE(m_arc_thread);
 				}
-				if(isTerminated())break;
+				if(IS_TERMINATED)break;
 
 				switch(result){
 					case ARC_SUCCESS:
-						if(!isTerminated()){
+						if(!IS_TERMINATED){
 							if(CFG.general.remove_source!=RMSRC_DISABLE){
 								if(!fileoperation::removeSplitFile(ite->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
 									dprintf(_T("removeFile(%s)\n"),ite->c_str());
@@ -1303,7 +1303,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			for(std::list<tstring>::iterator ite=list_file_list.begin(),
 				end=list_file_list.end();
-				ite!=end&&!isTerminated();
+				ite!=end&&!IS_TERMINATED;
 				++ite){
 
 				ARCCFG->m_password_input_cancelled=false;
@@ -1321,7 +1321,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 					misc::Lock lock(m_arc_cs);
 					SAFE_CLOSE(m_arc_thread);
 				}
-				if(isTerminated())break;
+				if(IS_TERMINATED)break;
 
 				switch(result){
 					case ARC_SUCCESS:
@@ -1359,7 +1359,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			for(std::list<tstring>::iterator ite=test_file_list.begin(),
 				end=test_file_list.end();
-				ite!=end&&!isTerminated();
+				ite!=end&&!IS_TERMINATED;
 				++ite){
 
 				ARCCFG->m_password_input_cancelled=false;
@@ -1377,7 +1377,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 					misc::Lock lock(m_arc_cs);
 					SAFE_CLOSE(m_arc_thread);
 				}
-				if(isTerminated())break;
+				if(IS_TERMINATED)break;
 
 				switch(result){
 					case ARC_SUCCESS:
@@ -1415,7 +1415,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 				misc::Lock lock(m_arc_cs);
 				SAFE_CLOSE(m_arc_thread);
 			}
-			if(isTerminated())break;
+			if(IS_TERMINATED)break;
 
 			switch(result){
 				case ARC_SUCCESS:
@@ -1481,7 +1481,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 					}
 				}
 			}else{
-				for(std::vector<tstring>::size_type i=0,size=filepaths.size();!isTerminated()&&i<size;++i){
+				for(std::vector<tstring>::size_type i=0,size=filepaths.size();!IS_TERMINATED&&i<size;++i){
 						STDOUT.outputString(_T("%-12s %s\n"),
 											  filepaths[i].c_str(),
 											  getVersion(filepaths[i].c_str()).c_str());
@@ -1503,7 +1503,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 				misc::Lock lock(m_arc_cs);
 				SAFE_CLOSE(m_arc_thread);
 			}
-			if(isTerminated())break;
+			if(IS_TERMINATED)break;
 
 			switch(result){
 				case ARC_SUCCESS:

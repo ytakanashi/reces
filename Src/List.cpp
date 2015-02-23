@@ -2,7 +2,7 @@
 //リスト
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -15,7 +15,7 @@ using namespace sslib;
 
 
 List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
-	if(isTerminated())return ARC_USER_CANCEL;
+	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 	bool split_file=false;
 	tstring join_file_name;
@@ -126,7 +126,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 		}
 	}
 
-	if(isTerminated())return ARC_USER_CANCEL;
+	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 	info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
 

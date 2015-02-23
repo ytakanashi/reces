@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -246,6 +246,12 @@ private:
 		if(isEmptySection(section)){
 			removeSection(section);
 		}
+	}
+	void write(const TCHAR* section,const TCHAR* key,const tstring value,bool diff){
+		return write(section,key,value.c_str(),diff);
+	}
+	void write(const TCHAR* section,const TCHAR* key,const long long value,bool diff){
+		return write(section,key,sslib::format(_T("%I64d"),value).c_str(),diff);
 	}
 
 public:

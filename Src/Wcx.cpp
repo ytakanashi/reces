@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -74,7 +74,7 @@ int Wcx::getFileCount(const TCHAR* arc_path){
 	}
 
 	m_header_data=new HEADER_DATA(getHeaderDataMode());
-	for(;!readHeader()&&!isTerminated();processFile(PK_SKIP))++count;
+	for(;!readHeader()&&!IS_TERMINATED;processFile(PK_SKIP))++count;
 	SAFE_DELETE(m_header_data);
 	closeArchive();
 	SAFE_DELETE(m_open_arc_data);
@@ -115,7 +115,7 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 	result=ARC_SUCCESS;
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
-	for(int i=1;!readHeader()&&!isTerminated();++i){
+	for(int i=1;!readHeader()&&!IS_TERMINATED;++i){
 		int ret_code=E_BAD_DATA;
 
 		if(!matchFilters(data(),
@@ -201,12 +201,12 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 			m_arc_info.resize(1);
 		}
 
-		for(;!isTerminated()&&((!created)?!readHeader():1);
+		for(;!IS_TERMINATED&&((!created)?!readHeader():1);
 			(!created)?processFile(PK_SKIP):0){
 			if(!created){
 				m_arc_info.back()=data();
 			}
-			for(size_t i=0,size=m_arc_info.size();i<size&&!isTerminated();++i){
+			for(size_t i=0,size=m_arc_info.size();i<size&&!IS_TERMINATED;++i){
 				if(m_arc_info[i].attr&FILE_ATTRIBUTE_DIRECTORY){
 					if(m_arc_info[i].date_time){
 						FILETIME tmp={},ft={};
@@ -295,7 +295,7 @@ Wcx::ARC_RESULT Wcx::list(const TCHAR* arc_path){
 		STDOUT.outputString(_T("---------- -------- ------------------- ------------------------\n"));
 	}
 
-	for(;!readHeader()&&!isTerminated();processFile(PK_SKIP)){
+	for(;!readHeader()&&!IS_TERMINATED;processFile(PK_SKIP)){
 		fileinfo::FILEINFO fileinfo=data();
 
 		if(!matchFilters(fileinfo,
@@ -368,7 +368,7 @@ Wcx::ARC_RESULT Wcx::test(const TCHAR* arc_path){
 
 	result=ARC_SUCCESS;
 
-	while(!readHeader()&&!isTerminated()){
+	while(!readHeader()&&!IS_TERMINATED){
 		int ret_code=E_BAD_DATA;
 
 		if(m_header_data->attr()&FILE_ATTRIBUTE_DIRECTORY){
@@ -488,7 +488,7 @@ bool Wcx::createFilesList(const TCHAR* arc_path){
 
 	m_header_data=new HEADER_DATA(getHeaderDataMode());
 
-	for(;!readHeader()&&!isTerminated();processFile(PK_SKIP)){
+	for(;!readHeader()&&!IS_TERMINATED;processFile(PK_SKIP)){
 		m_arc_info.push_back(data());
 	}
 	SAFE_DELETE(m_header_data);
@@ -532,7 +532,7 @@ bool Wcx::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_
 
 		bool check_end=false;
 
-		for(;!readHeader()&&!isTerminated();processFile(PK_SKIP)){
+		for(;!readHeader()&&!IS_TERMINATED;processFile(PK_SKIP)){
 			m_arc_info.push_back(data());
 			if(!check_end){
 				if(redundant_dir(m_arc_info.back())){

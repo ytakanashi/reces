@@ -47,7 +47,7 @@ template<class T>void recursiveSearch(T* path_list,const TCHAR* search_dir,const
 
 	FileSearch fs;
 
-	for(fs.first(addLongPathPrefix(search_dir).c_str(),wildcard);fs.next();){
+	for(fs.first(addLongPathPrefix(search_dir).c_str(),wildcard);!IS_TERMINATED&&fs.next();){
 		if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
 			//ファイル
 			path_list->push_back(removeLongPathPrefix(fs.filepath()));

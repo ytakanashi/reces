@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -96,7 +96,7 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
 			CFG.general.password.clear();
 		}
 		result=checkArchive(arc_path.c_str(),CHECKARCHIVE_BASIC);
-	}while(!isTerminated()&&
+	}while(!IS_TERMINATED&&
 		   !ARCCFG->m_password_input_cancelled&&
 		   //正しいパスワードが入力されるまで問い合わせる
 		   !result&&
@@ -156,7 +156,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 		}else{
 			dll_ret=execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		}
-	}while(!isTerminated()&&
+	}while(!IS_TERMINATED&&
 		   //正しいパスワードが入力されるまで問い合わせる
 		   dll_ret==ERROR_PASSWORD_FILE);
 
@@ -384,11 +384,11 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 
 		//リストファイルに解凍対象ファイルのみ出力
 		outputFileListEx(arc_path_str.c_str(),
-							 CFG.general.filefilter,
-							 CFG.general.file_ex_filter,
-							 list_file,
-							 //フィルタ適用を逆にする
-							 (!CFG.general.ignore_directory_structures)?REVERSE_FILTER:0);
+						 CFG.general.filefilter,
+						 CFG.general.file_ex_filter,
+						 //フィルタ適用を逆にする
+						 (!CFG.general.ignore_directory_structures)?REVERSE_FILTER:0,
+						 &list_file);
 		list_file.close();
 	}
 
@@ -527,11 +527,11 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 
 	//リストファイルに解凍対象ファイルのみ出力
 	outputFileListEx(arc_path.c_str(),
-						 CFG.general.filefilter,
-						 CFG.general.file_ex_filter,
-						 list_file,
-						 //フィルタ適用を逆にする
-						 REVERSE_FILTER);
+					 CFG.general.filefilter,
+					 CFG.general.file_ex_filter,
+					 //フィルタ適用を逆にする
+					 REVERSE_FILTER,
+					 &list_file);
 	list_file.close();
 
 	//区切り文字置換
@@ -609,11 +609,11 @@ Arc7zip32::ARC_RESULT Arc7zip32::list(const TCHAR* arc_path){
 			if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 				//リストファイルに列挙対象ファイルのみ出力
 				outputFileListEx(arc_path_str.c_str(),
-									 CFG.general.filefilter,
-									 CFG.general.file_ex_filter,
-									 list_file,
-									 //フィルタ適用を逆にする
-									 REVERSE_FILTER);
+								 CFG.general.filefilter,
+								 CFG.general.file_ex_filter,
+								 //フィルタ適用を逆にする
+								 REVERSE_FILTER,
+								 &list_file);
 				list_file.close();
 			}else{
 				use_filter=false;

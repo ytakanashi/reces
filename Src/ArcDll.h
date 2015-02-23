@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -48,8 +48,8 @@ public:
 		}
 
 		//日付/時刻
-		FILETIME ft1={0},ft2={0};
-		SYSTEMTIME st={0};
+		FILETIME ft1={},ft2={};
+		SYSTEMTIME st={};
 
 		::DosDateTimeToFileTime(m_individual_info.wDate,m_individual_info.wTime,&ft1);
 		::LocalFileTimeToFileTime(&ft1,&ft2);
@@ -63,7 +63,7 @@ public:
 			m_arcdll_ptr->getFileName(&buffer,1024);
 			m_fileinfo.name.assign(buffer);
 		}else{
-			//GetFileName()が実装されていない場合、m_indIVIDUALINFO構造体より取得
+			//GetFileName()が実装されていない場合、INDIVIDUALINFO構造体より取得
 			if(m_arcdll_ptr->isUnicodeMode()){
 				sslib::str::utf82utf16(&m_fileinfo.name,m_individual_info.szFileName);
 			}else{
@@ -75,7 +75,7 @@ public:
 		DWORD attr=0;
 
 		if(!m_arcdll_ptr->getAttribute(&attr)){
-			//GetAttribute()が実装されていない場合、m_indIVIDUALINFO構造体より取得
+			//GetAttribute()が実装されていない場合、INDIVIDUALINFO構造体より取得
 			attr=m_arcdll_ptr->guessAttribute(m_individual_info.szAttribute,m_individual_info.szFileName);
 		}
 		m_fileinfo.attr=attr;
@@ -194,13 +194,12 @@ protected:
 	};
 
 	//リストファイルにファイルリストを出力
-	virtual void outputFileListToFile(const fileinfo::FILEINFO& fileinfo,const sslib::File& list_file,int opt=0);
+	virtual void outputFileListToFile(const fileinfo::FILEINFO& fileinfo,int opt=0,sslib::File* list_file=NULL);
 	//コンソールにファイルリストを出力
 	virtual bool outputFileListToConsole(const fileinfo::FILEINFO& fileinfo,int opt=0);
 
-	//リストファイル若しくはコンソールにファイルリストを出力
-	virtual bool outputFileList(const std::vector<fileinfo::FILEINFO>& fileinfo_list,const sslib::File& list_file,int opt=0);
-	virtual bool outputFileList(const std::vector<fileinfo::FILEINFO>& fileinfo_list,int opt=0);
+	//ファイルリストを出力
+	virtual bool outputFileList(const std::vector<fileinfo::FILEINFO>& fileinfo_list,int opt=0,sslib::File* list_file=NULL);
 
 	//実装してねゾーン
 	//--[ここから]--
@@ -255,15 +254,11 @@ public:
 	//コールバックの設定を解除
 	void clearCallback();
 
-	//書庫に含まれるファイルの一覧をリストファイルに出力
-	bool outputFileList(const TCHAR* arc_path,sslib::File list_file,int opt=0);
-	//書庫に含まれるファイルの一覧をコンソールに出力
-	bool outputFileList(const TCHAR* arc_path,int opt=0);
+	//書庫に含まれるファイルの一覧を出力
+	bool outputFileList(const TCHAR* arc_path,int opt=0,sslib::File* list_file=NULL);
 
-	//書庫に含まれるファイルの一覧をリストファイルに出力(フィルタ指定可能)
-	bool outputFileListEx(const TCHAR* arc_path,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,const sslib::File& list_file,int opt=0);
-	//書庫に含まれるファイルの一覧をコンソールに出力(フィルタ指定可能)
-	bool outputFileListEx(const TCHAR* arc_path,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,int opt=0);
+	//書庫に含まれるファイルの一覧を出力(フィルタ指定可能)
+	bool outputFileListEx(const TCHAR* arc_path,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,int opt=0,sslib::File* list_file=NULL);
 
 	//作成しようとするディレクトリは不要であるかどうか
 	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file);

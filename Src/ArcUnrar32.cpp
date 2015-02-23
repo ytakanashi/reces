@@ -2,7 +2,7 @@
 //Unrar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -163,7 +163,7 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 			CFG.general.password.clear();
 		}
 		result=checkArchive(arc_path.c_str(),mode);
-	}while(!isTerminated()&&
+	}while(!IS_TERMINATED&&
 		   !ARCCFG->m_password_input_cancelled&&
 		   !result&&
 		   ARCCFG->m_hook_dialog_type==HOOK_UNRAR32_PASSWORD);
@@ -203,7 +203,7 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 		tstring dummy(1,'\0');
 
 		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
-	}while(!isTerminated()&&
+	}while(!IS_TERMINATED&&
 		   dll_ret==ERROR_HEADER_BROKEN);
 
 	return dll_ret==0;
@@ -259,7 +259,8 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 		if(!outputFileListEx(arc_path_str.c_str(),
 							 CFG.general.filefilter,
 							 CFG.general.file_ex_filter,
-							 list_file)){
+							 0,
+							 &list_file)){
 			return ARC_NO_MATCHES_FOUND;
 		}
 		list_file.close();
@@ -398,7 +399,8 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::list(const TCHAR* arc_path){
 				outputFileListEx(arc_path_str.c_str(),
 								 CFG.general.filefilter,
 								 CFG.general.file_ex_filter,
-								 list_file);
+								 0,
+								 &list_file);
 				list_file.close();
 			}else{
 				use_filter=false;

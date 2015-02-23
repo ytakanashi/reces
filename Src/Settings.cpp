@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -16,7 +16,7 @@ using namespace sslib;
 
 
 Settings::ARC_RESULT Settings::operator()(HWND wnd,tstring& err_msg){
-	if(isTerminated())return ARC_USER_CANCEL;
+	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 	m_arc_dll=NULL;
 	m_cal_dll=NULL;

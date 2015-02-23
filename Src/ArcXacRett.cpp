@@ -2,7 +2,7 @@
 //Xacrett.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -143,7 +143,8 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 		if(!outputFileListEx(arc_path_str.c_str(),
 							 CFG.general.filefilter,
 							 CFG.general.file_ex_filter,
-							 list_file)){
+							 0,
+							 &list_file)){
 			return ARC_NO_MATCHES_FOUND;
 		}
 		list_file.close();
@@ -306,7 +307,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::list(const TCHAR* arc_path){
 										 (fileinfo->attr&FILE_ATTRIBUTE_SYSTEM)?_T("S"):_T("."),
 										 fileinfo->size,
 										 decode_path.c_str());
-		}while(fs.next()&&!isTerminated());
+		}while(!IS_TERMINATED&&fs.next());
 	}
 	closeArchive();
 	return ARC_SUCCESS;

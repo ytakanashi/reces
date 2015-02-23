@@ -2,7 +2,7 @@
 //recesベース
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -304,7 +304,7 @@ void RecesBase::freeArcLib(){
 
 //読み込みと対応チェック
 template<typename I>Archiver* RecesBase::loadAndCheck(I ite,I end,const TCHAR* arc_path,bool* loaded_library,const TCHAR* ext,const TCHAR* libname,const TCHAR* full_libname){
-	for(;ite!=end;++ite){
+	for(;!IS_TERMINATED&&ite!=end;++ite){
 		if(!(ext&&!(*ite)->isSupportedExtension(ext))&&
 		   !(!ext&&libname!=NULL&&!str::isEqualStringIgnoreCase((*ite)->name(),libname))){
 			if(!(!(*ite)->isLoaded()&&!(*ite)->load((full_libname!=NULL)?full_libname:libname,NULL))){
@@ -357,7 +357,7 @@ template Archiver* RecesBase::loadAndCheckPlugin(std::vector<Wcx*>* plugin_list,
 
 //ファイルのフルパスリストを作成
 bool RecesBase::fullPathList(std::list<tstring>& list,std::vector<tstring>& filepaths,bool recursive){
-	for(std::vector<tstring>::size_type i=0,size=filepaths.size();!isTerminated()&&i<size;++i){
+	for(std::vector<tstring>::size_type i=0,size=filepaths.size();!IS_TERMINATED&&i<size;++i){
 		std::vector<TCHAR> buffer(MAX_PATHW);
 
 		//フルパスを取得

@@ -23,7 +23,7 @@ bool createDirectory(const TCHAR* dir_path_orig,LPSECURITY_ATTRIBUTES security_a
 	tstring dir_path(path::addTailSlash(dir_path_orig));
 	tstring current_path;
 
-	for(size_t i=0,length=dir_path.length();i<length;i++){
+	for(size_t i=0,length=dir_path.length();!IS_TERMINATED&&i<length;i++){
 #ifndef UNICODE
 			if(::IsDBCSLeadByte(dir_path.c_str()[i])){
 				++i;
@@ -227,7 +227,7 @@ void moveDirToDir(const TCHAR* src_path_orig,const TCHAR* dest_path_orig){
 	std::vector<scheduleDelete*> schedule_list;
 	FileSearch fs;
 
-	for(fs.first(src_path.c_str());fs.next();){
+	for(fs.first(src_path.c_str());!IS_TERMINATED&&fs.next();){
 		FILETIME ft={};
 
 		tstring file(fs.filepath());
@@ -270,7 +270,7 @@ void deleteDirectory(const TCHAR* dir_path_orig){
 	tstring dir_path(path::removeTailSlash(dir_path_orig));
 	FileSearch fs;
 
-	for(fs.first(dir_path.c_str());fs.next();){
+	for(fs.first(dir_path.c_str());!IS_TERMINATED&&fs.next();){
 		//読み込み専用属性削除
 		::SetFileAttributes(fs.filepath().c_str(),
 						  ::GetFileAttributes(fs.filepath().c_str())&~FILE_ATTRIBUTE_READONLY);
@@ -304,7 +304,7 @@ void deleteDirectory(const TCHAR* dir_path_orig){
 void deleteContents(const TCHAR* dir_path){
 	FileSearch fs;
 
-	for(fs.first(dir_path);fs.next();){
+	for(fs.first(dir_path);!IS_TERMINATED&&fs.next();){
 		//読み込み専用属性削除
 		::SetFileAttributes(fs.filepath().c_str(),
 						  ::GetFileAttributes(fs.filepath().c_str())&~FILE_ATTRIBUTE_READONLY);
@@ -417,7 +417,7 @@ long long getDirectorySize(const TCHAR* dir_path){
 	FileSearch fs;
 	long long dir_size=0;
 
-	for(fs.first(dir_path);fs.next();){
+	for(fs.first(dir_path);!IS_TERMINATED&&fs.next();){
 		if(!fs.hasAttribute(FILE_ATTRIBUTE_DIRECTORY)){
 			//ファイル
 			dir_size+=fs.getSize();

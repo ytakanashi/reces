@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -221,7 +221,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 	result=ARC_SUCCESS;
 	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
 
-	for(;arc_info->method[0]&&!isTerminated()&&!ARCCFG->m_password_input_cancelled;++arc_info){
+	for(;arc_info->method[0]&&!IS_TERMINATED&&!ARCCFG->m_password_input_cancelled;++arc_info){
 		tstring file_path=str::sjis2utf16(arc_info->path);
 		tstring file_name=str::sjis2utf16(arc_info->filename);
 
@@ -343,7 +343,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 		}
 
 		for((!created)?arc_info=arc_info_header:0;
-			!isTerminated()&&((!created)?arc_info->method[0]:1);
+			!IS_TERMINATED&&((!created)?arc_info->method[0]:1);
 			(!created)?++arc_info:0){
 
 			if(!created){
@@ -355,7 +355,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 													 ((long long)arc_info->timestamp+11644473600)*10000000);
 			}
 
-			for(size_t i=0,size=m_arc_info.size();i<size&&!isTerminated();++i){
+			for(size_t i=0,size=m_arc_info.size();i<size&&!IS_TERMINATED;++i){
 				if(m_arc_info[i].attr&FILE_ATTRIBUTE_DIRECTORY){
 					if(m_arc_info[i].date_time){
 						FILETIME ft={};
@@ -443,7 +443,7 @@ Spi::ARC_RESULT Spi::list(const TCHAR* arc_path){
 		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("---------- -------- ---------- ------------------------\n"));
 	}
 
-	for(;arc_info->method[0]&&!isTerminated();++arc_info){
+	for(;arc_info->method[0]&&!IS_TERMINATED;++arc_info){
 		tstring file_path=str::sjis2utf16(arc_info->path);
 		tstring file_name=str::sjis2utf16(arc_info->filename);
 		tstring full_path(file_path+file_name);

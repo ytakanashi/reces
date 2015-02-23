@@ -2,7 +2,7 @@
 //Tar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -320,7 +320,8 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 		if(!outputFileListEx(arc_path_str.c_str(),
 							 CFG.general.filefilter,
 							 CFG.general.file_ex_filter,
-							 list_file)){
+							 0,
+							 &list_file)){
 			return ARC_NO_MATCHES_FOUND;
 		}
 		list_file.close();
