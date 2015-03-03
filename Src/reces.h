@@ -16,7 +16,6 @@
 class Reces:public sslib::ConsoleApp,public RecesBase{
 public:
 	Reces():
-		m_split_temp_dir(),
 		m_hook_dll_module(NULL),
 		m_hook_dll_path(),
 		m_pInstallHook(NULL),
@@ -32,9 +31,6 @@ public:
 	~Reces(){}
 
 private:
-	//分割/結合用一時ディレクトリ
-	tstring m_split_temp_dir;
-
 	//パスワード入力ダイアログのフック
 	HMODULE m_hook_dll_module;
 	tstring m_hook_dll_path;

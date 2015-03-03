@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -393,8 +393,10 @@ public:
 	//DLLのバージョンを返します(現在のバージョンの下位2ワードに100を掛けたものが返ってきます)
 	//ライブラリ本体の戻り値/引数と異なる事に注意
 	bool getSubVersion(WORD* version);
+#if 0
 	//DLLの動作中にカーソルを表示するモードか否かを設定します
 	bool setCursorMode(const bool cursor_info);
+#endif
 	//現在DLLが動作中か否かを得ます
 	bool getRunning();
 #if 0
@@ -421,10 +423,12 @@ public:
 	int findFirst(const TCHAR* wild_name,LPINDIVIDUALINFO info);
 	//2番目以降の格納ファイルの情報を返す
 	int findNext(LPINDIVIDUALINFO info);
+#if 0
 	//DLLのメッセージの送信先ウィンドウを設定します
 	bool setOwnerWindow(HWND wnd_handle);
 	//SetOwnerWindow()で設定したウィンドウの設定を解除します
 	bool clearOwnerWindow();
+#endif
 	//DLLの圧縮解凍状況を受け取るためのコールバック関数の指定を行います
 	bool setOwnerWindowEx(HWND wnd_handle,LPARCHIVERPROC arc_proc);
 	//SetOwnerWindowEx()で設定したウィンドウの設定を解除します
@@ -433,8 +437,10 @@ public:
 	int getFileName(tstring* result_buffer,const int buffer_size);
 	//格納ファイルのサイズを64ビット整数で得ます
 	bool getOriginalSizeEx(__int64* size);
+#if 0
 	//格納ファイルの圧縮サイズを得ます
 	bool getCompressedSizeEx(__int64* size);
+#endif
 	//格納ファイルの属性を得ます
 	bool getAttribute(DWORD* p_attr,int* p_orig_attr=NULL);
 	//書庫の情報を得る際に使用する標準パスワードを設定します。

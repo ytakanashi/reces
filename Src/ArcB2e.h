@@ -1,7 +1,7 @@
 ﻿//ArcB2e.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -45,6 +45,7 @@ public:
 
 	//b2eスクリプトのあるディレクトリを指定
 	bool setScriptDirectory(const TCHAR* dir_path);
+#if 0
 	//B2Eスクリプトの数を取得
 	int getScriptCount();
 	//b2eスクリプト名を取得
@@ -61,5 +62,6 @@ public:
 	int getDefaultCompressMethod(const UINT index);
 	//指定したアーカイブファイルの解凍に使うB2Eのインデックスを取得
 	UINT getExtractorIndex(const TCHAR* file_path);
+#endif
 };
 #endif //_ARCB2E_H_3F99C027_3723_46ab_8320_2B24426F74F6

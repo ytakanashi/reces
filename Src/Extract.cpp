@@ -270,7 +270,6 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 					}
 
 					tstring ext=getExtensionEx(old_arc_path);
-					tstring old_arc_path_bak(old_arc_path);
 					bool need_ext=false;
 
 					if(CFG.general.auto_rename&&

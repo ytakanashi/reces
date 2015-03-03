@@ -26,7 +26,9 @@ Arc7zip32::Arc7zip32():
 #endif
 			_T("SevenZip"),
 			_T("zip.7z.jar"),
-			_T("\\")){
+			_T("\\")),
+			m_file_size(0),
+			m_write_size(0){
 		COMPRESSION_METHOD method[]={
 			{_T("zip"),_T(".zip"),_T("-tzip"),_T("-mx="),
 				0,
@@ -654,7 +656,6 @@ void Arc7zip32::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,cons
 	if(filefilter.empty()&&file_ex_filter.empty())return;
 
 	//除外リストを作成
-	std::vector<fileinfo::FILEINFO> exclude_list;
 	FileTree file_tree(filefilter,file_ex_filter);
 
 	std::sort(fileinfo_list->begin(),fileinfo_list->end());

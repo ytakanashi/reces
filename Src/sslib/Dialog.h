@@ -11,7 +11,8 @@ public:
 		m_instance(instance),
 		m_dlg_handle(NULL),
 		m_dlg_type(MODAL),
-		m_exit_code(0){}
+		m_exit_code(0),
+		m_param(NULL){}
 	virtual ~Dialog(){}
 
 public:

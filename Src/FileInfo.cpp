@@ -446,6 +446,7 @@ int FileTree::countSibling(FILEINFONODE**pp){
 	return count;
 }
 
+#if 0
 int FileTree::countContents(int depth){
 	FILEINFONODE**pp=&m_tree;
 
@@ -455,6 +456,7 @@ int FileTree::countContents(int depth){
 	}
 	return countSibling(pp)+1;
 }
+#endif
 
 void FileTree::disableLine(FILEINFONODE**pp){
 	if(!*pp)return;

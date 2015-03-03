@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -146,7 +146,7 @@ bool WcxBase::configurePacker(HWND wnd_handle,HINSTANCE inst){
 	return false;
 }
 
-
+#if 0
 void WcxBase::setProcessDataProc(tProcessDataProc process_data_proc){
 	typedef	void(WINAPI*WCX_SETPROCESSDATAPROC)(HANDLE,tProcessDataProc);
 	WCX_SETPROCESSDATAPROC SetProcessDataProc;
@@ -166,10 +166,10 @@ void WcxBase::setProcessDataProcW(tProcessDataProcW process_data_proc){
 	}
 	return;
 }
+#endif
 
 bool WcxBase::isUnicodeMode(){
 	return getAddress(_T("OpenArchiveW"))!=NULL;
-	return false;
 }
 
 int WcxBase::getHeaderDataMode(){

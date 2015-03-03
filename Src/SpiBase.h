@@ -1,7 +1,7 @@
 ﻿//SpiBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -69,8 +69,10 @@ public:
 public:
 	//Plug-inに関する情報を得る
 	int getPluginInfo(int info_no,tstring* result_buffer,int buffer_length);
+#if 0
 	//展開可能な(対応している)ファイル形式か調べる。
 	int isSupported(const TCHAR* file_path,DWORD param);
+#endif
 	//アーカイブ内のすべてのファイルの情報を取得する(ファイル入力)
 	SPI_ERROR getArchiveInfo(const TCHAR* file_path,long buffer_length,unsigned int flag,HLOCAL* info);
 #if 0

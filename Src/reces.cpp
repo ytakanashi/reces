@@ -56,6 +56,27 @@ namespace{
 		}
 		return result;
 	}
+
+	//書庫にタイムスタンプをコピー
+	bool copyArcTimestamp(const tstring& dest_file_path,FILETIME* source_arc_timestamp){
+		std::list<tstring> file_list;
+		bool result=false;
+
+		//分割ファイルであればリスト化
+		if(!splitfile::makeSplitFileList(&file_list,dest_file_path.c_str())){
+			file_list.push_back(dest_file_path);
+		}
+
+		for(std::list<tstring>::iterator ite=file_list.begin(),
+			end=file_list.end();
+			ite!=end;
+			++ite){
+			File new_arc(ite->c_str());
+			result=new_arc.setFileTime(source_arc_timestamp);
+		}
+		return result;
+	}
+
 	long long done=0;
 	long long total=0;
 	void startmsg(const TCHAR* file_path){
@@ -96,22 +117,21 @@ bool Reces::init(){
 	m_original_cur_dir=path::getCurrentDirectory();
 
 	//一時ディレクトリ作成/削除登録
-	//再圧縮用
-	ARCCFG->m_recmp_temp_dir=path::addTailSlash(fileoperation::createTempDir(_T("rcs")));
-	ARCCFG->m_schedule_list.push_back(new fileoperation::scheduleDelete(ARCCFG->m_recmp_temp_dir.c_str()));
-	//分割/結合用
-	m_split_temp_dir=path::addTailSlash(fileoperation::createTempDir(_T("rcs")));
-	ARCCFG->m_schedule_list.push_back(new fileoperation::scheduleDelete(m_split_temp_dir.c_str()));
-	//リストファイル出力用
-	ARCCFG->m_list_temp_dir=path::addTailSlash(fileoperation::createTempDir(_T("rcs")));
-	ARCCFG->m_schedule_list.push_back(new fileoperation::scheduleDelete(ARCCFG->m_list_temp_dir.c_str()));
+#define CREATE_TEMP_DIR(name)\
+	name=path::addTailSlash(tempfile::createDir(_T("rcs")));\
+	ARCCFG->m_schedule_list.push_back(new fileoperation::scheduleDelete(name##.c_str()));\
+	if(name##.empty()){\
+		errmsg(_T("一時ディレクトリの作成に失敗しました。\n"));\
+		return false;\
+	}\
 
-	if(ARCCFG->m_recmp_temp_dir.empty()||
-	   m_split_temp_dir.empty()||
-	   ARCCFG->m_list_temp_dir.empty()){
-		errmsg(_T("一時ディレクトリの作成に失敗しました。\n"));
-		return false;
-	}
+	//再圧縮用
+	CREATE_TEMP_DIR(ARCCFG->m_recmp_temp_dir);
+	//分割/結合用
+	CREATE_TEMP_DIR(m_split_temp_dir);
+	//リストファイル出力用
+	CREATE_TEMP_DIR(ARCCFG->m_list_temp_dir);
+#undef CREATE_TEMP_DIR
 
 	//*.dll読み込み
 	loadArcLib();
@@ -177,13 +197,11 @@ void Reces::cleanup(){
 
 	freeArcLib();
 
-	for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
-		SAFE_DELETE(m_spi_list[i]);
-	}
+#define FREE_VECTOR(name)\
+	for(size_t i=0,list_size=name##.size();i<list_size;i++)SAFE_DELETE(name##[i]);\
 
-	for(size_t i=0,list_size=m_wcx_list.size();i<list_size;i++){
-		SAFE_DELETE(m_wcx_list[i]);
-	}
+	FREE_VECTOR(m_spi_list);
+	FREE_VECTOR(m_wcx_list);
 
 	SAFE_DELETE(m_cal_dll);
 
@@ -191,9 +209,8 @@ void Reces::cleanup(){
 	::SetCurrentDirectory(m_original_cur_dir.c_str());
 
 	//リストに登録されたファイル/ディレクトリを削除
-	for(size_t i=0,list_size=ARCCFG->m_schedule_list.size();i<list_size;i++){
-		SAFE_DELETE(ARCCFG->m_schedule_list[i]);
-	}
+	FREE_VECTOR(ARCCFG->m_schedule_list);
+#undef FREE_VECTOR
 
 	STDOUT.showCursor(true);
 	done=true;
@@ -376,21 +393,14 @@ void Reces::ctrlCEvent(){
 		m_arc_dll->abort();
 	}else{
 		misc::Lock lock_arc(m_arc_cs);
-		for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
-			if(m_arcdll_list[i]!=NULL){
-				m_arcdll_list[i]->abort();
-			}
-		}
-		for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
-			if(m_spi_list[i]!=NULL){
-				m_spi_list[i]->abort();
-			}
-		}
-		for(size_t i=0,list_size=m_wcx_list.size();i<list_size;i++){
-			if(m_wcx_list[i]!=NULL){
-				m_wcx_list[i]->abort();
-			}
-		}
+#define ABORT_LIB(name)\
+		for(size_t i=0,list_size=name##.size();i<list_size;i++)\
+			if(name##[i]!=NULL)name##[i]->abort();\
+
+		ABORT_LIB(m_arcdll_list);
+		ABORT_LIB(m_spi_list);
+		ABORT_LIB(m_wcx_list);
+#undef ABORT_LIB
 	}
 
 	::WaitForSingleObject(m_arc_thread,INFINITE);
@@ -538,26 +548,6 @@ bool Reces::removeFile(const TCHAR* file_path){
 		}
 	}
 	return false;
-}
-
-//書庫にタイムスタンプをコピー
-bool Reces::copyArcTimestamp(const tstring& dest_file_path,FILETIME* source_arc_timestamp){
-	std::list<tstring> file_list;
-	bool result=false;
-
-	//分割ファイルであればリスト化
-	if(!fileoperation::makeSplitFileList(&file_list,dest_file_path.c_str())){
-		file_list.push_back(dest_file_path);
-	}
-
-	for(std::list<tstring>::iterator ite=file_list.begin(),
-		end=file_list.end();
-		ite!=end;
-		++ite){
-		File new_arc(ite->c_str());
-		result=new_arc.setFileTime(source_arc_timestamp);
-	}
-	return result;
 }
 
 //*.spiを検索、リストに追加
@@ -732,11 +722,11 @@ unsigned __stdcall Reces::dialogHookProc(void* param){
 
 unsigned __stdcall Reces::callCompress(void* param){
 	{
-		misc::Lock lock(((ARC_THREAD_PARAM*)param)->this_ptr->m_arc_cs);
+		misc::Lock lock(static_cast<ARC_THREAD_PARAM*>(param)->this_ptr->m_arc_cs);
 		Compress* compress=new Compress();
 		((ARC_THREAD_PARAM*)param)->result_msg.result=
-			compress->operator()(((ARC_THREAD_PARAM*)param)->file_list,
-								 ((ARC_THREAD_PARAM*)param)->result_msg.err_msg);
+			compress->operator()(static_cast<ARC_THREAD_PARAM*>(param)->file_list,
+								 static_cast<ARC_THREAD_PARAM*>(param)->result_msg.err_msg);
 		SAFE_DELETE(compress);
 	}
 	_endthreadex(0);
@@ -745,11 +735,11 @@ unsigned __stdcall Reces::callCompress(void* param){
 
 unsigned __stdcall Reces::callExtract(void* param){
 	{
-		misc::Lock lock(((ARC_THREAD_PARAM*)param)->this_ptr->m_arc_cs);
+		misc::Lock lock(static_cast<ARC_THREAD_PARAM*>(param)->this_ptr->m_arc_cs);
 		Extract* extract=new Extract();
 		((ARC_THREAD_PARAM*)param)->result_msg.result=
-			extract->operator()(((ARC_THREAD_PARAM*)param)->file_name,
-								((ARC_THREAD_PARAM*)param)->result_msg.err_msg);
+			extract->operator()(static_cast<ARC_THREAD_PARAM*>(param)->file_name,
+								static_cast<ARC_THREAD_PARAM*>(param)->result_msg.err_msg);
 		SAFE_DELETE(extract);
 	}
 	_endthreadex(0);
@@ -758,11 +748,11 @@ unsigned __stdcall Reces::callExtract(void* param){
 
 unsigned __stdcall Reces::callList(void* param){
 	{
-		misc::Lock lock(((ARC_THREAD_PARAM*)param)->this_ptr->m_arc_cs);
+		misc::Lock lock(static_cast<ARC_THREAD_PARAM*>(param)->this_ptr->m_arc_cs);
 		List* list=new List();
 		((ARC_THREAD_PARAM*)param)->result_msg.result=
-			list->operator()(((ARC_THREAD_PARAM*)param)->file_name,
-							 ((ARC_THREAD_PARAM*)param)->result_msg.err_msg);
+			list->operator()(static_cast<ARC_THREAD_PARAM*>(param)->file_name,
+							 static_cast<ARC_THREAD_PARAM*>(param)->result_msg.err_msg);
 		SAFE_DELETE(list);
 	}
 	_endthreadex(0);
@@ -771,11 +761,11 @@ unsigned __stdcall Reces::callList(void* param){
 
 unsigned __stdcall Reces::callSendCommands(void* param){
 	{
-		misc::Lock lock(((ARC_THREAD_PARAM*)param)->this_ptr->m_arc_cs);
+		misc::Lock lock(static_cast<ARC_THREAD_PARAM*>(param)->this_ptr->m_arc_cs);
 		SendCommands* send_commands=new SendCommands();
 		((ARC_THREAD_PARAM*)param)->result_msg.result=
-			send_commands->operator()(((ARC_THREAD_PARAM*)param)->file_list,
-									  ((ARC_THREAD_PARAM*)param)->result_msg.err_msg);
+			send_commands->operator()(static_cast<ARC_THREAD_PARAM*>(param)->file_list,
+									  static_cast<ARC_THREAD_PARAM*>(param)->result_msg.err_msg);
 		SAFE_DELETE(send_commands);
 	}
 	_endthreadex(0);
@@ -784,11 +774,11 @@ unsigned __stdcall Reces::callSendCommands(void* param){
 
 unsigned __stdcall Reces::callTest(void* param){
 	{
-		misc::Lock lock(((ARC_THREAD_PARAM*)param)->this_ptr->m_arc_cs);
+		misc::Lock lock(static_cast<ARC_THREAD_PARAM*>(param)->this_ptr->m_arc_cs);
 		Test* test=new Test();
 		((ARC_THREAD_PARAM*)param)->result_msg.result=
-			test->operator()(((ARC_THREAD_PARAM*)param)->file_name,
-							 ((ARC_THREAD_PARAM*)param)->result_msg.err_msg);
+			test->operator()(static_cast<ARC_THREAD_PARAM*>(param)->file_name,
+							 static_cast<ARC_THREAD_PARAM*>(param)->result_msg.err_msg);
 		SAFE_DELETE(test);
 	}
 	_endthreadex(0);
@@ -797,11 +787,11 @@ unsigned __stdcall Reces::callTest(void* param){
 
 unsigned __stdcall Reces::callSettings(void* param){
 	{
-		misc::Lock lock(((ARC_THREAD_PARAM*)param)->this_ptr->m_arc_cs);
+		misc::Lock lock(static_cast<ARC_THREAD_PARAM*>(param)->this_ptr->m_arc_cs);
 		Settings* settings=new Settings();
 		((ARC_THREAD_PARAM*)param)->result_msg.result=
-			settings->operator()(((ARC_THREAD_PARAM*)param)->this_ptr->wnd(),
-								 ((ARC_THREAD_PARAM*)param)->result_msg.err_msg);
+			settings->operator()(static_cast<ARC_THREAD_PARAM*>(param)->this_ptr->wnd(),
+								 static_cast<ARC_THREAD_PARAM*>(param)->result_msg.err_msg);
 		SAFE_DELETE(settings);
 	}
 	_endthreadex(0);
@@ -923,7 +913,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 					case ARC_SUCCESS:{
 						if((!CFG.compress.each_file&&ite_list==list_begin)||
 						   CFG.compress.each_file){
-							if(fileoperation::isSplitFile(ite_list->c_str())){
+							if(splitfile::isSplitFile(ite_list->c_str())){
 								//分割ファイル
 								m_cur_file.arc_path=path::removeExtension(*ite_list);
 							}else{
@@ -1043,7 +1033,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 											ite!=end;
 											++ite){
 											if(!str::isEqualStringIgnoreCase(ite->first,ite->second)&&
-											   !fileoperation::removeSplitFile(ite->second.c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
+											   !splitfile::removeSplitFile(ite->second.c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
 												dprintf(_T("removeFile(%s)\n"),ite->second.c_str());
 												removeFile(ite->second.c_str());
 											}
@@ -1081,7 +1071,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 						if(CFG.general.remove_source!=RMSRC_DISABLE&&
 						   !m_cur_file.auto_renamed){
 							if(!str::isEqualStringIgnoreCase(m_cur_file.arc_path,*ite_list)&&
-								!fileoperation::removeSplitFile(ite_list->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
+								!splitfile::removeSplitFile(ite_list->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
 								dprintf(_T("removeFile(%s)\n"),ite_list->c_str());
 								removeFile(ite_list->c_str());
 							}
@@ -1263,7 +1253,7 @@ bool Reces::run(CommandArgument& cmd_arg){
 					case ARC_SUCCESS:
 						if(!IS_TERMINATED){
 							if(CFG.general.remove_source!=RMSRC_DISABLE){
-								if(!fileoperation::removeSplitFile(ite->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
+								if(!splitfile::removeSplitFile(ite->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
 									dprintf(_T("removeFile(%s)\n"),ite->c_str());
 									removeFile(ite->c_str());
 								}

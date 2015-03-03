@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -119,6 +119,7 @@ bool ArcDllBase::getSubVersion(WORD* version){
 	return result;
 }
 
+#if 0
 //DLLの動作中にカーソルを表示するモードか否かを設定します
 bool ArcDllBase::setCursorMode(const bool cursor_mode){
 	typedef BOOL(WINAPI*SETCURSORMODE_PTR)(const BOOL);
@@ -132,6 +133,7 @@ bool ArcDllBase::setCursorMode(const bool cursor_mode){
 	}
 	return result;
 }
+#endif
 
 //現在DLLが動作中か否かを得ます
 bool ArcDllBase::getRunning(){
@@ -316,6 +318,7 @@ int ArcDllBase::findNext(LPINDIVIDUALINFO info){
 	return result;
 }
 
+#if 0
 //DLLのメッセージの送信先ウィンドウを設定します
 bool ArcDllBase::setOwnerWindow(HWND wnd_handle){
 	typedef int(WINAPI*SETOWNERWINDOW_PTR)(HWND);
@@ -343,6 +346,7 @@ bool ArcDllBase::clearOwnerWindow(){
 	}
 	return result;
 }
+#endif
 
 //DLLの圧縮解凍状況を受け取るためのコールバック関数の指定を行います
 bool ArcDllBase::setOwnerWindowEx(HWND wnd_handle,LPARCHIVERPROC arc_proc){
@@ -407,6 +411,7 @@ bool ArcDllBase::getOriginalSizeEx(__int64* size){
 	return result;
 }
 
+#if 0
 //格納ファイルの圧縮サイズを得ます
 bool ArcDllBase::getCompressedSizeEx(__int64* size){
 	typedef BOOL(WINAPI*GETCOMPRESSEDSIZEEX_PTR)(HARC,__int64*);
@@ -420,6 +425,7 @@ bool ArcDllBase::getCompressedSizeEx(__int64* size){
 	}
 	return result;
 }
+#endif
 
 //格納ファイルの属性を得ます
 bool ArcDllBase::getAttribute(DWORD* p_attr,int* p_orig_attr){

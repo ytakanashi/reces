@@ -2,7 +2,7 @@
 //B2e.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -60,6 +60,7 @@ bool ArcB2e::setScriptDirectory(const TCHAR* dir_path){
 	return result;
 }
 
+#if 0
 //b2eスクリプトの数を取得
 int ArcB2e::getScriptCount(){
 	typedef int(WINAPI*SCRIPTGETCOUNT_PTR)();
@@ -186,3 +187,4 @@ UINT ArcB2e::getExtractorIndex(const TCHAR* file_path){
 	}
 	return result;
 }
+#endif

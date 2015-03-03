@@ -138,8 +138,10 @@ public:
 	virtual bool setCallback(unsigned int progress_thread_id);
 	//コールバックの設定を解除
 	virtual void clearCallback();
+#if 0
 	//バックグラウンドモードか否か
 	virtual bool getBackgroundMode();
+#endif
 	//バックグラウンドモードを設定
 	virtual bool setBackgroundMode(bool mode=false);
 	//処理を中止する

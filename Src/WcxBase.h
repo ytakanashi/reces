@@ -1,7 +1,7 @@
 ﻿//WcxBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -342,8 +342,10 @@ public:
 	int processFile(int operation,const TCHAR*dest_path=NULL,const TCHAR*dest_name=NULL);
 	bool closeArchive();
 	bool configurePacker(HWND wnd_handle,HINSTANCE inst);
+#if 0
 	void setProcessDataProc(tProcessDataProc process_data_proc);
 	void setProcessDataProcW(tProcessDataProcW process_data_proc);
+#endif
 	bool isUnicodeMode();
 	int getHeaderDataMode();
 	//既に書庫を開いているかどうか

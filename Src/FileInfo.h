@@ -130,7 +130,9 @@ public:
 	bool add(const TCHAR* parent,const TCHAR* name,const fileinfo::FILEINFO* fileinfo=NULL);
 	bool del(const TCHAR* name);
 	void destroy(FILEINFONODE**pp);
+#if 0
 	int countContents(int depth);
+#endif
 	bool createFileTree(const TCHAR* search_dir_orig,const TCHAR* wildcard=_T("*"),bool include_dir=false);
 	void makeIncludeTree(DWORD options=TO_NONE,const TCHAR* base_dir=NULL);
 	void makeExcludeTree(DWORD options=TO_NONE,const TCHAR* base_dir=NULL);

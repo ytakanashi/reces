@@ -267,7 +267,6 @@ void ArcUniso32::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,con
 	if(filefilter.empty()&&file_ex_filter.empty())return;
 
 	//除外リストを作成
-	std::vector<fileinfo::FILEINFO> exclude_list;
 	FileTree file_tree(CFG.general.filefilter,CFG.general.file_ex_filter);
 
 	std::sort(fileinfo_list->begin(),fileinfo_list->end());

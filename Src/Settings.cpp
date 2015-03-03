@@ -45,8 +45,6 @@ Settings::ARC_RESULT Settings::operator()(HWND wnd,tstring& err_msg){
 	}
 
 	if(!m_arc_dll){
-		tstring library_name=path::getFileName(CFG.general.selected_library_name);
-
 		if(!CFG.general.selected_library_prefix.empty()){
 			//対応外の統合アーカイバライブラリ
 			m_cal_dll=new ArcCAL(CFG.general.selected_library_name.c_str(),
