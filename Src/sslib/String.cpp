@@ -186,7 +186,7 @@ bool matchWildcards(const TCHAR* str,const TCHAR* pattern_string){
 }
 
 //文字列を分割してリスト化
-template<class T>void splitString(T* string_list,const TCHAR* sz,const TCHAR* delimiter){
+void splitString(std::list<tstring>* string_list,const TCHAR* sz,const TCHAR* delimiter){
 	if(string_list==NULL)return;
 
 	tstring::size_type pos;
@@ -203,18 +203,14 @@ template<class T>void splitString(T* string_list,const TCHAR* sz,const TCHAR* de
 	}
 	return;
 }
-template void splitString(std::list<tstring>* string_list,const TCHAR* sz,const TCHAR* delimiter);
-template void splitString(std::vector<tstring>* string_list,const TCHAR* sz,const TCHAR* delimiter);
 
-template<class T>void splitString(T* string_list,const TCHAR* sz,TCHAR delimiter){
+void splitString(std::list<tstring>* string_list,const TCHAR* sz,TCHAR delimiter){
 	TCHAR dlmtr[2]={};
 
 	*dlmtr=delimiter;
 	*(dlmtr+1)='\0';
 	splitString(string_list,sz,dlmtr);
 }
-template void splitString(std::list<tstring>* string_list,const TCHAR* sz,TCHAR delimiter);
-template void splitString(std::vector<tstring>* string_list,const TCHAR* sz,TCHAR delimiter);
 
 //SJISをUTF16に変換
 std::wstring sjis2utf16(const std::string& sjis){

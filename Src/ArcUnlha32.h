@@ -1,7 +1,7 @@
 ﻿//ArcUnlha32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -26,10 +26,8 @@ private:
 	typedef std::pair<tstring,long long> size_info;
 
 protected:
-	//リストにフィルタを適用
-	void applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse=false);
 	//リストファイルにファイルリストを出力
-	void outputFileListToFile(const fileinfo::FILEINFO& fileinfo,const sslib::File& list_file,int opt=0);
+	void outputFileListToFile(const fileinfo::FILEINFO& fileinfo,int opt=0,sslib::File* list_file=NULL);
 
 	//圧縮対象ファイルのパスを整形してファイルに書き出す
 	DWORD writeFormatedPath(const sslib::File& list_file,const TCHAR* base_dir_orig,const TCHAR* file_path_orig);

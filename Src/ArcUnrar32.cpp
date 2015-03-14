@@ -172,14 +172,11 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode)
 
 
 #if 0
-	tstring cmd_line(format(_T("%s %s %s %s%s%s"),
-									  _T("-l"),
-									  _T("-q"),
-									  _T("--"),
-
-									  (str::containsWhiteSpace(arc_path))?_T("\""):_T(""),
-									  arc_path.c_str(),
-									  (str::containsWhiteSpace(arc_path))?_T("\""):_T("")));
+	tstring cmd_line(format(_T("%s %s %s %s"),
+							_T("-l"),
+							_T("-q"),
+							_T("--"),
+							quotePath(arc_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -245,7 +242,7 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(use_filter){
 		//リストファイルを作成
-		list_file_path=fileoperation::createTempFile(_T("rar"),ARCCFG->m_list_temp_dir.c_str());
+		list_file_path=tempfile::create(_T("rar"),ARCCFG->m_list_temp_dir.c_str());
 		//BOMなしファイルを出力
 		if(!list_file.open(list_file_path.c_str(),
 						   OPEN_ALWAYS,
@@ -266,6 +263,8 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 		list_file.close();
 	}
 
+	if(IS_TERMINATED)return ARC_FAILURE;
+
 	if(!CFG.no_display.no_information&&
 	   !STDOUT.isRedirected()){
 		hook::progress_total=getFileCount(arc_path_str.c_str());
@@ -276,7 +275,7 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(CFG.compress.exclude_base_dir!=0){
 		output_dir_bak=output_dir_str;
-		output_dir_str=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir_str.c_str()));
+		output_dir_str=path::addTailSlash(tempfile::createDir(_T("rcs"),output_dir_str.c_str()));
 
 		//一時ディレクトリ削除予約
 		schedule_delete.set(output_dir_str.c_str());
@@ -288,29 +287,23 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 	replaceDelimiter(arc_path_str);
 	replaceDelimiter(output_dir_str);
 
-	tstring cmd_line(format(_T("%s %s %s %s %s%s%s %s%s%s"),
-									  (!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -e"),
-									  _T("-r -o -y"),
-									  //-r     : 再帰的に検索
+	tstring cmd_line(format(_T("%s %s %s %s %s %s"),
+							(!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -e"),
+							_T("-s -o -y"),
+							//-s     : filespec の比較を厳密に行います
 
-//									  _T("-q"),
-									  _T(""),
+//							_T("-q"),
+							_T(""),
 
-									  _T("--"),
+							_T("--"),
 
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									  arc_path_str.c_str(),
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+							quotePath(arc_path_str).c_str(),
 
-									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-									  output_dir_str.c_str(),
-									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T("")));
+							quotePath(output_dir_str).c_str()));
 
 	if(use_filter){
-		cmd_line.append(format(_T(" @%s%s%s"),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-										 list_file_path.c_str(),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
+		cmd_line.append(format(_T(" @%s"),
+							   quotePath(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -355,20 +348,20 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(CFG.general.decode_uesc){
 		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
+		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
 	}
 
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
 	}
 
 	unload();
 
 	if(CFG.compress.exclude_base_dir!=0){
 		//共通パスを取り除く
-		excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
+		m_util->excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
 	}
 
 	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
@@ -388,7 +381,7 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::list(const TCHAR* arc_path){
 
 		if(use_filter){
 			//リストファイルを作成
-			list_file_path=fileoperation::createTempFile(_T("rar"),ARCCFG->m_list_temp_dir.c_str());
+			list_file_path=tempfile::create(_T("rar"),ARCCFG->m_list_temp_dir.c_str());
 			//BOMなしファイルを出力
 			if(list_file.open(list_file_path.c_str(),
 							  OPEN_ALWAYS,
@@ -407,20 +400,15 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::list(const TCHAR* arc_path){
 			}
 		}
 
-		tstring cmd_line(format(_T("%s %s %s %s%s%s"),
+		tstring cmd_line(format(_T("%s %s %s %s"),
 										  _T("-l"),
 										  _T("-q"),
 										  _T("--"),
-
-										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-										  arc_path_str.c_str(),
-										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
+										  quotePath(arc_path_str).c_str()));
 
 		if(use_filter){
-			cmd_line.append(format(_T(" @%s%s%s"),
-											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-											 list_file_path.c_str(),
-											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
+			cmd_line.append(format(_T(" @%s"),
+								   quotePath(list_file_path).c_str()));
 		}
 
 		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());

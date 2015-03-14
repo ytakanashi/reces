@@ -14,7 +14,7 @@ tstring addLongPathPrefix(const tstring& file_path);
 tstring removeLongPathPrefix(const tstring& file_path);
 
 //ディレクトリを再帰的に検索してlistに追加
-template<class T>void recursiveSearch(T* path_list,const TCHAR* search_dir,const TCHAR* wildcard=_T("*"),bool include_dir=false);
+void recursiveSearch(std::list<tstring>* path_list,const TCHAR* search_dir,const TCHAR* wildcard=_T("*"),bool include_dir=false);
 
 //ファイル名に使えない文字が含まれるかどうか
 bool isBadName(const TCHAR* file_name);

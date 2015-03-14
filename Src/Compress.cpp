@@ -20,7 +20,7 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 
 	m_arc_dll=NULL;
 
-	info(_T("ライブラリを読み込んでいます..."));
+	msg::info(_T("ライブラリを読み込んでいます..."));
 
 	for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 		if(m_arcdll_list[i]->isSupportedMethod((CFG.compress.compression_type.c_str()[0]!='@')?
@@ -54,7 +54,7 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 		return ARC_CANNOT_LOAD_LIBRARY;
 	}
 
-	info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
+	msg::info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
 
 	if(m_arc_dll->type()==Archiver::CAL&&
 	   static_cast<ArcDll*>(m_arc_dll)->getRunning()){
@@ -63,14 +63,14 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 	}else{
 		if(CFG.general.background_mode&&
 		   m_arc_dll->setBackgroundMode(true)){
-			info(_T("バックグラウンドモードに設定しました。\n"));
+			msg::info(_T("バックグラウンドモードに設定しました。\n"));
 		}
 
 		if(IS_TERMINATED)return ARC_USER_CANCEL;
 
 		{
 			//'od'と'of'を反映した作成する書庫のパスを作成
-			if(arcFileName(&m_cur_file,m_cur_file.arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+			if(updateArcFileName(&m_cur_file,m_cur_file.arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 				return ARC_CANNOT_CREATE_DIRECTORY;
 			}
 
@@ -78,7 +78,7 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 			   CFG.compress.raw_file_name){
 				//作成する書庫と同名のディレクトリが存在する場合oFを無効にして再度パス作成
 				CFG.compress.raw_file_name=false;
-				if(arcFileName(&m_cur_file,m_cur_file.arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
+				if(updateArcFileName(&m_cur_file,m_cur_file.arc_path,err_msg)==ARC_CANNOT_CREATE_DIRECTORY){
 					return ARC_CANNOT_CREATE_DIRECTORY;
 				}
 			}
@@ -148,7 +148,7 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 							0,
 							NULL
 							);
-			if(msg_buffer!=NULL)errmsg(_T("%s\n"),static_cast<TCHAR*>(msg_buffer));
+			if(msg_buffer!=NULL)msg::err(_T("%s\n"),static_cast<TCHAR*>(msg_buffer));
 			::LocalFree(msg_buffer);
 		}
 
@@ -158,28 +158,28 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 
 		if(split_file){
 			//分割処理
-			info(_T("ファイルを分割しています...\n"));
-			switch(fileoperation::splitFile(m_cur_file.arc_path.c_str(),CFG.compress.split_value.c_str(),orig_dir.c_str())){
-				case fileoperation::SFRET_SUCCESS:
+			msg::info(_T("ファイルを分割しています...\n"));
+			switch(splitfile::splitFile(m_cur_file.arc_path.c_str(),CFG.compress.split_value.c_str(),orig_dir.c_str())){
+				case splitfile::split::SUCCESS:
 					//一時ディレクトリ内のファイル/ディレクトリを削除
 					fileoperation::deleteContents(m_split_temp_dir.c_str());
 					return ARC_SUCCESS;
-				case fileoperation::SFRET_CANNOT_OPEN:
+				case splitfile::split::CANNOT_OPEN:
 					err_msg=_T("分割対象ファイル '%s' を開くことが出来ませんでした。\n"),m_cur_file.arc_path.c_str();
 					break;
-				case fileoperation::SFRET_INVALID_PARAM:
+				case splitfile::split::INVALID_PARAM:
 					err_msg=_T("分割サイズまたは分割数が正しくありません。\n");
 					break;
-				case fileoperation::SFRET_NOT_NECESSARY:
+				case splitfile::split::NOT_NECESSARY:
 					err_msg=_T("分割する必要がありません。\n");
 					break;
-				case fileoperation::SFRET_TOO_MANY:
+				case splitfile::split::TOO_MANY:
 					err_msg=_T("分割数が多すぎます。\n");
 					break;
-				case fileoperation::SFRET_MALLOC_ERR:
+				case splitfile::split::MALLOC_ERR:
 					err_msg=_T("メモリの確保に失敗しました。\n");
 					break;
-				case fileoperation::SFRET_CANNOT_CREATE:
+				case splitfile::split::CANNOT_CREATE:
 					err_msg=_T("分割ファイルの作成に失敗しました。\n");
 					break;
 			}

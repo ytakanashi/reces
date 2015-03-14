@@ -8,23 +8,6 @@
 namespace sslib{
 namespace fileoperation{
 
-enum SPLITFILE_RESULT{
-	SFRET_SUCCESS,
-	SFRET_CANNOT_OPEN,
-	SFRET_INVALID_PARAM,
-	SFRET_NOT_NECESSARY,
-	SFRET_TOO_MANY,
-	SFRET_MALLOC_ERR,
-	SFRET_CANNOT_CREATE
-};
-
-enum JOINFILE_RESULT{
-	JFRET_SUCCESS,
-	JFRET_NOT_SPLIT,
-	JFRET_CANNOT_CREATE,
-	JFRET_MALLOC_ERR
-};
-
 //対象ディレクトリが多階層に亘り存在しなくても作成
 bool createDirectory(const TCHAR* dir_path_orig,LPSECURITY_ATTRIBUTES security_attributes=NULL);
 
@@ -76,15 +59,6 @@ private:
 	tstring m_file_path;
 };
 
-//一意の名前を持つディレクトリ名を取得
-tstring generateTempDirName(const TCHAR* prefix,const TCHAR* base_dir=NULL);
-//一意の名前を持つディレクトリを作成
-tstring createTempDir(const TCHAR* prefix,const TCHAR* base_dir=NULL);
-//一意の名前を持つファイル名を取得
-tstring generateTempFileName(const TCHAR* prefix,const TCHAR* base_dir=NULL);
-//一意の名前を持つファイルを作成
-tstring createTempFile(const TCHAR* prefix,const TCHAR* base_dir=NULL);
-
 //ファイルのバージョンを取得
 bool getFileVersion(const TCHAR* file_path,DWORD* major_ver,DWORD* minor_ver);
 
@@ -93,22 +67,6 @@ long long getFileSize(const TCHAR* file_path);
 
 //ディレクトリのサイズを取得
 long long getDirectorySize(const TCHAR* dir_path);
-
-//ファイルを分割する(分割サイズまたは分割数指定による)
-//分割サイズは1024b、10k、100mの様に指定(10kb、100mbでも可)
-//分割数は6,12の様に単位を付加せず指定すること
-SPLITFILE_RESULT splitFile(const TCHAR* file_name,const TCHAR* param,const TCHAR* output_dir=NULL);//,ProgressBar* p_progressbar=NULL);
-
-//分割ファイルの先頭ファイルかどうか
-//拡張子が000、001、0000、00001、000000など
-//分割ファイルならばその拡張子の桁数を取得
-bool isSplitFile(const TCHAR* file_name,int* p_digit=NULL);
-
-//ファイルを結合する
-JOINFILE_RESULT joinFile(const TCHAR* file_name,const TCHAR* output_dir=NULL);
-
-//分割ファイルのリストを作成
-template<class T>bool makeSplitFileList(T* file_list,const TCHAR* file_name);
 
 //分割ファイルを削除
 bool removeSplitFile(const TCHAR* file_name,bool recycle_bin);

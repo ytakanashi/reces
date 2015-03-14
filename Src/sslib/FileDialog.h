@@ -17,7 +17,7 @@ protected:
 
 public:
 	//「ファイルを開く」ダイアログ表示[複数選択可能]
-	template<class T>bool doModalOpen(T* file_list,HWND wnd_handle=NULL,bool multi_select=false,const TCHAR* filter=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL,const TCHAR* init_name=NULL);
+	bool doModalOpen(std::list<tstring>* file_list,HWND wnd_handle=NULL,bool multi_select=false,const TCHAR* filter=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL,const TCHAR* init_name=NULL);
 	//「ファイルを開く」ダイアログ表示
 	bool doModalOpen(tstring* file_path,HWND wnd_handle=NULL,const TCHAR* filter=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL,const TCHAR* init_name=NULL);
 	//「ファイルを保存」ダイアログ表示

@@ -83,9 +83,9 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 								  &m_progress[m_progress_length-(dots-m_last_dots+1)]);
 		}else{
 			m_stdout.setPosition(per_pos_x+dots,m_begin_pos.Y);
-			m_stdout.outputString(_T("%s"),
-								  &m_progress[m_progress_length]);
-			if(m_last_dots)m_stdout.clear(m_last_dots-dots);
+			m_stdout.outputString(_T("%s%s"),
+								  &m_progress[m_progress_length-1],
+								  &m_background[m_progress_length-(m_last_dots-dots)]);
 		}
 		m_stdout.setPosition(m_progress_right_end_pos_x,m_begin_pos.Y);
 		m_stdout.outputString(_T("]\n"));

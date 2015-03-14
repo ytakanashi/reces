@@ -134,7 +134,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(use_filter){
 		//リストファイルを作成
-		list_file_path=fileoperation::createTempFile(_T("xcr"),ARCCFG->m_list_temp_dir.c_str());
+		list_file_path=tempfile::create(_T("xcr"),ARCCFG->m_list_temp_dir.c_str());
 		if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 			return ARC_CANNOT_OPEN_LISTFILE;
 		}
@@ -149,6 +149,8 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 		}
 		list_file.close();
 	}
+
+	if(IS_TERMINATED)return ARC_FAILURE;
 
 	if(!CFG.no_display.no_information&&
 	   !STDOUT.isRedirected()){
@@ -165,7 +167,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(CFG.compress.exclude_base_dir!=0){
 		output_dir_bak=output_dir_str;
-		output_dir_str=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir_str.c_str()));
+		output_dir_str=path::addTailSlash(tempfile::createDir(_T("rcs"),output_dir_str.c_str()));
 
 		//一時ディレクトリ削除予約
 		schedule_delete.set(output_dir_str.c_str());
@@ -177,28 +179,22 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 	replaceDelimiter(arc_path_str);
 	replaceDelimiter(output_dir_str);
 
-	tstring cmd_line(format(_T("%s %s %s %s %s%s%s %s%s%s"),
-									  (!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -j"),
-									  _T("-o1"),
-									  CFG.general.custom_param.c_str(),
-									  //-o1    :上書き確認ダイアログ表示の抑止
-									  //			_T("-n1"),
-									  _T(""),
+	tstring cmd_line(format(_T("%s %s %s %s %s %s"),
+							(!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -j"),
+							_T("-o1"),
+							CFG.general.custom_param.c_str(),
+							//-o1    :上書き確認ダイアログ表示の抑止
+							//			_T("-n1"),
+							_T(""),
 
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									  arc_path_str.c_str(),
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+							quotePath(arc_path_str).c_str(),
 
-									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-									  output_dir_str.c_str(),
-									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T("")));
+							quotePath(output_dir_str).c_str()));
 
 	if(use_filter){
 		//注意:'@'も二重引用府内に含めること
-		cmd_line.append(format(_T(" %s@%s%s"),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-										 list_file_path.c_str(),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
+		cmd_line.append(format(_T(" %s"),
+							   quotePath(_T("@")+list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -249,20 +245,20 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(CFG.general.decode_uesc){
 		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
+		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
 	}
 
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
 	}
 
 	unload();
 
 	if(CFG.compress.exclude_base_dir!=0){
 		//共通パスを取り除く
-		excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
+		m_util->excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
 	}
 
 	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;

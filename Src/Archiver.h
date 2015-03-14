@@ -1,7 +1,7 @@
 ﻿//Archiver.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -75,40 +75,6 @@ public:
 	static const UINT WM_UPDATE_PROGRESSBAR;
 
 protected:
-	//属性フィルタを適用(DIR属性が格納されていない書庫の為に...)
-	bool applyAttributeFilters(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter);
-	//フィルタにマッチするか
-	bool matchFilters(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter);
-
-protected:
-	class RedundantDir{
-	public:
-		RedundantDir():
-			m_is_double_dir(true),
-			m_has_dir(false),
-			m_file_in_root_dir(false),
-			m_root_dir(){}
-		virtual ~RedundantDir(){}
-	private:
-		bool m_is_double_dir;
-		bool m_has_dir;
-		bool m_file_in_root_dir;
-		tstring m_root_dir;
-	public:
-		inline bool isDoubleDir()const{return m_is_double_dir;}
-		inline bool hasDir()const{return m_has_dir;}
-		//true=break/false=continue
-		bool operator()(const fileinfo::FILEINFO& fileinfo);
-	};
-
-	//配下のファイルを利用してディレクトリのタイムスタンプを復元
-	struct DirTimeStamp{
-		static bool recover(const TCHAR* dir,const FILETIME& arc_ft,const std::vector<tstring>& recovered_dirs);
-		static bool addIncompleteDir(const tstring& output_dir,const tstring& name,std::vector<tstring>* incomplete_dirs);
-	};
-
-	//書庫内の最小共通区切り文字数を取得
-	int countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths);
 	//書庫内の最小共通区切り文字数を取得
 	int countDelimiter(const TCHAR* arc_path,const std::vector<fileinfo::FILEINFO>& arc_info);
 
@@ -148,4 +114,38 @@ public:
 	virtual void abort();
 
 };
+
+class RedundantDir{
+public:
+	RedundantDir():
+		m_is_double_dir(true),
+		m_has_dir(false),
+		m_file_in_root_dir(false),
+		m_root_dir(){}
+	virtual ~RedundantDir(){}
+private:
+	bool m_is_double_dir;
+	bool m_has_dir;
+	bool m_file_in_root_dir;
+	tstring m_root_dir;
+public:
+	inline bool isDoubleDir()const{return m_is_double_dir;}
+	inline bool hasDir()const{return m_has_dir;}
+	//true=break/false=continue
+	bool operator()(const fileinfo::FILEINFO& fileinfo);
+};
+
+//配下のファイルを利用してディレクトリのタイムスタンプを復元
+namespace dirtimestamp{
+	bool recover(const TCHAR* dir,const FILETIME& arc_ft,const std::vector<tstring>& recovered_dirs);
+	bool addIncompleteDir(const tstring& output_dir,const tstring& name,std::vector<tstring>* incomplete_dirs);
+}
+
+namespace filter{
+	//属性フィルタにマッチするか
+	bool matchAttributes(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool delimiter_check=true);
+	//フィルタにマッチするか
+	bool match(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter);
+}
+
 #endif //_ARCHIVER_H_B97F1BB8_B019_40f2_9646_8B52530658FF

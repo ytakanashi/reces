@@ -1,7 +1,7 @@
 ﻿//FileInfo.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -28,8 +28,10 @@ struct FILEINFO{
 		return name<fileinfo.name;
 	}
 	//ディレクトリ若しくはサブ以下のファイル
-	bool isDirectory()const{
-		return name.find_last_of(_T("\\/"))==name.length()-1||
+	bool isDirectory(bool delimiter_check=true)const{
+		return ((delimiter_check)?
+				 (name.find_last_of(_T("\\/"))==name.length()-1):
+				false)||
 				 attr&FILE_ATTRIBUTE_DIRECTORY;
 	}
 };
@@ -44,8 +46,9 @@ struct FILEFILTER{
 	long long newest_date;
 	std::list<tstring> pattern_list;
 	bool recursive;
+	bool regex;
 
-	FILEFILTER():min_size(0),max_size(0),attr(0),include_empty_dir(true),oldest_date(-1),newest_date(-1),pattern_list(),recursive(false){}
+	FILEFILTER():min_size(0),max_size(0),attr(0),include_empty_dir(true),oldest_date(-1),newest_date(-1),pattern_list(),recursive(false),regex(false){}
 	bool empty()const{return min_size==0&&
 							 max_size==0&&
 							 attr==0&&
@@ -63,6 +66,8 @@ bool getFileInfo(FILEINFO* fileinfo,const WIN32_FIND_DATA& file_data,const TCHAR
 //フィルタ(FILEFILTER構造体)にマッチするか
 bool matchPattern(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const TCHAR* base_dir=NULL);
 bool matchExPattern(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& file_ex_filter,const TCHAR* base_dir=NULL);
+bool matchRegex(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter);
+bool matchExRegex(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& file_ex_filter);
 bool matchSize(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter);
 bool matchDateTime(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter);
 bool matchAttribute(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter);
@@ -113,12 +118,16 @@ private:
 
 	bool delNode(FILEINFONODE**pp);
 	bool delV(FILEINFONODE**pp,const TCHAR* name);
-
+#if 0
 	int countSibling(FILEINFONODE**pp);
+#endif
+	bool isEmptyDirectory(FILEINFONODE**pp);
 
-	void disableLine(FILEINFONODE**ppe);
+	void disableLine(FILEINFONODE**pp);
 	void makeIncludeTree(FILEINFONODE** pp,DWORD options=TO_NONE,const TCHAR* base_dir=NULL);
 	void makeExcludeTree(FILEINFONODE** pp,DWORD options=TO_NONE,const TCHAR* base_dir=NULL);
+
+	void disableExternalParent(FILEINFONODE** pp,bool reverse=false);
 
 	void tree2list(FILEINFONODE**pp,std::vector<fileinfo::FILEINFO>& list);
 
@@ -128,6 +137,7 @@ private:
 
 public:
 	bool add(const TCHAR* parent,const TCHAR* name,const fileinfo::FILEINFO* fileinfo=NULL);
+	bool add(const TCHAR* name,const fileinfo::FILEINFO* fileinfo=NULL);
 	bool del(const TCHAR* name);
 	void destroy(FILEINFONODE**pp);
 #if 0

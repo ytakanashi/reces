@@ -2,7 +2,7 @@
 //ファイル情報の操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -10,6 +10,9 @@
 
 #include"StdAfx.h"
 #include"FileInfo.h"
+#include"ArcCfg.h"
+#include"Msg.h"
+#include"third-party/SRELL/srell.hpp"
 
 
 using namespace sslib;
@@ -26,7 +29,7 @@ namespace{
 	//bar
 	//bar/baz
 	//baz
-	template<class T>void makePossibilityPattern(T* pattern_list,const TCHAR* sz,int delimiter){
+	void makePossibilityPattern(std::list<tstring>* pattern_list,const TCHAR* sz,int delimiter){
 		if(pattern_list==NULL)return;
 
 		tstring::size_type pos=0;
@@ -65,8 +68,6 @@ namespace{
 		}
 		return;
 	}
-	template void makePossibilityPattern(std::list<tstring>* pattern_list,const TCHAR* sz,int delimiter);
-	template void makePossibilityPattern(std::vector<tstring>* pattern_list,const TCHAR* sz,int delimiter);
 }
 
 //ファイルの情報をFILEINFO構造体で取得
@@ -119,7 +120,7 @@ bool getFileInfo(FILEINFO* fileinfo,const WIN32_FIND_DATA& file_data,const TCHAR
 	return result;
 }
 
-bool matchPattern(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const TCHAR* base_dir){
+bool matchPattern(const FILEINFO& fileinfo,const FILEFILTER& filefilter,const TCHAR* base_dir){
 	bool matched=true;
 	tstring file_name(fileinfo.name);
 
@@ -205,120 +206,178 @@ bool matchPattern(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilte
 	return matched;
 }
 
-bool matchExPattern(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& file_ex_filter,const TCHAR* base_dir){
-	bool matched=true;
-
-	//ファイル名
+bool matchExPattern(const FILEINFO& fileinfo,const FILEFILTER& file_ex_filter,const TCHAR* base_dir){
 	if(!file_ex_filter.pattern_list.empty()){
-		matched=!matchPattern(fileinfo,file_ex_filter,base_dir);
+		return !matchPattern(fileinfo,file_ex_filter,base_dir);
+	}
+	return true;
+}
+
+bool matchRegex(const FILEINFO& fileinfo,const FILEFILTER& filefilter){
+	if(filefilter.pattern_list.empty()||
+	   fileinfo.attr&FILE_ATTRIBUTE_DIRECTORY)return true;
+
+	bool matched=true;
+	srell::basic_regex<TCHAR> regex;
+	tstring file_name((filefilter.recursive)?
+					  fileinfo.name:
+					  path::getFileName(fileinfo.name));
+
+	//パスの区切り文字を'/'に統一する
+	str::replaceCharacter(file_name,'\\','/');
+
+	std::list<tstring> pattern_list=filefilter.pattern_list;
+
+	for(std::list<tstring>::iterator ite=pattern_list.begin(),
+		end=pattern_list.end();
+		ite!=end;
+		++ite){
+		//パスの区切り文字を'/'に統一する
+		str::replaceString(*ite,_T("\\\\"),_T("\\/"));
+	}
+
+	try{
+		for(std::list<tstring>::const_iterator ite=pattern_list.begin(),
+			end=pattern_list.end();
+			!IS_TERMINATED&&ite!=end;
+			++ite){
+			regex.assign(*ite,srell::regex::ECMAScript|srell::regex_constants::icase);
+			if((matched=srell::regex_search<TCHAR>(file_name.c_str(),regex)))break;
+		}
+	}catch (const srell::regex_error& e){
+		switch(e.code()){
+#define REGEX_ERROR_MSG(type,what)\
+	case srell::regex_constants::type:\
+		msg::err(_T("正規表現: %s\n"),what);\
+		break;\
+
+			REGEX_ERROR_MSG(error_escape,
+							_T("無効なエスケープシーケンスが存在します。"));
+			REGEX_ERROR_MSG(error_brack,
+							_T("'[' と ']' の対応が正しくありません。"));
+			REGEX_ERROR_MSG(error_paren,
+							_T("'(' と ')' の対応が正しくありません。"));
+			REGEX_ERROR_MSG(error_brace,
+							_T("'{' と '}' の対応が正しくありません。"));
+			REGEX_ERROR_MSG(error_badbrace,
+							_T("{ } で指定されている範囲が無効です。"));
+			REGEX_ERROR_MSG(error_range,
+							_T("[ ] で指定されている範囲が無効です。"));
+			REGEX_ERROR_MSG(error_badrepeat,
+							_T("'*'、'?'、'+'、'{' の前に正しい式が存在しません。"));
+#undef REGEX_ERROR_MSG
+			default:
+				msg::err(_T("(%d) 無効な正規表現が指定されています。\n"),e.code());
+				break;
+		}
+		terminateApp(true);
+	}catch(const std::exception& e){
+		msg::err(_T("%s\n"),e.what());
+		terminateApp(true);
 	}
 	return matched;
 }
 
-bool matchSize(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter){
-	bool matched=true;
+bool matchExRegex(const FILEINFO& fileinfo,const FILEFILTER& file_ex_filter){
+	if(!file_ex_filter.pattern_list.empty()&&
+	   !(fileinfo.attr&FILE_ATTRIBUTE_DIRECTORY)){
+		return !matchRegex(fileinfo,file_ex_filter);
+	}
+	return true;
+}
 
-	//サイズ
+bool matchSize(const FILEINFO& fileinfo,const FILEFILTER& filefilter,const FILEFILTER& file_ex_filter){
 	if(filefilter.min_size>0&&
 	   fileinfo.size<=filefilter.min_size){
-		matched=false;
+		return false;
 	}
 
 	if(filefilter.max_size!=0&&
 	   fileinfo.size>=filefilter.max_size){
-		matched=false;
+		return false;
 	}
 
 	if(file_ex_filter.min_size>0&&
 	   fileinfo.size>=file_ex_filter.min_size){
-		matched=false;
+		return false;
 	}
 
 	if(file_ex_filter.max_size!=0&&
 	   fileinfo.size<=file_ex_filter.max_size){
-		matched=false;
+		return false;
 	}
-	return matched;
+	return true;
 }
 
-bool matchDateTime(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter){
-	bool matched=true;
-
-	//日付
+bool matchDateTime(const FILEINFO& fileinfo,const FILEFILTER& filefilter,const FILEFILTER& file_ex_filter){
 	if(filefilter.oldest_date!=-1&&
 	   fileinfo.date_time<=filefilter.oldest_date){
-		matched=false;
+		return false;
 	}
 
 	if(filefilter.newest_date!=-1&&
 	   fileinfo.date_time>=filefilter.newest_date){
-		matched=false;
+		return false;
 	}
 
 	if(file_ex_filter.oldest_date!=-1&&
 	   fileinfo.date_time>=file_ex_filter.oldest_date){
-		matched=false;
+		return false;
 	}
 
 	if(file_ex_filter.newest_date!=-1&&
 	   fileinfo.date_time<=file_ex_filter.newest_date){
-		matched=false;
+		return false;
 	}
-	return matched;
+	return true;
 }
 
-bool matchAttribute(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter){
-	bool matched=true;
-
-	//FILE_ATTRIBUTE_DIRECTORYを取り除く('FILE'INFOなのでディレクトリは無い筈)
+bool matchAttribute(const FILEINFO& fileinfo,const FILEFILTER& filefilter,const FILEFILTER& file_ex_filter){
+	//FILE_ATTRIBUTE_DIRECTORYを取り除く
 	DWORD filefilter_attr=filefilter.attr&~FILE_ATTRIBUTE_DIRECTORY;
 	DWORD file_ex_filter_attr=file_ex_filter.attr&~FILE_ATTRIBUTE_DIRECTORY;
 
-	//属性
 	if(filefilter_attr!=0&&
 	   !(fileinfo.attr&filefilter_attr)){
-		matched=false;
+		return false;
 	}
 
 	if(file_ex_filter_attr!=0&&
 	   fileinfo.attr&file_ex_filter_attr){
-		matched=false;
+		return false;
 	}
-	return matched;
+	return true;
 }
 
 //フィルタ(FILEFILTER構造体)にマッチするか
-bool matchFilters(const FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,const TCHAR* base_dir){
-	bool matched=true;
-
+bool matchFilters(const FILEINFO& fileinfo,const FILEFILTER& filefilter,const FILEFILTER& file_ex_filter,const TCHAR* base_dir){
 	//処理対象
-	matched=matchPattern(fileinfo,filefilter,base_dir);
-	if(!matched)return matched;
+	if((!filefilter.regex)?
+	   !matchPattern(fileinfo,filefilter,base_dir):
+	   !matchRegex(fileinfo,filefilter))return false;
 
 	//処理対象除外
-	matched=matchExPattern(fileinfo,file_ex_filter,base_dir);
-	if(!matched)return matched;
+	if((!file_ex_filter.regex)?
+	   !matchExPattern(fileinfo,file_ex_filter,base_dir):
+	   !matchExRegex(fileinfo,file_ex_filter))return false;
 
 	//サイズ
-	matched=matchSize(fileinfo,filefilter,file_ex_filter);
-	if(!matched)return matched;
+	if(!matchSize(fileinfo,filefilter,file_ex_filter))return false;
 
 	//日付
-	matched=matchDateTime(fileinfo,filefilter,file_ex_filter);
-	if(!matched)return matched;
+	if(!matchDateTime(fileinfo,filefilter,file_ex_filter))return false;
 
 	//属性
-	matched=matchAttribute(fileinfo,filefilter,file_ex_filter);
-	if(!matched)return matched;
+	if(!matchAttribute(fileinfo,filefilter,file_ex_filter))return false;
 
-	return matched;
+	return true;
 }
 
-//フィルタ(fileinfo::FILEFILTER構造体)にマッチするか
+//フィルタ(FILEFILTER構造体)にマッチするか
 //注意:file_pathではなくフルパスでマッチ判断
-bool matchFilters(const TCHAR* file_path,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,const TCHAR* base_dir){
+bool matchFilters(const TCHAR* file_path,const FILEFILTER& filefilter,const FILEFILTER& file_ex_filter,const TCHAR* base_dir){
 	bool result=false;
-	fileinfo::FILEINFO fileinfo=fileinfo::FILEINFO();
+	FILEINFO fileinfo=FILEINFO();
 
 	if(getFileInfo(&fileinfo,file_path)){
 		result=matchFilters(fileinfo,filefilter,file_ex_filter,base_dir);
@@ -327,7 +386,7 @@ bool matchFilters(const TCHAR* file_path,const fileinfo::FILEFILTER& filefilter,
 	return result;
 }
 
-//namespace str
+//namespace fileinfo
 }
 
 bool FileTree::addV(const TCHAR* name,const fileinfo::FILEINFO* fileinfo){
@@ -342,7 +401,7 @@ bool FileTree::addV(const TCHAR* name,const fileinfo::FILEINFO* fileinfo){
 		if(fileinfo==NULL){
 			fileinfo::FILEINFO* fileinfo=new fileinfo::FILEINFO();
 
-			if(fileinfo::getFileInfo(fileinfo,name)){
+			if(getFileInfo(fileinfo,name)){
 				(*pp_new)->fileinfo=*fileinfo;
 				result=true;
 			}
@@ -370,7 +429,7 @@ bool FileTree::addV(FILEINFONODE**pp,const TCHAR* parent_dir,const TCHAR* name,c
 		if(*pp_new){
 			if(fileinfo==NULL){
 				fileinfo::FILEINFO* fileinfo=new fileinfo::FILEINFO();
-				if(fileinfo::getFileInfo(fileinfo,name)){
+				if(getFileInfo(fileinfo,name)){
 					(*pp_new)->fileinfo=*fileinfo;
 					(*pp_new)->parent_dir=*pp;
 					result=true;
@@ -393,8 +452,12 @@ bool FileTree::addV(FILEINFONODE**pp,const TCHAR* parent_dir,const TCHAR* name,c
 
 bool FileTree::add(const TCHAR* parent_dir,const TCHAR* name,const fileinfo::FILEINFO* fileinfo){
 	return (!addV(&m_tree,parent_dir,name,fileinfo))?
-			((addV(name,fileinfo))?true:false):
+			(addV(name,fileinfo)):
 			true;
+}
+
+bool FileTree::add(const TCHAR* name,const fileinfo::FILEINFO* fileinfo){
+	return addV(name,fileinfo);
 }
 
 bool FileTree::delNode(FILEINFONODE**pp){
@@ -437,6 +500,7 @@ void FileTree::destroy(FILEINFONODE**pp){
 	SAFE_DELETE(del_node);
 }
 
+#if 0
 int FileTree::countSibling(FILEINFONODE**pp){
 	if(!*pp)return -1;
 
@@ -446,7 +510,6 @@ int FileTree::countSibling(FILEINFONODE**pp){
 	return count;
 }
 
-#if 0
 int FileTree::countContents(int depth){
 	FILEINFONODE**pp=&m_tree;
 
@@ -457,6 +520,15 @@ int FileTree::countContents(int depth){
 	return countSibling(pp)+1;
 }
 #endif
+
+bool FileTree::isEmptyDirectory(FILEINFONODE**pp){
+	if(!*pp)return false;
+
+	return (path::isAbsolutePath((*pp)->fileinfo.name.c_str()))?
+		path::isEmptyDirectory((*pp)->fileinfo.name.c_str()):
+	((*pp)->fileinfo.isDirectory()&&
+	 !(*pp)->child);
+}
 
 void FileTree::disableLine(FILEINFONODE**pp){
 	if(!*pp)return;
@@ -481,7 +553,7 @@ bool FileTree::createFileTree(const TCHAR* search_dir,const TCHAR* wildcard,bool
 	file_list.sort();
 
 	for(std::list<tstring>::iterator ite=file_list.begin(),end=file_list.end();
-		ite!=end;
+		!IS_TERMINATED&&ite!=end;
 		++ite){
 		add(path::getParentDirectory(*ite).c_str(),ite->c_str());
 	}
@@ -525,16 +597,17 @@ void FileTree::makeIncludeTree(FILEINFONODE**pp,DWORD options,const TCHAR* base_
 	}
 
 	if(!exclude){
-		if(!path::isEmptyDirectory((*pp)->fileinfo.name.c_str())){
+		if(!isEmptyDirectory(pp)){
 			//空ディレクトリでなければマッチしない場合
 			//IncludeTreeから除外
-			exclude=!fileinfo::matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
+			exclude=!matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
 		}else{
 			//空ディレクトリならx:aeが無効でマッチしないかx:aeが有効である場合
 			//IncludeTreeから除外
 			if(m_file_ex_filter.include_empty_dir){
-				exclude=!fileinfo::matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
+				exclude=!matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
 			}else{
+				//空ディレクトリかつx:aeが有効ならIncludeTreeから除外
 				exclude=true;
 			}
 		}
@@ -553,6 +626,7 @@ void FileTree::makeIncludeTree(FILEINFONODE**pp,DWORD options,const TCHAR* base_
 
 void FileTree::makeIncludeTree(DWORD options,const TCHAR* base_dir){
 	makeIncludeTree(&m_tree,options,base_dir);
+	if(!CFG.general.ignore_directory_structures)disableExternalParent(&m_tree);
 }
 
 void FileTree::makeExcludeTree(FILEINFONODE**pp,DWORD options,const TCHAR* base_dir){
@@ -590,13 +664,16 @@ void FileTree::makeExcludeTree(FILEINFONODE**pp,DWORD options,const TCHAR* base_
 	}
 
 	if(include){
-		if(!path::isEmptyDirectory((*pp)->fileinfo.name.c_str())){
+		if(!isEmptyDirectory(pp)){
 			//空ディレクトリでなければマッチする場合
-			include=fileinfo::matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
+			include=matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
 		}else{
 			//空ディレクトリならx:aeが無効でマッチする場合
 			if(m_file_ex_filter.include_empty_dir){
-				include=fileinfo::matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
+				include=matchFilters((*pp)->fileinfo,m_filefilter,m_file_ex_filter,base_dir);
+			}else{
+				//空ディレクトリなら除外
+				include=false;
 			}
 		}
 	}
@@ -613,6 +690,39 @@ void FileTree::makeExcludeTree(FILEINFONODE**pp,DWORD options,const TCHAR* base_
 
 void FileTree::makeExcludeTree(DWORD options,const TCHAR* base_dir){
 	makeExcludeTree(&m_tree,options,base_dir);
+	if(!CFG.general.ignore_directory_structures)disableExternalParent(&m_tree,true);
+}
+
+void FileTree::disableExternalParent(FILEINFONODE** pp,bool reverse){
+	if(*pp==NULL)return;
+
+#define NODE_DISABLE(p) ((p)->disable==reverse)
+
+	if((*pp)->child){
+		if(NODE_DISABLE(*pp)){
+			disableExternalParent(&(*pp)->child,reverse);
+			if(!NODE_DISABLE(*pp)){
+				disableExternalParent(&(*pp)->next,reverse);
+				return;
+			}
+		}
+	}else if((*pp)->parent_dir&&
+			 NODE_DISABLE((*pp)->parent_dir)){
+		bool disable_item=false;
+		FILEINFONODE** pp_=pp;
+		do{
+			if(NODE_DISABLE(*pp_))disableExternalParent(&(*pp_)->child,reverse);
+			if(!disable_item&&NODE_DISABLE(*pp_))disable_item=true;
+		}while(*(pp_=&(*pp_)->next));
+		if(!disable_item){
+			(*pp)->parent_dir->disable=!reverse;
+		}
+		return;
+	}
+
+#undef NODE_DISABLE
+	disableExternalParent(&(*pp)->child,reverse);
+	disableExternalParent(&(*pp)->next,reverse);
 }
 
 void FileTree::tree2list(FILEINFONODE**pp,std::vector<fileinfo::FILEINFO>& list){
@@ -632,10 +742,12 @@ bool FileTree::tree2list(std::vector<fileinfo::FILEINFO>& list){
 
 #ifdef _DEBUG
 void FileTree::msgTree(FILEINFONODE** pp){
-	if(*pp==NULL)return;
-	msg(_T("[%s]"),(*pp)->fileinfo.name.c_str());
-	msgTree(&(*pp)->child);
-	msgTree(&(*pp)->next);
+	if(*pp==NULL){printf("\r\r\r\r\r\r");return;}
+//	dmsg(_T("[%s]"),(*pp)->fileinfo.name.c_str());
+	dprintf(_T("[%s][%s]\n"),(*pp)->fileinfo.name.c_str(),(*pp)->disable?_T("disable"):_T(""));
+	dprintf(_T("child:"));msgTree(&(*pp)->child);
+	dprintf(_T("next: "));msgTree(&(*pp)->next);
+	dprintf(_T("return\n"));
 }
 
 void FileTree::msgTree(){

@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.38
+//                  sslib ver.1.39
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -91,6 +91,10 @@ extern void createInstance();
 
 #include"FileOperation.h"
 
+#include"SplitFile.h"
+
+#include"TempFile.h"
+
 #include"EnvironmentVariable.h"
 
 #include"ApiHook.h"
@@ -101,10 +105,14 @@ extern void createInstance();
 #include"gui/DropFiles.h"
 #include"gui/Control.h"
 #include"gui/CtrlAHook.h"
+#include"gui/Menu.h"
 #include"gui/Tab.h"
 #include"gui/ListView.h"
 #endif
 
+
+//Ver.1.39(150314)
+//reces Ver.0.00r26/gui4reces Ver.0.0.1.3で使用
 
 //Ver.1.38(150209)
 //reces Ver.0.00r25/gui4reces Ver.0.0.1.2で使用

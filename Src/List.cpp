@@ -21,20 +21,20 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 	tstring join_file_name;
 
 	if(str::locateLastCharacter(arc_path.c_str(),'.')!=-1){
-		switch(fileoperation::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
-			case fileoperation::JFRET_SUCCESS:{
+		switch(splitfile::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
+			case splitfile::join::SUCCESS:{
 				split_file=true;
 				STDOUT.outputString(_T("ファイルを結合しました。\n"));
 				join_file_name=path::addTailSlash(m_split_temp_dir.c_str());
 				join_file_name+=removeExtensionEx(path::getFileName(arc_path));
 				break;
 			}
-			case fileoperation::JFRET_NOT_SPLIT:
+			case splitfile::join::NOT_SPLIT:
 			default:
 				//分割された書庫ではない
 				break;
-			case fileoperation::JFRET_CANNOT_CREATE:
-			case fileoperation::JFRET_MALLOC_ERR:
+			case splitfile::join::CANNOT_CREATE:
+			case splitfile::join::MALLOC_ERR:
 				err_msg=_T("ファイルの結合に失敗しました。\n");
 				return ARC_FAILURE;
 		}
@@ -42,7 +42,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 
 	m_arc_dll=NULL;
 
-	info(_T("ライブラリを読み込んでいます..."));
+	msg::info(_T("ライブラリを読み込んでいます..."));
 
 	loadArcLib();
 
@@ -128,7 +128,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 
 	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
-	info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
+	msg::info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
 
 	if(m_arc_dll->type()==Archiver::CAL&&
 	   static_cast<ArcDll*>(m_arc_dll)->getRunning()){
@@ -137,7 +137,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 	}else{
 		if(CFG.general.background_mode&&
 		   m_arc_dll->setBackgroundMode(true)){
-			info(_T("バックグラウンドモードに設定しました。\n"));
+			msg::info(_T("バックグラウンドモードに設定しました。\n"));
 		}
 
 		//リスト出力

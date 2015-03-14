@@ -1,7 +1,7 @@
 ﻿//HookArchiverDialog.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -9,8 +9,6 @@
 
 #ifndef _HOOKPASSWORDDIALOG_H_E9EB4B70_B490_45BE_BF59_CF333996E66E
 #define _HOOKPASSWORDDIALOG_H_E9EB4B70_B490_45BE_BF59_CF333996E66E
-
-#include<windows.h>
 
 
 

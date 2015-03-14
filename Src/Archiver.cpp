@@ -328,8 +328,12 @@ bool match(const fileinfo::FILEINFO& fileinfo,const fileinfo::FILEFILTER& filefi
 	bool matched=true;
 
 	if(!filefilter.empty()||!file_ex_filter.empty()){
-		matched=fileinfo::matchPattern(fileinfo,filefilter,_T(""));
-		if(matched)matched=fileinfo::matchExPattern(fileinfo,file_ex_filter,_T(""));
+		matched=((!filefilter.regex)?
+			fileinfo::matchPattern(fileinfo,filefilter,_T("")):
+			 fileinfo::matchRegex(fileinfo,filefilter));
+		if(matched)matched=((!file_ex_filter.regex)?
+			fileinfo::matchExPattern(fileinfo,file_ex_filter,_T("")):
+			 fileinfo::matchExRegex(fileinfo,file_ex_filter));
 
 		if(matched)matched=fileinfo::matchSize(fileinfo,filefilter,file_ex_filter);
 		if(matched)matched=fileinfo::matchDateTime(fileinfo,filefilter,file_ex_filter);

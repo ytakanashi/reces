@@ -247,7 +247,7 @@ private:
 			removeSection(section);
 		}
 	}
-	void write(const TCHAR* section,const TCHAR* key,const tstring value,bool diff){
+	void write(const TCHAR* section,const TCHAR* key,const tstring& value,bool diff){
 		return write(section,key,value.c_str(),diff);
 	}
 	void write(const TCHAR* section,const TCHAR* key,const long long value,bool diff){

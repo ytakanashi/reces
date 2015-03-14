@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -74,7 +74,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 						break;
 					}
 				}
-				errmsg(_T("cfgファイルの読み込みに失敗しました。\n"));
+				msg::err(_T("cfgファイルの読み込みに失敗しました。\n"));
 				break;
 			}
 
@@ -447,9 +447,25 @@ bool parseOptions(CommandArgument& cmd_arg){
 					const TCHAR*p=options[i].c_str()+2,*pp;
 
 					while(*p){
-						for(pp=p+1;*pp&&*pp!=';';pp++);
+						for(pp=p+1;*pp&&*pp!=':';pp++);
 
 						switch(*(p++)){
+							case 'r':{
+								tstring str(p,pp-p);
+
+								CFG.general.filefilter.regex=true;
+								dprintf(_T("CFG.general.filefilter.regex=%d\n"),CFG.general.filefilter.regex);
+								//';'で分割
+								str::splitString(&CFG.general.filefilter.pattern_list,str.c_str(),';');
+								//重複を削除
+								l::undupList(&CFG.general.filefilter.pattern_list);
+								for(std::list<tstring>::iterator ite=CFG.general.filefilter.pattern_list.begin(),
+									end=CFG.general.filefilter.pattern_list.end();
+									ite!=end;
+									++ite){dprintf(_T("%s\n"),ite->c_str());}
+								break;
+							}
+
 							case 's':{
 								tstring str(p,pp-p);
 
@@ -497,7 +513,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								File list_file;
 
 								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
-									errmsg(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
+									msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
 								}else{
 									l::readFileList(&CFG.general.filefilter.pattern_list,&list_file);
 								}
@@ -532,9 +548,21 @@ bool parseOptions(CommandArgument& cmd_arg){
 					const TCHAR*p=options[i].c_str()+2,*pp;
 
 					while(*p){
-						for(pp=p+1;*pp&&*pp!=';';pp++);
+						for(pp=p+1;*pp&&*pp!=':';pp++);
 
 						switch(*(p++)){
+							case 'r':{
+								tstring str(p,pp-p);
+
+								CFG.general.file_ex_filter.regex=true;
+								dprintf(_T("CFG.general.file_ex_filter.regex=%d\n"),CFG.general.file_ex_filter.regex);
+								//';'で分割
+								str::splitString(&CFG.general.file_ex_filter.pattern_list,str.c_str(),';');
+								//重複を削除
+								l::undupList(&CFG.general.file_ex_filter.pattern_list);
+								break;
+							}
+
 							case 's':{
 								tstring str(p,pp-p);
 
@@ -584,7 +612,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								File list_file;
 
 								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
-									errmsg(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
+									msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
 								}else{
 									l::readFileList(&CFG.general.file_ex_filter.pattern_list,&list_file);
 								}
@@ -802,7 +830,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 				File list_file;
 
 				if(!list_file.open(options[i].c_str()+1,OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
-					errmsg(_T("リストファイル '%s' を開くことが出来ませんでした。"),options[i].c_str()+1);
+					msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),options[i].c_str()+1);
 				}else{
 					std::vector<tstring> file_list;
 

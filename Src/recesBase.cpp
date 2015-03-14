@@ -27,7 +27,9 @@ using namespace sslib;
 
 //あかんやつ
 std::vector<ArcDll*> RecesBase::m_arcdll_list;
+#ifndef _WIN64
 ArcB2e* RecesBase::m_b2e_dll;
+#endif
 ArcDll* RecesBase::m_cal_dll;
 std::vector<Spi*> RecesBase::m_spi_list;
 std::vector<Wcx*> RecesBase::m_wcx_list;
@@ -38,12 +40,10 @@ Archiver* RecesBase::m_arc_dll;
 misc::thread::INFO RecesBase::m_progressbar_thread;
 
 
-namespace{
-	const UINT WM_HOOKDIALOG=::RegisterWindowMessage(_T("_WM_HOOKDIALOG_"));
-	const UINT WM_CREATE_PROGRESSBAR=::RegisterWindowMessage(_T("WM_CREATE_PROGRESSBAR"));
-	const UINT WM_UPDATE_PROGRESSBAR_MAIN=::RegisterWindowMessage(_T("WM_UPDATE_PROGRESSBAR_MAIN"));
-	const UINT WM_DESTROY_PROGRESSBAR=::RegisterWindowMessage(_T("WM_DESTROY_PROGRESSBAR"));
-}
+const UINT WM_HOOKDIALOG=::RegisterWindowMessage(_T("_WM_HOOKDIALOG_"));
+const UINT WM_CREATE_PROGRESSBAR=::RegisterWindowMessage(_T("WM_CREATE_PROGRESSBAR"));
+const UINT WM_UPDATE_PROGRESSBAR_MAIN=::RegisterWindowMessage(_T("WM_UPDATE_PROGRESSBAR_MAIN"));
+const UINT WM_DESTROY_PROGRESSBAR=::RegisterWindowMessage(_T("WM_DESTROY_PROGRESSBAR"));
 
 tstring removeTailCharacter(const tstring& str,TCHAR c){
 	if(str.empty())return str;
@@ -84,45 +84,8 @@ tstring removeExtensionEx(const tstring& file_path){
 	return modified_path;
 }
 
-bool info(const TCHAR* msg,...){
-	if(CFG.no_display.no_information)return false;
-
-	DWORD written_chars=0;
-
-	va_list argp;
-	va_start(argp,msg);
-
-	STDOUT.write(msg,argp,&written_chars);
-
-	va_end(argp);
-	return true;
-}
-
-void errmsg(const TCHAR* msg,...){
-	if(!strvalid(msg)||
-	   CFG.no_display.no_errmsg)return;
-
-	Console std_err_handle(STD_ERROR_HANDLE);
-	DWORD written_chars=0;
-
-	//文字色の変更
-	std_err_handle.setFGColor(Console::HIGH_RED);
-
-	va_list argp;
-	va_start(argp,msg);
-
-	std_err_handle.outputString(_T("error: "));
-	std_err_handle.write(msg,argp,&written_chars);
-
-	va_end(argp);
-
-	//文字色を元に戻す
-	std_err_handle.resetColors();
-	return;
-}
-
 //'od'と'of'を反映した作成する書庫のパスを作成
-RecesBase::ARC_RESULT RecesBase::arcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg){
+RecesBase::ARC_RESULT RecesBase::updateArcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg){
 	//オプションの有無にかかわらず、出力先ディレクトリをoutput_dirに代入
 	tstring output_dir(path::getParentDirectory(arc_path));
 	new_cur_file->arc_path.assign(arc_path);
@@ -260,8 +223,11 @@ void RecesBase::loadArcLib(){
 			return false;
 		}
 	};
-	if(m_arcdll_list.size()!=0||
-	   m_b2e_dll!=NULL)freeArcLib();
+	if(m_arcdll_list.size()!=0
+#ifndef _WIN64
+	   ||m_b2e_dll!=NULL
+#endif
+	   )freeArcLib();
 
 	m_arcdll_list.push_back(new ArcUnlha32());
 #ifdef _WIN64

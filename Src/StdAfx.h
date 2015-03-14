@@ -25,6 +25,10 @@
 #define _WIN32_IE 0x0400
 #define WINVER 0x0500
 
+#ifdef _DEBUG
+	#define _HAS_ITERATOR_DEBUGGING 0
+#endif
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdarg.h>
@@ -67,16 +71,18 @@ typedef std::basic_string<TCHAR>tstring;
 #endif //_tcstoll
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r26a_Debug")
+	#define SOFTWARE_VERSION _T("0.00r26_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r26a")
+	#define SOFTWARE_VERSION _T("0.00r26")
 #endif
 
+//#define SSLIB_GUI
+//#define SSLIB_GUI_DIALOG
 #include"sslib/sslib.h"
 
-inline void msg(){MessageBox(NULL,NULL,NULL,MB_OK);}
-inline void msg(const TCHAR* format,...){
-	if(!format){msg();return;}
+inline void dmsg(){MessageBox(NULL,NULL,NULL,MB_OK);}
+inline void dmsg(const TCHAR* format,...){
+	if(!format){dmsg();return;}
 	va_list argp;
 	va_start(argp,format);
 

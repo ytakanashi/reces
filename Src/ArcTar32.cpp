@@ -176,7 +176,7 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 	File list_file;
 
 	//リストファイルを作成
-	list_file_path=fileoperation::createTempFile(_T("tar"),ARCCFG->m_list_temp_dir.c_str());
+	list_file_path=tempfile::create(_T("tar"),ARCCFG->m_list_temp_dir.c_str());
 	if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 		return ARC_CANNOT_OPEN_LISTFILE;
 	}
@@ -225,6 +225,8 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 
 	list_file.close();
 
+	if(IS_TERMINATED)return ARC_FAILURE;
+
 	//区切り文字置換
 	replaceDelimiter(arc_path_str);
 	replaceDelimiter(&CFG.general.filefilter.pattern_list);
@@ -246,7 +248,7 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 		CFG.compress.compression_level=getMethod().maximum_level;
 	}
 
-	if(CFG.compress.compression_level!=-1){
+	if(CFG.compress.compression_level!=default_compressionlevel){
 		//圧縮率を範囲内に収める
 		CFG.compress.compression_level=clamp(CFG.compress.compression_level,
 											   getMethod().minimum_level,
@@ -255,24 +257,19 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 		level_str+=static_cast<TCHAR>(CFG.compress.compression_level+'0');
 	}
 
-	tstring cmd_line(format(_T("%s %s %s %s %s %s %s%s%s @%s%s%s"),
-									  _T("-c"),
-									  _T("--display-dialog=0"),
-									  _T("--inverse-procresult=1"),
-									  //--inverse-procresult=1   : ARCHIVERPROCの返し値を反転します。
-									  //getMethod().level,compression_level
-									  (CFG.compress.compression_level!=-1&&!level_str.empty())?level_str.c_str():getMethod().cmd,
-									  CFG.general.custom_param.c_str(),
+	tstring cmd_line(format(_T("%s %s %s %s %s %s %s @%s"),
+							_T("-c"),
+							_T("--display-dialog=0"),
+							_T("--inverse-procresult=1"),
+							//--inverse-procresult=1   : ARCHIVERPROCの返し値を反転します。
+							(CFG.compress.compression_level!=default_compressionlevel&&!level_str.empty())?level_str.c_str():getMethod().cmd,
+							CFG.general.custom_param.c_str(),
 
-									  _T("--"),
+							_T("--"),
 
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									  arc_path_str.c_str(),
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+							quotePath(arc_path_str).c_str(),
 
-									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-									  list_file_path.c_str(),
-									  (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
+							quotePath(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -311,7 +308,7 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 
 	if(use_filter){
 		//リストファイルを作成
-		list_file_path=fileoperation::createTempFile(_T("tar"),ARCCFG->m_list_temp_dir.c_str());
+		list_file_path=tempfile::create(_T("tar"),ARCCFG->m_list_temp_dir.c_str());
 		if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 			return ARC_CANNOT_OPEN_LISTFILE;
 		}
@@ -327,6 +324,8 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 		list_file.close();
 	}
 
+	if(IS_TERMINATED)return ARC_FAILURE;
+
 	if(!CFG.no_display.no_information&&
 	   !STDOUT.isRedirected()){
 		m_file_size=getTotalOriginalSize(arc_path);
@@ -337,7 +336,7 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 
 	if(CFG.compress.exclude_base_dir!=0){
 		output_dir_bak=output_dir_str;
-		output_dir_str=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir_str.c_str()));
+		output_dir_str=path::addTailSlash(tempfile::createDir(_T("rcs"),output_dir_str.c_str()));
 
 		//一時ディレクトリ削除予約
 		schedule_delete.set(output_dir_str.c_str());
@@ -349,29 +348,23 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 	replaceDelimiter(arc_path_str);
 	replaceDelimiter(output_dir_str);
 
-	tstring cmd_line(format(_T("%s %s %s %s %s %s%s%s %s%s%s"),
-									  (!CFG.general.ignore_directory_structures)?_T("-x"):_T("--use-directory=0 -x"),
-									  //--use-directory=0        : effective directory name
-									  _T("--display-dialog=0"),
-									  _T("--inverse-procresult=1"),
-									  //--inverse-procresult=1   : ARCHIVERPROCの返し値を反転します。
-									  CFG.general.custom_param.c_str(),
+	tstring cmd_line(format(_T("%s %s %s %s %s %s %s"),
+							(!CFG.general.ignore_directory_structures)?_T("-x"):_T("--use-directory=0 -x"),
+							//--use-directory=0        : effective directory name
+							_T("--display-dialog=0"),
+							_T("--inverse-procresult=1"),
+							//--inverse-procresult=1   : ARCHIVERPROCの返し値を反転します。
+							CFG.general.custom_param.c_str(),
 
-									  _T("--"),
+							_T("--"),
 
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									  arc_path_str.c_str(),
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
+							quotePath(arc_path_str).c_str(),
 
-									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-									  output_dir_str.c_str(),
-									  (str::containsWhiteSpace(output_dir_str))?_T("\""):_T("")));
+							quotePath(output_dir_str).c_str()));
 
 	if(use_filter){
-		cmd_line.append(format(_T(" @%s%s%s"),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-										 list_file_path.c_str(),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
+		cmd_line.append(format(_T(" @%s"),
+							   quotePath(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -398,20 +391,20 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 
 	if(CFG.general.decode_uesc){
 		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
+		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
 	}
 
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
 	}
 
 	unload();
 
 	if(CFG.compress.exclude_base_dir!=0){
 		//共通パスを取り除く
-		excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
+		m_util->excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
 	}
 
 	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
@@ -425,13 +418,11 @@ ArcTar32::ARC_RESULT ArcTar32::list(const TCHAR* arc_path){
 	if(CFG.output_file_list.api_mode){
 		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,(CFG.general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
 	}else{
-		tstring cmd_line(format(_T("%s %s %s %s%s%s"),
+		tstring cmd_line(format(_T("%s %s %s %s"),
 										  _T("-l"),
 										  _T("--display-dialog=0"),
 										  _T("--"),
-										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-										  arc_path_str.c_str(),
-										  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
+										  quotePath(arc_path_str).c_str()));
 
 		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -451,14 +442,9 @@ DWORD ArcTar32::writeFormatedPath(const File& list_file,const TCHAR* base_dir_or
 	//ディレクトリ名末尾の区切り文字は不要
 	file_path=path::removeTailSlash(file_path);
 
-	return list_file.writeEx(_T("%s%s%s%s %s%s%s\r\n"),
-							 (str::containsWhiteSpace(base_dir))?_T("\""):_T(""),
-							 base_dir.c_str(),
-							 m_delimiter,
-							 (str::containsWhiteSpace(base_dir))?_T("\""):_T(""),
-							 (str::containsWhiteSpace(file_path))?_T("\""):_T(""),
-							 file_path.c_str(),
-							 (str::containsWhiteSpace(file_path))?_T("\""):_T(""));
+	return list_file.writeEx(_T("%s %s\r\n"),
+							 quotePath(base_dir+m_delimiter).c_str(),
+							 quotePath(file_path).c_str());
 }
 
 //圧縮対象ファイルリストを整形してファイルに書き出す

@@ -33,13 +33,11 @@ ArcUniso32::ARC_RESULT ArcUniso32::test(const TCHAR* arc_path){
 
 	replaceDelimiter(arc_path_str);
 
-	tstring cmd_line(format(_T("%s %s %s %s%s%s"),
-									  _T("t"),
-									  _T("-hide"),
-									  _T("--"),
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									  arc_path_str.c_str(),
-									  (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
+	tstring cmd_line(format(_T("%s %s %s %s"),
+							_T("t"),
+							_T("-hide"),
+							_T("--"),
+							quotePath(arc_path_str).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -88,7 +86,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(use_filter){
 		//リストファイルを作成
-		list_file_path=fileoperation::createTempFile(_T("iso"),ARCCFG->m_list_temp_dir.c_str());
+		list_file_path=tempfile::create(_T("iso"),ARCCFG->m_list_temp_dir.c_str());
 		if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 			return ARC_CANNOT_OPEN_LISTFILE;
 		}
@@ -98,17 +96,19 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 						 CFG.general.filefilter,
 						 CFG.general.file_ex_filter,
 						 //フィルタ適用を逆にする
-						 REVERSE_FILTER,
+						 (!CFG.general.ignore_directory_structures)?REVERSE_FILTER:0,
 						 &list_file);
 		list_file.close();
 	}
+
+	if(IS_TERMINATED)return ARC_FAILURE;
 
 	tstring output_dir_bak;
 	fileoperation::scheduleDelete schedule_delete;
 
 	if(CFG.compress.exclude_base_dir!=0){
 		output_dir_bak=output_dir_str;
-		output_dir_str=path::addTailSlash(fileoperation::createTempDir(_T("rcs"),output_dir_str.c_str()));
+		output_dir_str=path::addTailSlash(tempfile::createDir(_T("rcs"),output_dir_str.c_str()));
 
 		//一時ディレクトリ削除予約
 		schedule_delete.set(output_dir_str.c_str());
@@ -121,42 +121,30 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 	replaceDelimiter(output_dir_str);
 
 	tstring cmd_line(format(_T("%s %s %s %s "),
-									  (!CFG.general.ignore_directory_structures)?_T("x"):_T("e"),
-									  _T("-y -aoa -mmt=on"),
-									  //-y     : 全ての質問に yes を仮定。
-									  //-aoa   : 全てのファイルを確認しないで上書きします。
-									  //-mmt=on: マルチスレッドモードを設定。
-									  CFG.general.custom_param.c_str(),
-									  _T("-hide")));
+							(!CFG.general.ignore_directory_structures)?_T("x"):_T("e"),
+							_T("-y -aoa"),
+							//-y     : 全ての質問に yes を仮定。
+							//-aoa   : 全てのファイルを確認しないで上書きします。
+							CFG.general.custom_param.c_str(),
+							_T("-hide")));
 
 	if(use_filter&&
 	   !CFG.general.ignore_directory_structures){
 		//通常解凍(with フィルタ)する場合
 		//-xスイッチで処理対象外リストを指定
-		cmd_line.append(format(_T("-x@%s%s%s "),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-										 list_file_path.c_str(),
-										 (str::containsWhiteSpace(list_file_path))?
-										 _T("\""):_T("")));
+		cmd_line.append(format(_T("-x@%s "),
+							   quotePath(list_file_path).c_str()));
 	}
 
-	cmd_line.append(format(_T("%s %s%s%s %s%s%s"),
-									 _T("--"),
-
-									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-									 arc_path_str.c_str(),
-									 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-
-									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T(""),
-									 output_dir_str.c_str(),
-									 (str::containsWhiteSpace(output_dir_str))?_T("\""):_T("")));
+	cmd_line.append(format(_T("-o%s %s %s"),
+						   quotePath(output_dir_str).c_str(),
+						   _T("--"),
+						   quotePath(arc_path_str).c_str()));
 
 	if(use_filter&&
 	   CFG.general.ignore_directory_structures){
-		cmd_line.append(format(_T(" @%s%s%s"),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-										 list_file_path.c_str(),
-										 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
+		cmd_line.append(format(_T(" @%s"),
+							   quotePath(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -185,20 +173,20 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	if(CFG.general.decode_uesc){
 		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
+		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
 	}
 
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
 	}
 
 	unload();
 
 	if(CFG.compress.exclude_base_dir!=0){
 		//共通パスを取り除く
-		excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
+		m_util->excludeCommonPath(output_dir_bak.c_str(),output_dir_str.c_str(),CFG.compress.exclude_base_dir);
 	}
 
 	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
@@ -219,7 +207,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::list(const TCHAR* arc_path){
 
 		if(use_filter){
 			//リストファイルを作成
-			list_file_path=fileoperation::createTempFile(_T("iso"),ARCCFG->m_list_temp_dir.c_str());
+			list_file_path=tempfile::create(_T("iso"),ARCCFG->m_list_temp_dir.c_str());
 			if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
 				//リストファイルに解凍対象ファイルのみ出力
 				outputFileListEx(arc_path_str.c_str(),
@@ -235,22 +223,18 @@ ArcUniso32::ARC_RESULT ArcUniso32::list(const TCHAR* arc_path){
 		}
 
 		tstring cmd_line(format(_T("%s %s "),
-										  _T("l"),
-										  _T("-hide")));
+								_T("l"),
+								_T("-hide")));
 
 		if(use_filter){
 			//-xスイッチで処理対象外リストを指定
-			cmd_line.append(format(_T("-x@%s%s%s "),
-											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T(""),
-											 list_file_path.c_str(),
-											 (str::containsWhiteSpace(list_file_path))?_T("\""):_T("")));
+			cmd_line.append(format(_T("-x@%s "),
+								   quotePath(list_file_path).c_str()));
 		}
 
-		cmd_line.append(format(_T("%s %s%s%s"),
-										 _T("--"),
-										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T(""),
-										 arc_path_str.c_str(),
-										 (str::containsWhiteSpace(arc_path_str))?_T("\""):_T("")));
+		cmd_line.append(format(_T("%s %s"),
+							   _T("--"),
+							   quotePath(arc_path_str).c_str()));
 
 		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -266,29 +250,21 @@ ArcUniso32::ARC_RESULT ArcUniso32::list(const TCHAR* arc_path){
 void ArcUniso32::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse){
 	if(filefilter.empty()&&file_ex_filter.empty())return;
 
-	//除外リストを作成
-	FileTree file_tree(CFG.general.filefilter,CFG.general.file_ex_filter);
+	ArcDll::applyFilters(fileinfo_list,filefilter,file_ex_filter,reverse);
 
-	std::sort(fileinfo_list->begin(),fileinfo_list->end());
-
-	for(std::vector<fileinfo::FILEINFO>::iterator ite=fileinfo_list->begin(),
-		end=fileinfo_list->end();
-		ite!=end;
-		++ite){
-		tstring parent_dir(path::addTailSlash(path::getParentDirectory(ite->name)));
-
-		if(parent_dir!=ite->name.c_str()){
-			file_tree.add(parent_dir.c_str(),ite->name.c_str(),&*ite);
+	if(CFG.general.ignore_directory_structures){
+		for(std::vector<fileinfo::FILEINFO>::iterator ite=fileinfo_list->begin();
+			ite!=fileinfo_list->end();){
+			//attr==FILE_ATTRIBUTE_DIRECTORYだけで十分
+			//ただし念のために
+			if(ite->name.rfind(_T("\\"))==ite->name.size()-1||
+			   ite->attr==FILE_ATTRIBUTE_DIRECTORY){
+				ite=fileinfo_list->erase(ite);
+				continue;
+			}
+			++ite;
 		}
 	}
-
-	if(reverse){
-		file_tree.makeExcludeTree(FileTree::TO_NONE,_T(""));
-	}else{
-		file_tree.makeIncludeTree(FileTree::TO_NONE,_T(""));
-	}
-	fileinfo_list->clear();
-	file_tree.tree2list(*fileinfo_list);
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す

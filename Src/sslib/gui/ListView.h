@@ -47,8 +47,16 @@ public:
 
 	tstring getItemText(int item=0,int sub_item=0)const;
 
+	inline UINT getItemState(int item=0,UINT mask=LVIS_SELECTED)const{
+		return ListView_GetItemState(handle(),item,mask);
+	}
+
+	inline void setItemState(int item=0,UINT state=LVIS_SELECTED,UINT mask=LVIS_SELECTED)const{
+		ListView_SetItemState(handle(),item,state,mask);
+	}
+
 	inline void selectAll()const{
-		ListView_SetItemState(handle(),-1,LVIS_SELECTED,LVIS_SELECTED);
+		setItemState(-1);
 	}
 
 	inline DWORD getExtendedListViewStyle()const{
@@ -56,6 +64,13 @@ public:
 	}
 	inline void setExtendedListViewStyle(DWORD ex_style)const{
 		ListView_SetExtendedListViewStyle(handle(),ex_style);
+	}
+
+	inline bool getCheckState(UINT index)const{
+		return !!ListView_GetCheckState(handle(),index);
+	}
+	inline void setCheckState(UINT index,bool check=true)const{
+		ListView_SetCheckState(handle(),index,check);
 	}
 };
 

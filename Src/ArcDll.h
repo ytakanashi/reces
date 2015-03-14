@@ -18,71 +18,14 @@ namespace callback{
 	inline BOOL __stdcall proc(HWND wnd_handle,UINT msg,UINT state,void* info);
 }
 
+class ArcDllUtil;
+
 class ArcDll:public ArcDllBase{
+friend class ArcFileSearch;
+friend class ArcDllUtil;
 public:
 	ArcDll(const TCHAR* library_name,const TCHAR* library_prefix,const TCHAR* supported_ext,const TCHAR* delimiter);
-	virtual ~ArcDll(){}
-
-protected:
-class ArcFileSearch{
-public:
-	ArcFileSearch(ArcDll* arcdll_ptr):m_arcdll_ptr(arcdll_ptr),m_individual_info(),m_fileinfo(){
-	}
-	virtual ~ArcFileSearch(){}
-private:
-	ArcDll* m_arcdll_ptr;
-	INDIVIDUALINFO m_individual_info;
-	fileinfo::FILEINFO m_fileinfo;
-public:
-	inline bool first(const TCHAR* wild_name=_T("*")){
-		return (m_arcdll_ptr&&m_arcdll_ptr->findFirst(wild_name,&m_individual_info))?false:true;
-	}
-	inline bool next(){
-		return (m_arcdll_ptr&&m_arcdll_ptr->findNext(&m_individual_info)==0)?true:false;
-	}
-	//書庫内ファイル検索(オープン/クローズは各自で)
-	fileinfo::FILEINFO* getFileInfo(){
-		//ファイルサイズ
-		if(!m_arcdll_ptr->getOriginalSizeEx(&m_fileinfo.size)){
-			m_fileinfo.size=m_individual_info.dwOriginalSize;
-		}
-
-		//日付/時刻
-		FILETIME ft1={},ft2={};
-		SYSTEMTIME st={};
-
-		::DosDateTimeToFileTime(m_individual_info.wDate,m_individual_info.wTime,&ft1);
-		::LocalFileTimeToFileTime(&ft1,&ft2);
-		::FileTimeToSystemTime(&ft2,&st);
-		m_fileinfo.date_time=sslib::str::SYSTEMTIME2longlong(st);
-
-		//ファイル名
-		tstring buffer(1024,'\0');
-
-		if(m_arcdll_ptr->queryFunctionList(ISARC_GET_FILE_NAME)){
-			m_arcdll_ptr->getFileName(&buffer,1024);
-			m_fileinfo.name.assign(buffer);
-		}else{
-			//GetFileName()が実装されていない場合、INDIVIDUALINFO構造体より取得
-			if(m_arcdll_ptr->isUnicodeMode()){
-				sslib::str::utf82utf16(&m_fileinfo.name,m_individual_info.szFileName);
-			}else{
-				sslib::str::sjis2utf16(&m_fileinfo.name,m_individual_info.szFileName);
-			}
-		}
-
-		//属性
-		DWORD attr=0;
-
-		if(!m_arcdll_ptr->getAttribute(&attr)){
-			//GetAttribute()が実装されていない場合、INDIVIDUALINFO構造体より取得
-			attr=m_arcdll_ptr->guessAttribute(m_individual_info.szAttribute,m_individual_info.szFileName);
-		}
-		m_fileinfo.attr=attr;
-
-		return &m_fileinfo;
-	}
-};
+	virtual ~ArcDll();
 
 public:
 	enum METHOD_OPTIONS{
@@ -102,8 +45,6 @@ public:
 	bool isSupportedExtension(const TCHAR* ext);
 	//対応している書庫であるか
 	virtual bool isSupportedArchive(const TCHAR* arc_path,int mode=CHECKARCHIVE_BASIC);
-	//対応している書庫であるか(CHECKARCHIVE_RAPID)
-	virtual bool isSupportedArchiveRapid(const TCHAR* arc_path);
 	//圧縮形式を取得(その形式に対応している場合のみ)
 	virtual tstring getCompressionMethod(const TCHAR* arc_path);
 
@@ -168,25 +109,22 @@ protected:
 	void replaceDelimiter(tstring& str);
 	void replaceDelimiter(std::list<tstring>* list);
 
+	//二重引用符でパスを囲む
+	tstring quotePath(const tstring& path);
+
 	//ファイル処理情報を格納
 	virtual void setExtractingInfo(UINT state,void* arc_info);
 	//コールバック通知を無効にする
 	bool m_disable_callback;
+
+	//ArcDll用便利関数たち
+	ArcDllUtil* m_util;
 
 	//書庫内のすべてのファイルの情報を取得
 	bool createFilesList(const TCHAR* arc_path);
 
 	//リストにフィルタを適用
 	virtual void applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse=false);
-
-	//各種構造体のデータより属性を推測
-	DWORD guessAttribute(const char* attr_str_orig,const char* file_name_orig);
-
-	//ディレクトリのタイムスタンプを復元
-	bool recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* output_dir_orig,bool decode_uesc=false,bool no_arc_list=false);
-	//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-	bool decodeUnicodeEscape(const TCHAR* arc_path,const TCHAR* output_dir,bool ignore_directory_structures=false,bool no_arc_list=false);
-
 
 	enum OUTPUTFILELIST_OPT{
 		DECODE_UNICODE_ESCAPE=1<<0,
@@ -227,17 +165,10 @@ private:
 	//ライブラリから情報を受け取るコールバック関数を設定
 	bool setArchiveProc();
 
-protected:
 	//書庫を開く
-	virtual bool open(const TCHAR* file_name,const DWORD mode=0);
+	bool open(const TCHAR* file_name,const DWORD mode=0);
 	//書庫を閉じる
-	virtual bool close();
-
-protected:
-	//共通パスを取り除く
-	//解凍レンジ「パス情報を最適化して展開する」相当
-	//level=-1で共通パスをすべて取り除く
-	bool excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_dir,int level=-1);
+	bool close();
 
 public:
 	//指定された書庫ファイルに格納されているファイル数を得ます
@@ -263,11 +194,114 @@ public:
 	//作成しようとするディレクトリは不要であるかどうか
 	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file);
 
-	//圧縮形式リストを取得
-	inline const std::vector<COMPRESSION_METHOD>& getMethodList()const{return m_compression_methods;}
 	//圧縮形式その他情報を取得
 	inline const COMPRESSION_METHOD& getMethod()const{return m_compression_methods[m_method_index];}
 	inline const COMPRESSION_METHOD& getMethod(size_t index)const{return m_compression_methods[index];}
+};
+
+class ArcFileSearch{
+public:
+	ArcFileSearch(ArcDll* arcdll_ptr):m_arcdll_ptr(arcdll_ptr),m_individual_info(),m_fileinfo(){
+	}
+	virtual ~ArcFileSearch(){}
+private:
+	ArcDll* m_arcdll_ptr;
+	INDIVIDUALINFO m_individual_info;
+	fileinfo::FILEINFO m_fileinfo;
+private:
+	//各種構造体のデータより属性を推測
+	//(ライブラリや書庫によってszAttributeが異なるため保証なし...)
+	DWORD guessAttribute(const char* attr_str_orig,const char* file_name_orig){
+		DWORD result=0;
+		tstring file_name((m_arcdll_ptr->isUnicodeMode())?sslib::str::utf82utf16(file_name_orig):sslib::str::sjis2utf16(file_name_orig));
+		tstring attr_str(sslib::str::toLower((m_arcdll_ptr->isUnicodeMode())?sslib::str::utf82utf16(attr_str_orig):sslib::str::sjis2utf16(attr_str_orig)));
+
+		if(attr_str.find(_T("r"))!=tstring::npos){
+			result|=FILE_ATTRIBUTE_READONLY;
+		}
+
+		if(attr_str.find(_T("h"))!=tstring::npos){
+			result|=FILE_ATTRIBUTE_HIDDEN;
+		}
+
+		if(attr_str.find(_T("s"))!=tstring::npos){
+			result|=FILE_ATTRIBUTE_SYSTEM;
+		}
+
+		if(attr_str.find(_T("d"))!=tstring::npos||
+		   //ライブラリによっては主に使用するデリミタとリスト表示のデリミタが異なる場合有り
+		   file_name.find_last_of(_T("\\/"))==file_name.length()-1){
+			result|=FILE_ATTRIBUTE_DIRECTORY;
+		}
+		return result;//(result==0)?FILE_ATTRIBUTE_NORMAL:result;
+	}
+public:
+	inline bool first(const TCHAR* wild_name=_T("*")){
+		return (m_arcdll_ptr&&m_arcdll_ptr->findFirst(wild_name,&m_individual_info))?false:true;
+	}
+	inline bool next(){
+		return (m_arcdll_ptr&&m_arcdll_ptr->findNext(&m_individual_info)==0)?true:false;
+	}
+	//書庫内ファイル検索(オープン/クローズは各自で)
+	fileinfo::FILEINFO* getFileInfo(){
+		//ファイルサイズ
+		if(!m_arcdll_ptr->getOriginalSizeEx(&m_fileinfo.size)){
+			m_fileinfo.size=m_individual_info.dwOriginalSize;
+		}
+
+		//日付/時刻
+		FILETIME ft1={},ft2={};
+		SYSTEMTIME st={};
+
+		::DosDateTimeToFileTime(m_individual_info.wDate,m_individual_info.wTime,&ft1);
+		::LocalFileTimeToFileTime(&ft1,&ft2);
+		::FileTimeToSystemTime(&ft2,&st);
+		m_fileinfo.date_time=sslib::str::SYSTEMTIME2longlong(st);
+
+		//ファイル名
+		tstring buffer(1024,'\0');
+
+		if(m_arcdll_ptr->queryFunctionList(ISARC_GET_FILE_NAME)){
+			m_arcdll_ptr->getFileName(&buffer,1024);
+			m_fileinfo.name.assign(buffer);
+		}else{
+			//GetFileName()が実装されていない場合、INDIVIDUALINFO構造体より取得
+			if(m_arcdll_ptr->isUnicodeMode()){
+				sslib::str::utf82utf16(&m_fileinfo.name,m_individual_info.szFileName);
+			}else{
+				sslib::str::sjis2utf16(&m_fileinfo.name,m_individual_info.szFileName);
+			}
+		}
+
+		//属性
+		DWORD attr=0;
+
+		if(!m_arcdll_ptr->getAttribute(&attr)){
+			//GetAttribute()が実装されていない場合、INDIVIDUALINFO構造体より取得
+			attr=guessAttribute(m_individual_info.szAttribute,m_individual_info.szFileName);
+		}
+		m_fileinfo.attr=attr;
+
+		return &m_fileinfo;
+	}
+};
+
+class ArcDllUtil{
+public:
+	ArcDllUtil(ArcDll* arcdll_ptr):m_arcdll_ptr(arcdll_ptr){
+	}
+	virtual ~ArcDllUtil(){}
+private:
+	ArcDll* m_arcdll_ptr;
+public:
+	//ディレクトリのタイムスタンプを復元
+	bool recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* output_dir_orig,bool decode_uesc=false,bool no_arc_list=false);
+	//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
+	bool decodeUnicodeEscape(const TCHAR* arc_path,const TCHAR* output_dir,bool ignore_directory_structures=false,bool no_arc_list=false);
+	//共通パスを取り除く
+	//解凍レンジ「パス情報を最適化して展開する」相当
+	//level=-1で共通パスをすべて取り除く
+	bool excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_dir,int level=-1);
 };
 
 #endif //_ARCDLL_H_31B31910_3688_4592_9BC6_FF763D854A5C

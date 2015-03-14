@@ -26,7 +26,7 @@ Settings::ARC_RESULT Settings::operator()(HWND wnd,tstring& err_msg){
 		return ARC_CANNOT_LOAD_LIBRARY;
 	}
 
-	info(_T("ライブラリを読み込んでいます..."));
+	msg::info(_T("ライブラリを読み込んでいます..."));
 
 	m_arc_dll=loadAndCheckPlugin(&m_spi_list,
 								 NULL,
@@ -95,7 +95,7 @@ Settings::ARC_RESULT Settings::operator()(HWND wnd,tstring& err_msg){
 		return ARC_CANNOT_LOAD_LIBRARY;
 	}
 
-	info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
+	msg::info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
 
 	if(m_arc_dll->type()==Archiver::CAL&&
 	   static_cast<ArcDll*>(m_arc_dll)->getRunning()){
@@ -104,7 +104,7 @@ Settings::ARC_RESULT Settings::operator()(HWND wnd,tstring& err_msg){
 	}else{
 		if(CFG.general.background_mode&&
 		   m_arc_dll->setBackgroundMode(true)){
-			info(_T("バックグラウンドモードに設定しました。\n"));
+			msg::info(_T("バックグラウンドモードに設定しました。\n"));
 		}
 
 		//ライブラリの設定ダイアログ呼び出し

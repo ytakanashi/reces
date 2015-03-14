@@ -225,7 +225,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 		tstring file_path=str::sjis2utf16(arc_info->path);
 		tstring file_name=str::sjis2utf16(arc_info->filename);
 
-		if(!matchFilters(fileinfo::FILEINFO(file_path+file_name,
+		if(!filter::match(fileinfo::FILEINFO(file_path+file_name,
 											arc_info->filesize,
 											0,
 											((long long)arc_info->timestamp+11644473600)*10000000),
@@ -379,7 +379,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 						recovered_dirs.push_back(path::removeTailSlash(cur_path));
 					}
 				}else{
-					DirTimeStamp::addIncompleteDir(output_dir,excludeCommonPath(m_arc_info[i].name.c_str(),delimiter_count),&incomplete_dirs);
+					dirtimestamp::addIncompleteDir(output_dir,excludeCommonPath(m_arc_info[i].name.c_str(),delimiter_count),&incomplete_dirs);
 				}
 			}
 			if(created)break;
@@ -411,7 +411,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 
 		for(int i=(!incomplete_dirs.empty())?incomplete_dirs.size()-1:-1;i>=0;--i){
 			//配下のファイルやディレクトリを利用してディレクトリのタイムスタンプを復元
-			DirTimeStamp::recover(incomplete_dirs[i].c_str(),arc_ft,recovered_dirs);
+			dirtimestamp::recover(incomplete_dirs[i].c_str(),arc_ft,recovered_dirs);
 		}
 	}
 
@@ -448,7 +448,7 @@ Spi::ARC_RESULT Spi::list(const TCHAR* arc_path){
 		tstring file_name=str::sjis2utf16(arc_info->filename);
 		tstring full_path(file_path+file_name);
 
-		if(!matchFilters(fileinfo::FILEINFO(file_path+file_name,
+		if(!filter::match(fileinfo::FILEINFO(file_path+file_name,
 											arc_info->filesize,
 											(file_name.find_last_of(_T("\\/"))==file_name.length()-1)?FILE_ATTRIBUTE_DIRECTORY:0,
 											((long long)arc_info->timestamp+11644473600)*10000000),

@@ -11,7 +11,7 @@ namespace sslib{
 class ConsoleApp:public misc::CtrlCEvent{
 	friend ConsoleApp* app();
 	friend bool isTerminated();
-	friend void terminateApp();
+	friend void terminateApp(bool force);
 	friend int ::main();
 
 protected:
@@ -54,7 +54,7 @@ public:
 
 ConsoleApp* app();
 bool isTerminated();
-void terminateApp();
+void terminateApp(bool force=false);
 
 //namespace sslib
 }

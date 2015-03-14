@@ -156,6 +156,7 @@ bool Config::save(){
 		}
 
 		write(_T("FileFilter"),_T("Recursive"),CFG_VALUE(general.filefilter.recursive));
+		write(_T("FileFilter"),_T("Regex"),CFG_VALUE(general.filefilter.regex));
 	}
 
 
@@ -199,6 +200,7 @@ bool Config::save(){
 		}
 
 		write(_T("FileExFilter"),_T("Recursive"),CFG_VALUE(general.file_ex_filter.recursive));
+		write(_T("FileExFilter"),_T("Regex"),CFG_VALUE(general.file_ex_filter.regex));
 	}
 
 
@@ -359,6 +361,7 @@ bool Config::load(){
 		m_cfg.general.filefilter.pattern_list.sort();
 		m_cfg.general.filefilter.pattern_list.unique();
 		getDataEx(_T("FileFilter"),_T("Recursive"),&m_cfg.general.filefilter.recursive);
+		getDataEx(_T("FileFilter"),_T("Regex"),&m_cfg.general.filefilter.regex);
 	}
 
 	//処理対象外フィルタ
@@ -389,6 +392,9 @@ bool Config::load(){
 			i++;
 		}
 	}
+	temp_str.clear();
+
+	getDataEx(_T("FileExFilter"),_T("IncludeEmptyDir"),&m_cfg.general.file_ex_filter.include_empty_dir);
 
 	getStringDataEx(_T("FileExFilter"),_T("OldestDate"),&temp_str);
 	if(!temp_str.empty()){
@@ -412,6 +418,7 @@ bool Config::load(){
 		m_cfg.general.file_ex_filter.pattern_list.sort();
 		m_cfg.general.file_ex_filter.pattern_list.unique();
 		getDataEx(_T("FileExFilter"),_T("Recursive"),&m_cfg.general.file_ex_filter.recursive);
+		getDataEx(_T("FileExFilter"),_T("Regex"),&m_cfg.general.file_ex_filter.regex);
 	}
 
 

@@ -21,7 +21,7 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 	m_arc_dll=NULL;
 	m_cal_dll=NULL;
 
-	info(_T("ライブラリを読み込んでいます..."));
+	msg::info(_T("ライブラリを読み込んでいます..."));
 
 	{
 
@@ -76,7 +76,7 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 		}
 	}
 
-	info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
+	msg::info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
 
 	if(m_arc_dll->type()==Archiver::CAL&&
 	   static_cast<ArcDll*>(m_arc_dll)->getRunning()){
@@ -85,7 +85,7 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 	}else{
 		if(CFG.general.background_mode&&
 		   m_arc_dll->setBackgroundMode(true)){
-			info(_T("バックグラウンドモードに設定しました。\n"));
+			msg::info(_T("バックグラウンドモードに設定しました。\n"));
 		}
 
 		tstring cmd;

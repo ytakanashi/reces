@@ -200,6 +200,8 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::extract(const TCHAR* arc_path,const TCHAR* ou
 		list_file.close();
 	}
 
+	if(IS_TERMINATED)return ARC_FAILURE;
+
 	if(!CFG.no_display.no_information&&
 	   !STDOUT.isRedirected()){
 		m_file_size=getTotalOriginalSize(arc_path);
@@ -413,37 +415,6 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::list(const TCHAR* arc_path){
 		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 	return ARC_SUCCESS;
-}
-
-//リストにフィルタを適用
-void ArcUnlha32::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse){
-	if(filefilter.empty()&&file_ex_filter.empty())return;
-
-	//除外リストを作成
-	FileTree file_tree(CFG.general.filefilter,CFG.general.file_ex_filter);
-
-	std::sort(fileinfo_list->begin(),fileinfo_list->end());
-
-	for(std::vector<fileinfo::FILEINFO>::iterator ite=fileinfo_list->begin(),
-		end=fileinfo_list->end();
-		ite!=end;
-		++ite){
-		tstring parent_dir(path::addTailSlash(path::getParentDirectory(ite->name)));
-
-		replaceDelimiter(parent_dir);
-
-		if(parent_dir!=ite->name.c_str()){
-			file_tree.add(parent_dir.c_str(),ite->name.c_str(),&*ite);
-		}
-	}
-
-	if(reverse){
-		file_tree.makeExcludeTree(FileTree::TO_NONE,_T(""));
-	}else{
-		file_tree.makeIncludeTree(FileTree::TO_NONE,_T(""));
-	}
-	fileinfo_list->clear();
-	file_tree.tree2list(*fileinfo_list);
 }
 
 //リストファイルにファイルリストを出力

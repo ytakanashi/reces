@@ -2,7 +2,7 @@
 //パスワード入力ダイアログなどをフック
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -48,7 +48,7 @@ BOOL CALLBACK EnumChildProc(HWND wnd_handle,LPARAM lparam){
 		hideDialog(parent_handle);
 
 		PostThreadMessage(g_post_thread_id,WM_HOOKDIALOG,(WPARAM)wnd_handle,(LPARAM)dialog_type);
-		*((ENUM_CHILD_PARAM*)lparam)->result=true;
+		*(reinterpret_cast<ENUM_CHILD_PARAM*>(lparam)->result)=true;
 
 		return FALSE;
 	}
@@ -139,7 +139,7 @@ bool DLL_EXPORT uninstallPasswordDialogHook(){
 }
 
 //extern "C"必須
-extern "C" BOOL WINAPI DllMain(HINSTANCE instance_handle,DWORD reason,LPVOID reserved){
+extern "C" BOOL WINAPI DllMain(HINSTANCE instance_handle,DWORD reason,LPVOID){
 	switch(reason){
 		case DLL_PROCESS_ATTACH:
 			// attach to process

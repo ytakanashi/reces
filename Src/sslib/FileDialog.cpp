@@ -8,7 +8,7 @@ namespace sslib{
 
 
 //「ファイルを開く」ダイアログ表示[複数選択可能]
-template<class T>bool FileDialog::doModalOpen(T* file_list,HWND wnd_handle,bool multi_select,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name){
+bool FileDialog::doModalOpen(std::list<tstring>* file_list,HWND wnd_handle,bool multi_select,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name){
 	bool result=false;
 	std::vector<TCHAR> file_buffer(50000);
 
@@ -72,8 +72,6 @@ template<class T>bool FileDialog::doModalOpen(T* file_list,HWND wnd_handle,bool 
 	}
 	return result;
 }
-template bool FileDialog::doModalOpen(std::list<tstring>* file_list,HWND wnd_handle,bool multi_select,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name);
-template bool FileDialog::doModalOpen(std::vector<tstring>* file_list,HWND wnd_handle,bool multi_select,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name);
 
 //「ファイルを開く」ダイアログ表示
 bool FileDialog::doModalOpen(tstring* file_path,HWND wnd_handle,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name){

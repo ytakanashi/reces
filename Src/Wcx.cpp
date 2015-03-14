@@ -118,7 +118,7 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 	for(int i=1;!readHeader()&&!IS_TERMINATED;++i){
 		int ret_code=E_BAD_DATA;
 
-		if(!matchFilters(data(),
+		if(!filter::match(data(),
 						 CFG.general.filefilter,
 						 CFG.general.file_ex_filter)){
 			processFile(PK_SKIP);
@@ -231,7 +231,7 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 						}
 					}
 				}else{
-					DirTimeStamp::addIncompleteDir(output_dir,excludeCommonPath(m_arc_info[i].name.c_str(),delimiter_count),&incomplete_dirs);
+					dirtimestamp::addIncompleteDir(output_dir,excludeCommonPath(m_arc_info[i].name.c_str(),delimiter_count),&incomplete_dirs);
 				}
 			}
 			if(created)break;
@@ -269,7 +269,7 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 
 		for(int i=(!incomplete_dirs.empty())?incomplete_dirs.size()-1:-1;i>=0;--i){
 			//配下のファイルやディレクトリを利用してディレクトリのタイムスタンプを復元
-			DirTimeStamp::recover(incomplete_dirs[i].c_str(),arc_ft,recovered_dirs);
+			dirtimestamp::recover(incomplete_dirs[i].c_str(),arc_ft,recovered_dirs);
 		}
 	}
 
@@ -298,7 +298,7 @@ Wcx::ARC_RESULT Wcx::list(const TCHAR* arc_path){
 	for(;!readHeader()&&!IS_TERMINATED;processFile(PK_SKIP)){
 		fileinfo::FILEINFO fileinfo=data();
 
-		if(!matchFilters(fileinfo,
+		if(!filter::match(fileinfo,
 						 CFG.general.filefilter,
 						 CFG.general.file_ex_filter))continue;
 

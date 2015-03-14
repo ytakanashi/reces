@@ -56,8 +56,8 @@ void replaceString(tstring& str,const tstring& search_str,const tstring& replace
 bool matchWildcards(const TCHAR* str,const TCHAR* pattern_string);
 
 //文字列を分割してリスト化
-template<class T>void splitString(T* string_list,const TCHAR* sz,const TCHAR* delimiter);
-template<class T>void splitString(T* string_list,const TCHAR* sz,TCHAR delimiter);
+void splitString(std::list<tstring>* string_list,const TCHAR* sz,const TCHAR* delimiter);
+void splitString(std::list<tstring>* string_list,const TCHAR* sz,TCHAR delimiter);
 
 //SJISをUTF16に変換
 std::wstring sjis2utf16(const std::string& sjis);

@@ -126,6 +126,8 @@
 		<Unit filename="FileInfo.h" />
 		<Unit filename="List.cpp" />
 		<Unit filename="List.h" />
+		<Unit filename="Msg.cpp" />
+		<Unit filename="Msg.h" />
 		<Unit filename="ParseOptions.cpp" />
 		<Unit filename="ParseOptions.h" />
 		<Unit filename="PrivateProfile.cpp" />
@@ -190,8 +192,12 @@
 		<Unit filename="sslib\Path.h" />
 		<Unit filename="sslib\ProgressBar.cpp" />
 		<Unit filename="sslib\ProgressBar.h" />
+		<Unit filename="sslib\SplitFile.cpp" />
+		<Unit filename="sslib\SplitFile.h" />
 		<Unit filename="sslib\String.cpp" />
 		<Unit filename="sslib\String.h" />
+		<Unit filename="sslib\TempFile.cpp" />
+		<Unit filename="sslib\TempFile.h" />
 		<Unit filename="sslib\sslib.h" />
 		<Extensions>
 			<code_completion />

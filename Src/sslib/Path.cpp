@@ -42,7 +42,7 @@ tstring removeLongPathPrefix(const tstring& file_path){
 
 #ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
 //ディレクトリを再帰的に検索してlistに追加
-template<class T>void recursiveSearch(T* path_list,const TCHAR* search_dir,const TCHAR* wildcard,bool include_dir){
+void recursiveSearch(std::list<tstring>* path_list,const TCHAR* search_dir,const TCHAR* wildcard,bool include_dir){
 	if(path_list==NULL)return;
 
 	FileSearch fs;
@@ -59,9 +59,6 @@ template<class T>void recursiveSearch(T* path_list,const TCHAR* search_dir,const
 	}
 	return;
 }
-template void recursiveSearch(std::list<tstring>* path_list,const TCHAR* search_dir,const TCHAR* wildcard,bool include_dir);
-template void recursiveSearch(std::vector<tstring>* path_list,const TCHAR* search_dir,const TCHAR* wildcard,bool include_dir);
-
 #endif
 
 //ファイル名に使えない文字が含まれるかどうか

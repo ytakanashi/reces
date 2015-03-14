@@ -64,6 +64,7 @@ public:
 public:
 	virtual void ctrlCEvent()=0;
 	void addCtrlCEvent(CtrlCEvent* event);
+	void generateCtrlCEvent(){::GenerateConsoleCtrlEvent(CTRL_C_EVENT,0);}
 };
 
 namespace thread{

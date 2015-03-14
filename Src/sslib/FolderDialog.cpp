@@ -31,7 +31,8 @@ LRESULT CALLBACK OpenDialogProc(HWND wnd_handle,UINT msg,WPARAM wparam,LPARAM lp
 	//インスタンスのポインタを取り出す
 	FolderDialog* folder_dialog=reinterpret_cast<FolderDialog*>(::GetWindowLongPtr(wnd_handle,GWLP_USERDATA));
 
-	if(msg==WM_COMMAND&&
+	if(folder_dialog&&
+	   msg==WM_COMMAND&&
 	   HIWORD(wparam)==BN_CLICKED&&
 	   LOWORD(wparam)==IDOK){
 		if(folder_dialog){
@@ -148,7 +149,7 @@ bool FolderDialog::doModalOpen(tstring* file_path,HWND wnd_handle,const TCHAR* f
 		m_ofn_open.lpTemplateName=MAKEINTRESOURCE(m_template_id);
 	}
 
-	result=FileDialog::doModalOpen<std::list<tstring> >(NULL,wnd_handle,false,filter,title,init_dir);
+	result=FileDialog::doModalOpen(NULL,wnd_handle,false,filter,title,init_dir);
 	*file_path=m_dir_path;
 	return result;
 }

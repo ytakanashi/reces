@@ -18,8 +18,9 @@ bool isTerminated(){
 	return ConsoleApp::m_terminated;
 }
 
-void terminateApp(){
+void terminateApp(bool force){
 	ConsoleApp::m_terminated=true;
+	if(force)app()->generateCtrlCEvent();
 }
 
 bool ConsoleApp::init(){

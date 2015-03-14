@@ -1,7 +1,7 @@
 ﻿//recesBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r25 by x@rgs
+//              reces Ver.0.00r26 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -11,8 +11,11 @@
 #define _RECESBASE_H_814BA2FA_E363_4fd0_97FC_32334E1D1C87
 
 #include"ArcCfg.h"
+#include"Msg.h"
 #include"ArcDll.h"
+#ifndef _WIN64
 #include"ArcB2e.h"
+#endif
 #include"Spi.h"
 #include"Wcx.h"
 #include"PrivateProfile.h"
@@ -55,8 +58,10 @@ protected:
 
 	static std::vector<ArcDll*> m_arcdll_list;
 
+#ifndef _WIN64
 	//B2e.dllは特別扱い
 	static ArcB2e* m_b2e_dll;
+#endif
 
 	//対応外のライブラリ(ms/Sでのみ対応)
 	static ArcDll* m_cal_dll;
@@ -98,22 +103,20 @@ protected:
 	//spiやwcxなどプラグインの読み込みと対応チェック
 	template<typename T>Archiver* loadAndCheckPlugin(std::vector<T*>* plugin_list,const TCHAR* arc_path,bool* loaded_library,const tstring& plugin_dir,const TCHAR* libname,Archiver::ARC_TYPE type);
 	//'od'と'of'を反映した作成する書庫のパスを作成
-	ARC_RESULT arcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg);
+	ARC_RESULT updateArcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg);
 	//ファイルのフルパスリストを作成
 	bool fullPathList(std::list<tstring>& list,std::vector<tstring>& filepaths,bool received=true);
 };
 
-const UINT WM_HOOKDIALOG=::RegisterWindowMessage(_T("_WM_HOOKDIALOG_"));
-const UINT WM_CREATE_PROGRESSBAR=::RegisterWindowMessage(_T("WM_CREATE_PROGRESSBAR"));
-const UINT WM_UPDATE_PROGRESSBAR_MAIN=::RegisterWindowMessage(_T("WM_UPDATE_PROGRESSBAR_MAIN"));
-const UINT WM_DESTROY_PROGRESSBAR=::RegisterWindowMessage(_T("WM_DESTROY_PROGRESSBAR"));
+extern const UINT WM_HOOKDIALOG;
+extern const UINT WM_CREATE_PROGRESSBAR;
+extern const UINT WM_UPDATE_PROGRESSBAR_MAIN;
+extern const UINT WM_DESTROY_PROGRESSBAR;
 
 tstring removeTailCharacter(const tstring& str,TCHAR c);
 //拡張子を取得(tar系考慮)、含まれなければ""を返す
 tstring getExtensionEx(const tstring& file_path);
 //拡張子を削除(tar系考慮)
 tstring removeExtensionEx(const tstring& file_path);
-bool info(const TCHAR* msg,...);
-void errmsg(const TCHAR* msg,...);
 
 #endif //_RECESBASE_H_814BA2FA_E363_4fd0_97FC_32334E1D1C87

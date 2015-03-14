@@ -146,6 +146,18 @@
     <ClCompile Include="Settings.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="sslib\SplitFile.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\TempFile.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Msg.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arc7-zip32.h">
@@ -278,6 +290,15 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Settings.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\SplitFile.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\TempFile.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Msg.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

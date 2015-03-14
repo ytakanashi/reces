@@ -1,0 +1,13 @@
+20141101; Version 1.110:
+    Several fixes based on a bug report:
+      1. Added "this->" to compile() in basic_regex::assign().
+      2. Implemented operator=() functions explicitly instead of using 
+         default ones generated automatically.
+    unicode/ucfdataout.cpp revised and updated to version 1.001.
+
+20140622; Version 1.101:
+    Updated srell_ucfdata.hpp to support Unicode 7.0.0.
+
+20121118; Version 1.100:
+	The first released version.
+
