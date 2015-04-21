@@ -2,7 +2,7 @@
 //Xacrett.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -199,7 +199,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
+	msg::info(_T("'%s'を解凍しています...\n\n"),arc_path);
 
 	bool use_password=!CFG.general.password_list.empty();
 
@@ -237,21 +237,16 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 		hook::uninstall();
 	}
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	msg::info(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir_str,'/','\\');
 
-	if(CFG.general.decode_uesc){
-		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
-	}
-
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),true);
 	}
 
 	unload();
@@ -285,15 +280,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::list(const TCHAR* arc_path){
 
 			if(!fileinfo::matchFilters(*fileinfo,CFG.general.filefilter,CFG.general.file_ex_filter))continue;
 
-			str::longlong2SYSTEMTIME(&st,fileinfo->date_time);
-
-			tstring decode_path;
-
-			if(CFG.general.decode_uesc){
-				str::decodeUnicodeEscape(decode_path,fileinfo->name.c_str(),false,'#');
-			}else{
-				decode_path=fileinfo->name;
-			}
+			strex::longlong2SYSTEMTIME(&st,fileinfo->date_time);
 
 			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%04u/%02u/%02u %02u:%02u:%02u %s%s%s%s %12I64d %s\n"),
 										 st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond,
@@ -302,7 +289,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::list(const TCHAR* arc_path){
 										 (fileinfo->attr&FILE_ATTRIBUTE_HIDDEN)?_T("H"):_T("."),
 										 (fileinfo->attr&FILE_ATTRIBUTE_SYSTEM)?_T("S"):_T("."),
 										 fileinfo->size,
-										 decode_path.c_str());
+										 fileinfo->name.c_str());
 		}while(!IS_TERMINATED&&fs.next());
 	}
 	closeArchive();

@@ -33,9 +33,9 @@ public:
 		return ListView_SetItem(handle(),item)!=0;
 	}
 
-	DWORD_PTR getItemData(int index=-1)const;
+	LPARAM getItemData(int index=-1)const;
 
-	bool setItemData(DWORD_PTR data,int index=-1)const;
+	bool setItemData(LPARAM data,int index=-1)const;
 
 	inline int getNextItem(int start=-1,UINT flags=LVNI_ALL|LVNI_SELECTED)const{
 		return ListView_GetNextItem(handle(),start,flags);
@@ -57,6 +57,10 @@ public:
 
 	inline void selectAll()const{
 		setItemState(-1);
+	}
+
+	inline bool clear()const{
+		return !!ListView_DeleteAllItems(handle());
 	}
 
 	inline DWORD getExtendedListViewStyle()const{

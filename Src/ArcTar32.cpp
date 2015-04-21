@@ -2,7 +2,7 @@
 //Tar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -273,7 +273,7 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'に圧縮しています...\n\n"),arc_path);
+	msg::info(_T("'%s'に圧縮しています...\n\n"),arc_path);
 
 
 	//実行
@@ -369,7 +369,7 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
+	msg::info(_T("'%s'を解凍しています...\n\n"),arc_path);
 
 	//実行
 	int dll_ret=-1;
@@ -389,15 +389,10 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir_str,'/','\\');
 
-	if(CFG.general.decode_uesc){
-		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
-	}
-
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),true);
 	}
 
 	unload();
@@ -416,7 +411,7 @@ ArcTar32::ARC_RESULT ArcTar32::list(const TCHAR* arc_path){
 	replaceDelimiter(arc_path_str);
 
 	if(CFG.output_file_list.api_mode){
-		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,(CFG.general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
+		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter);
 	}else{
 		tstring cmd_line(format(_T("%s %s %s %s"),
 										  _T("-l"),

@@ -196,6 +196,8 @@
 		<Unit filename="sslib\SplitFile.h" />
 		<Unit filename="sslib\String.cpp" />
 		<Unit filename="sslib\String.h" />
+		<Unit filename="sslib\StringEx.cpp" />
+		<Unit filename="sslib\StringEx.h" />
 		<Unit filename="sslib\TempFile.cpp" />
 		<Unit filename="sslib\TempFile.h" />
 		<Unit filename="sslib\sslib.h" />

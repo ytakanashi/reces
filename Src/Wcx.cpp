@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -12,6 +12,7 @@
 #include"StdAfx.h"
 #include"Wcx.h"
 #include"ArcCfg.h"
+#include"Msg.h"
 
 #include<iterator>
 
@@ -113,7 +114,9 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 	}
 
 	result=ARC_SUCCESS;
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
+	msg::info(_T("'%s'を解凍しています...\n\n"),arc_path);
+
+	long now=0,last=0;
 
 	for(int i=1;!readHeader()&&!IS_TERMINATED;++i){
 		int ret_code=E_BAD_DATA;
@@ -127,12 +130,6 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 
 		tstring file_path(m_header_data->filename());
 		tstring file_name(path::getFileName(m_header_data->filename()));
-
-		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		if(CFG.general.decode_uesc){
-			str::decodeUnicodeEscape(file_path,file_path.c_str(),false,'#');
-			str::decodeUnicodeEscape(file_name,file_name.c_str(),false,'#');
-		}
 
 		if(!CFG.general.ignore_directory_structures){
 			if(m_header_data->attr()&FILE_ATTRIBUTE_DIRECTORY){
@@ -148,9 +145,14 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 		}
 
 		if(m_progress_thread_id){
-			ARC_PROCESSING_INFO wcx_processing_info(i,file_count,file_path);
+			SYSTEMTIME st={};
+			::GetSystemTime(&st);
+			now=st.wSecond*1000+st.wMilliseconds;
+			if(now-last>100){
+				ARC_PROCESSING_INFO wcx_processing_info(i,file_count,file_path);
 
-			misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,reinterpret_cast<void*>(&wcx_processing_info));
+				misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,reinterpret_cast<void*>(&wcx_processing_info));
+			}
 		}
 
 		tstring err_msg;
@@ -211,17 +213,12 @@ Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 					if(m_arc_info[i].date_time){
 						FILETIME tmp={},ft={};
 
-						tmp=str::lltoft(m_arc_info[i].date_time);
+						tmp=strex::lltoft(m_arc_info[i].date_time);
 						//UTCに変換
 						if(::LocalFileTimeToFileTime(&tmp,&ft)){
 							tstring cur_path(output_dir+excludeCommonPath(m_arc_info[i].name.c_str(),delimiter_count));
 
 							if(path::removeTailSlash(cur_path)==path::removeTailSlash(output_dir))continue;
-
-							if(CFG.general.decode_uesc){
-								//Unicodeエスケープがあれば変換
-								str::decodeUnicodeEscape(cur_path,cur_path.c_str(),false,'#');
-							}
 
 							File dest(cur_path.c_str());
 
@@ -304,7 +301,7 @@ Wcx::ARC_RESULT Wcx::list(const TCHAR* arc_path){
 
 		if(!CFG.output_file_list.api_mode){
 			if(fileinfo.date_time){
-				FILETIME ft=str::lltoft(fileinfo.date_time);
+				FILETIME ft=strex::lltoft(fileinfo.date_time);
 				SYSTEMTIME st;
 
 				if(!::FileTimeToSystemTime(&ft,&st))continue;
@@ -315,21 +312,11 @@ Wcx::ARC_RESULT Wcx::list(const TCHAR* arc_path){
 
 			tstring file_path(m_header_data->filename());
 
-			if(CFG.general.decode_uesc){
-				//Unicodeエスケープをデコード
-				str::decodeUnicodeEscape(file_path,file_path.c_str(),false,'#');
-			}
-
 			STDOUT.outputString(_T("%19I64d %s\n"),
 								  m_header_data->filesize(),
 								  file_path.c_str());
 		}else{
 			tstring file_path(m_header_data->filename());
-
-			if(CFG.general.decode_uesc){
-				//Unicodeエスケープをデコード
-				str::decodeUnicodeEscape(file_path,file_path.c_str(),false,'#');
-			}
 
 			if(m_header_data->attr()&FILE_ATTRIBUTE_DIRECTORY){
 				//ディレクトリ
@@ -469,7 +456,7 @@ fileinfo::FILEINFO Wcx::data(){
 	return fileinfo::FILEINFO(m_header_data->filename(),
 							  m_header_data->filesize(),
 							  m_header_data->attr(),
-							  (!err_ts)?str::fttoll(ft):-1);
+							  (!err_ts)?strex::fttoll(ft):-1);
 }
 
 //書庫内のすべてのファイルの情報を取得

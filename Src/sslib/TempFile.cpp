@@ -9,7 +9,7 @@
 namespace sslib{
 namespace tempfile{
 
-#ifdef _FILEOPERATION_H_883BE0AE_F9BD_4775_B57F_1795453033CD
+#ifndef DISABLE_FILEO_PERATION
 
 //一意の名前を持つディレクトリ名を取得
 tstring generateDirName(const TCHAR* prefix,const TCHAR* base_dir){

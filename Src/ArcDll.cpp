@@ -2,7 +2,7 @@
 //統合アーカイバDll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -21,6 +21,7 @@ using namespace sslib;
 namespace callback{
 namespace{
 ArcDll* ptr=NULL;
+long now=0,last=0;
 }
 }
 
@@ -261,41 +262,34 @@ bool ArcDll::configurationDialog(HWND wnd_handle){
 }
 
 bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info){
-	if(IS_TERMINATED){return false;}
-	if(!info||m_disable_callback)return true;
-#if 0
-	switch(m_extracting_info_struct_size){
-		case sizeof(EXTRACTINGINFOEX64):
-			if(((LPEXTRACTINGINFOEX64)info)->llFileSize<0||
-			   ((LPEXTRACTINGINFOEX64)info)->llWriteSize<0)return true;
-			break;
-		case sizeof(EXTRACTINGINFOEX):
-			if(!((LPEXTRACTINGINFOEX)info)->exinfo.dwFileSize||
-			   !((LPEXTRACTINGINFOEX)info)->exinfo.dwWriteSize)return true;
-			break;
-	}
-#endif
-
-	//ファイル処理情報を格納
-	if(!CFG.no_display.no_information){
-		setExtractingInfo(state,info);
-		if(m_processing_info.file_name.empty())return true;
-	}else{
-		//ライブラリから受け取った書庫処理状況の情報をそのまま利用する
-//		ArcDll::setExtractingInfo(state,info);
-	}
-
 	if(IS_TERMINATED)return false;
+	if(!info||m_disable_callback)return true;
 
-	//通知
-	if(!IS_TERMINATED){
-		if(m_progress_thread_id){
-			misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,&m_processing_info,reinterpret_cast<void*>(state));
+	SYSTEMTIME st={};
+	::GetSystemTime(&st);
+	callback::now=st.wSecond*1000+st.wMilliseconds;
+	if(callback::now-callback::last>100){
+		callback::last=callback::now;
+
+		//ファイル処理情報を格納
+		if(!CFG.no_display.no_information){
+			setExtractingInfo(state,info);
+			if(m_processing_info.file_name.empty())return true;
 		}
-		return true;
-	}else{
-		return false;
+
+		if(IS_TERMINATED)return false;
+
+		//通知
+		if(!IS_TERMINATED){
+			if(m_progress_thread_id){
+				misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,&m_processing_info,NULL/*reinterpret_cast<void*>(state)*/);
+			}
+			return true;
+		}else{
+			return false;
+		}
 	}
+	return !IS_TERMINATED;
 }
 
 namespace callback{
@@ -317,6 +311,7 @@ bool ArcDll::setArchiveProc(){
 
 	if(result){
 		callback::ptr=this;
+		callback::now=callback::last=0;
 	}
 
 	return result;
@@ -346,6 +341,7 @@ void ArcDll::clearCallback(){
 				break;
 		}
 		callback::ptr=NULL;
+		callback::now=callback::last=0;
 		m_extracting_info_struct_size=0;
 		m_progress_thread_id=0;
 	}
@@ -410,17 +406,11 @@ void ArcDll::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const f
 //リストファイルにファイルリストを出力
 void ArcDll::outputFileListToFile(const fileinfo::FILEINFO& fileinfo,int opt,File* list_file){
 	if(list_file==NULL)return;
-	tstring file_path(fileinfo.name);
-
-	if(opt&DECODE_UNICODE_ESCAPE){
-		//Unicodeエスケープをデコード
-		str::decodeUnicodeEscape(file_path,file_path.c_str(),false,'#');
-	}
 
 	if(str::containsWhiteSpace(fileinfo.name.c_str())){
-		list_file->writeEx(_T("\"%s\"\r\n"),file_path.c_str());
+		list_file->writeEx(_T("\"%s\"\r\n"),fileinfo.name.c_str());
 	}else{
-		list_file->writeEx(_T("%s\r\n"),file_path.c_str());
+		list_file->writeEx(_T("%s\r\n"),fileinfo.name.c_str());
 	}
 }
 
@@ -442,14 +432,7 @@ bool ArcDll::outputFileListToConsole(const fileinfo::FILEINFO& fileinfo,int opt)
 		foreground=Console::LOW_YELLOW;
 	}
 
-	tstring file_path(fileinfo.name);
-
-	if(opt&DECODE_UNICODE_ESCAPE){
-		//Unicodeエスケープをデコード
-		str::decodeUnicodeEscape(file_path,file_path.c_str(),false,'#');
-	}
-
-	STDOUT.outputString(foreground,Console::NONE,_T("%s\n"),file_path.c_str());
+	STDOUT.outputString(foreground,Console::NONE,_T("%s\n"),fileinfo.name.c_str());
 	return true;
 }
 
@@ -595,33 +578,28 @@ bool ArcDll::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool che
 }
 
 //ディレクトリのタイムスタンプを復元
-bool ArcDllUtil::recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* output_dir_orig,bool decode_uesc,bool no_arc_list){
+bool ArcDllUtil::recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* output_dir_orig,bool no_arc_list){
 	if(m_arcdll_ptr==NULL||arc_path==NULL||output_dir_orig==NULL)return false;
 
-	struct l{
-		static bool recover(const fileinfo::FILEINFO& fileinfo,const TCHAR* output_dir,bool decode_uesc){
+	INNER_FUNC(recover,
+		bool operator()(const fileinfo::FILEINFO& fileinfo,const TCHAR* output_dir){
 			if(!(fileinfo.attr&FILE_ATTRIBUTE_DIRECTORY))return false;
 
 			FILETIME ft={0};
 			SYSTEMTIME st={0};
 
-			str::longlong2SYSTEMTIME(&st,fileinfo.date_time);
+			strex::longlong2SYSTEMTIME(&st,fileinfo.date_time);
 
 			if(!::SystemTimeToFileTime(&st,&ft))return false;
 
 			tstring decoded_path(path::addTailSlash(output_dir));
 			decoded_path+=path::removeTailSlash(fileinfo.name);
 
-			if(decode_uesc){
-				//Unicodeエスケープがあれば変換
-				str::decodeUnicodeEscape(decoded_path,decoded_path.c_str(),false,'#');
-			}
-
 			File dir=File(decoded_path.c_str());
 			dir.setFileTime(&ft);
 			return true;
 		}
-	};
+	);
 
 	tstring output_dir(path::addTailSlash(output_dir_orig));
 
@@ -634,7 +612,7 @@ bool ArcDllUtil::recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* ou
 			ite!=end;
 			++ite){
 			if(ite->attr==FILE_ATTRIBUTE_DIRECTORY){
-				if(l::recover(*ite,output_dir.c_str(),decode_uesc)){
+				if(recover(*ite,output_dir.c_str())){
 					recovered_dirs.push_back(output_dir+path::removeTailSlash(ite->name));
 				}
 			}else{
@@ -656,7 +634,7 @@ bool ArcDllUtil::recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* ou
 				}
 
 				if(fileinfo->attr==FILE_ATTRIBUTE_DIRECTORY){
-					if(l::recover(*fileinfo,output_dir.c_str(),decode_uesc)){
+					if(recover(*fileinfo,output_dir.c_str())){
 						recovered_dirs.push_back(output_dir+path::removeTailSlash(fileinfo->name));
 					}
 				}else{
@@ -698,55 +676,6 @@ bool ArcDllUtil::recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* ou
 	return true;
 }
 
-//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-bool ArcDllUtil::decodeUnicodeEscape(const TCHAR* arc_path,const TCHAR* output_dir,bool ignore_directory_structures,bool no_arc_list){
-	if(m_arcdll_ptr==NULL||arc_path==NULL||output_dir==NULL)return false;
-
-	struct l{
-		static bool rename(const TCHAR* file_name,const TCHAR* output_dir){
-			tstring cur_path(path::addTailSlash(output_dir)+=file_name);
-			tstring decode_path;
-
-			return str::decodeUnicodeEscape(decode_path,cur_path.c_str(),false,'#')&&
-				::fileoperation::renameFile(cur_path.c_str(),decode_path.c_str());
-		}
-	};
-
-	if(m_arcdll_ptr->m_arc_info.isCreated(arc_path)){
-		for(std::vector<fileinfo::FILEINFO>::iterator ite=m_arcdll_ptr->m_arc_info.file_list.begin(),
-			end=m_arcdll_ptr->m_arc_info.file_list.end();
-			ite!=end;
-			++ite){
-			l::rename(((!ignore_directory_structures)?
-					   ite->name.c_str():
-					   path::getFileName(ite->name).c_str()),
-					  output_dir);
-		}
-	}else{
-		if(!m_arcdll_ptr->open(arc_path))return false;
-
-		ArcFileSearch fs(m_arcdll_ptr);
-
-		if(fs.first()){
-			do{
-				fileinfo::FILEINFO* fileinfo=fs.getFileInfo();
-
-				if(!no_arc_list){
-					m_arcdll_ptr->m_arc_info.original_size+=fileinfo->size;
-					m_arcdll_ptr->m_arc_info.file_list.push_back(*fileinfo);
-				}
-
-				l::rename(((!ignore_directory_structures)?
-						   fs.getFileInfo()->name.c_str():
-						   path::getFileName(fs.getFileInfo()->name).c_str()),
-						  output_dir);
-			}while(!IS_TERMINATED&&fs.next());
-		}
-		m_arcdll_ptr->closeArchive();
-	}
-	return true;
-}
-
 //共通パスを取り除く
 //解凍レンジ「パス情報を最適化して展開する」相当
 //level=-1で共通パスをすべて取り除く
@@ -755,8 +684,8 @@ bool ArcDllUtil::excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_d
 
 	static const int m_level=level;
 
-	struct l{
-		static bool search(tstring* result,const TCHAR* dir,int cur_level){
+	INNER_FUNC(search,
+		bool operator()(tstring* result,const TCHAR* dir,int cur_level){
 			if(result==NULL||(m_level!=-1&&m_level<=cur_level))return false;
 			FileSearch fs;
 
@@ -768,7 +697,7 @@ bool ArcDllUtil::excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_d
 
 				if(!fs.next()){
 					if(dir_attr){
-						if(!search(result,filename.c_str(),++cur_level)){
+						if(!operator()(result,filename.c_str(),++cur_level)){
 							*result=filename;
 						}
 						return true;
@@ -777,12 +706,12 @@ bool ArcDllUtil::excludeCommonPath(const TCHAR* output_dir,const TCHAR* target_d
 			}
 			return false;
 		}
-	};
+	);
 
 	tstring common_dir(target_dir);
 	int cur_level=0;
 
-	l::search(&common_dir,target_dir,cur_level);
+	search(&common_dir,target_dir,cur_level);
 
 	fileoperation::moveDirToDir(common_dir.c_str(),output_dir);
 

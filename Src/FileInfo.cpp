@@ -2,7 +2,7 @@
 //ファイル情報の操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -86,7 +86,7 @@ bool getFileInfo(FILEINFO* fileinfo,const TCHAR* file_path_orig){
 
 		::LocalFileTimeToFileTime(&(file_data.ftLastWriteTime),&ft);
 		::FileTimeToSystemTime(&ft,&st);
-		fileinfo->date_time=str::SYSTEMTIME2longlong(st);
+		fileinfo->date_time=strex::SYSTEMTIME2longlong(st);
 
 		fileinfo->name=path::removeLongPathPrefix(file_path);
 
@@ -110,7 +110,7 @@ bool getFileInfo(FILEINFO* fileinfo,const WIN32_FIND_DATA& file_data,const TCHAR
 
 		::LocalFileTimeToFileTime(&(file_data.ftLastWriteTime),&ft);
 		::FileTimeToSystemTime(&ft,&st);
-		fileinfo->date_time=str::SYSTEMTIME2longlong(st);
+		fileinfo->date_time=strex::SYSTEMTIME2longlong(st);
 
 		fileinfo->name=file_path;
 

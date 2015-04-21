@@ -164,7 +164,13 @@ CommandArgument::CommandArgument(DWORD opt):
 		}
 
 		//標準入力をコンソールに戻す(キーボードからの入力を可能にする)
-		_tfreopen(_T("CON"),_T("r"),stdin);
+#ifdef _tfreopen_s
+		FILE*dummy;
+		_tfreopen_s(&dummy,
+#else
+		_tfreopen(
+#endif
+			_T("CON"),_T("r"),stdin);
 	}
 }
 

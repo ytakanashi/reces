@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.39
+//                  sslib ver.1.40
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -43,21 +43,41 @@ template<typename T>bool strvalid(T str){
 	#define dprintf(...)
 #endif
 
-#include"Misc.h"
+#ifndef DISABLE_MISC
+	#include"Misc.h"
+#endif
 
-#include"FormatString.h"
+#ifndef DISABLE_FORMAT_STRING
+	#include"FormatString.h"
+#endif
 
-#include"String.h"
+#ifndef DISABLE_STRING
+	#include"String.h"
+#endif
 
-#include"Path.h"
+#ifndef DISABLE_STRING_EX
+	#include"StringEx.h"
+#endif
 
-#include"Console.h"
+#ifndef DISABLE_PATH
+	#include"Path.h"
+#endif
 
-#include"Dialog.h"
+#ifndef DISABLE_CONSLE
+	#include"Console.h"
+#endif
 
-#include"CommandArgument.h"
+#ifndef DISABLE_DIALOG
+	#include"Dialog.h"
+#endif
 
-#include"Window.h"
+#ifndef DISABLE_COMMAND_ARGUMENT
+	#include"CommandArgument.h"
+#endif
+
+#ifndef DISABLE_WINDOW
+	#include"Window.h"
+#endif
 
 #ifndef SSLIB_GUI
 	#ifndef SSLIB_GUI_DIALOG
@@ -69,6 +89,10 @@ template<typename T>bool strvalid(T str){
 	#include"WindowApp.h"
 #endif
 extern void createInstance();
+#define MAIN_INSTANCE(class_name)\
+	void createInstance(){\
+		new class_name;\
+	}\
 
 #if !defined(SSLIB_GUI)&&!defined(SSLIB_GUI_DIALOG)
 	#define IS_TERMINATED isTerminated()
@@ -76,40 +100,85 @@ extern void createInstance();
 	#define IS_TERMINATED false
 #endif
 
-#include"ProgressBar.h"
+#ifndef DISABLE_PROGRESS_BAR
+	#include"ProgressBar.h"
+#endif
 
-#include"File.h"
+#ifndef DISABLE_FILE
+	#include"File.h"
+#endif
 
-#include"Library.h"
+#ifndef DISABLE_LIBRARY
+	#include"Library.h"
+#endif
 
-#include"CfgFile.h"
+#ifndef DISABLE_CFG_FILE
+	#include"CfgFile.h"
+#endif
 
-#include"FileDialog.h"
-#include"FolderDialog.h"
+#ifndef DISABLE_FILE_DIALOG
+	#include"FileDialog.h"
+#endif
+#ifndef DISABLE_FOLDER_DIALOG
+	#include"FolderDialog.h"
+#endif
 
-#include"FileSearch.h"
+#ifndef DISABLE_FILE_SEARCH
+	#include"FileSearch.h"
+#endif
 
-#include"FileOperation.h"
+#ifndef DISABLE_FILE_OPERATION
+	#include"FileOperation.h"
+#endif
 
-#include"SplitFile.h"
+#ifndef DISABLE_SPLIT_FILE
+	#include"SplitFile.h"
+#endif
 
-#include"TempFile.h"
+#ifndef DISABLE_TEMP_FILE
+	#include"TempFile.h"
+#endif
 
-#include"EnvironmentVariable.h"
+#ifndef DISABLE_ENVIRONMENTAL_VARIABLE
+	#include"EnvironmentVariable.h"
+#endif
 
-#include"ApiHook.h"
+#ifndef DISABLE_API_HOOK
+	#include"ApiHook.h"
+#endif
 
 
 //GUI
 #if defined(SSLIB_GUI)||defined(SSLIB_GUI_DIALOG)
-#include"gui/DropFiles.h"
-#include"gui/Control.h"
-#include"gui/CtrlAHook.h"
-#include"gui/Menu.h"
-#include"gui/Tab.h"
-#include"gui/ListView.h"
+#ifndef DISABLE_COMMON_CONTROLS_EX
+	#include"gui/CommonControlsEx.h"
+#endif
+#ifndef DISABLE_DROPFILES
+	#include"gui/DropFiles.h"
+#endif
+#ifndef DISABLE_CONTROL
+	#include"gui/Control.h"
+#endif
+#ifndef DISABLE_CTRL_A_HOOK
+	#include"gui/CtrlAHook.h"
+#endif
+#ifndef DISABLE_MENU
+	#include"gui/Menu.h"
+#endif
+#ifndef DISABLE_TAB
+	#include"gui/Tab.h"
+#endif
+#ifndef DISABLE_LIST_VIEW
+	#include"gui/ListView.h"
+#endif
 #endif
 
+
+//Ver.1.41(150421)
+//reces Ver.0.00r27aで使用
+
+//Ver.1.40(150320)
+//TimeStamp Keeper Ver.1.00で使用
 
 //Ver.1.39(150314)
 //reces Ver.0.00r26/gui4reces Ver.0.0.1.3で使用
@@ -142,7 +211,7 @@ extern void createInstance();
 //reces Ver.0.00r18で使用
 
 //Ver.1.26(140208)
-//reces Ver.0.00r17差し替え版で使用
+//reces Ver.0.00r17差し替え版/u2s Ver.1.00で使用
 
 //Ver.1.25(140207)
 //reces Ver.0.00r17で使用

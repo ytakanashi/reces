@@ -2,7 +2,7 @@
 //recesベース
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -215,14 +215,17 @@ RecesBase::ARC_RESULT RecesBase::updateArcFileName(CUR_FILE* new_cur_file,const 
 
 //m_arcdll_list読み込み
 void RecesBase::loadArcLib(){
-	struct l{
-		static bool loadUnBypass(ArcDll* list){
+#ifdef _WIN64
+	INNER_FUNC(loadUnBypass,
+		bool operator()(ArcDll* list){
 			if(!list->isLoaded()){
 				return list->load(_T("UNBYPASS"),list->prefix().c_str());
 			}
 			return false;
 		}
-	};
+	);
+#endif
+
 	if(m_arcdll_list.size()!=0
 #ifndef _WIN64
 	   ||m_b2e_dll!=NULL
@@ -231,7 +234,7 @@ void RecesBase::loadArcLib(){
 
 	m_arcdll_list.push_back(new ArcUnlha32());
 #ifdef _WIN64
-	l::loadUnBypass(m_arcdll_list.back());
+	loadUnBypass(m_arcdll_list.back());
 #endif
 
 	m_arcdll_list.push_back(new ArcUnrar32());

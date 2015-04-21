@@ -2,7 +2,7 @@
 //情報の表示
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -50,6 +50,23 @@ void err(const TCHAR* msg,...){
 
 	//文字色を元に戻す
 	std_err_handle.resetColors();
+	return;
+}
+
+void lasterr(){
+	void* msg_buffer=NULL;
+
+	::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
+					FORMAT_MESSAGE_FROM_SYSTEM,
+					NULL,
+					::GetLastError(),
+					MAKELANGID(LANG_NEUTRAL,SUBLANG_SYS_DEFAULT),
+					static_cast<TCHAR*>(msg_buffer),
+					0,
+					NULL
+					);
+	if(msg_buffer!=NULL)err(_T("%s\n"),static_cast<TCHAR*>(msg_buffer));
+	::LocalFree(msg_buffer);
 	return;
 }
 

@@ -14,7 +14,7 @@ const long split_buffer_size=(1<<20)*5;
 const long split_max_part=999+26*26*26;
 
 
-#ifdef _FILE_H_698018EF_AC41_48e5_9B7B_7AF556131869
+#ifndef DISABLE_FILE
 //ファイルを分割する(分割サイズまたは分割数指定による)
 //分割サイズは1024b、10k、100mの様に指定(10kb、100mbでも可)
 //分割数は6,12の様に単位を付加せず指定すること
@@ -37,7 +37,7 @@ split::RESULT splitFile(const TCHAR* file_name,const TCHAR* param,const TCHAR* o
 	//分割数指定
 	by_count=isdigit(param[lstrlen(param)-1])!=0;
 
-	((!by_count)?split_size:chunks)=str::filesize2longlong(param);
+	((!by_count)?split_size:chunks)=strex::filesize2longlong(param);
 
 	if((!by_count&&split_size<1)||
 	   (by_count&&chunks<2)){
@@ -163,7 +163,7 @@ bool isSplitFile(const TCHAR* file_name,int* p_digit){
 	return result;
 }
 
-#ifdef _FILE_H_698018EF_AC41_48e5_9B7B_7AF556131869
+#ifndef DISABLE_FILE
 //ファイルを結合する
 join::RESULT joinFile(const TCHAR* file_name,const TCHAR* output_dir){
 	int digit=0;
@@ -244,7 +244,7 @@ bool makeSplitFileList(std::list<tstring>* file_list,const TCHAR* file_name){
 	return result;
 }
 
-#ifdef _FILEOPERATION_H_883BE0AE_F9BD_4775_B57F_1795453033CD
+#ifndef DISABLE_FILEO_PERATION
 //分割ファイルを削除
 bool removeSplitFile(const TCHAR* file_name,bool recycle_bin){
 	std::list<tstring> file_list;

@@ -2,7 +2,7 @@
 //圧縮
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -137,19 +137,7 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 		m_arc_dll->clearCallback();
 
 		if(!result){
-			void* msg_buffer=NULL;
-
-			::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-							FORMAT_MESSAGE_FROM_SYSTEM,
-							NULL,
-							::GetLastError(),
-							MAKELANGID(LANG_NEUTRAL,SUBLANG_SYS_DEFAULT),
-							static_cast<TCHAR*>(msg_buffer),
-							0,
-							NULL
-							);
-			if(msg_buffer!=NULL)msg::err(_T("%s\n"),static_cast<TCHAR*>(msg_buffer));
-			::LocalFree(msg_buffer);
+			msg::lasterr();
 		}
 
 		if(!CFG.no_display.no_log){

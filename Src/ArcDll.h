@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -12,6 +12,7 @@
 
 #include"ArcDllBase.h"
 #include"FileInfo.h"
+#include"Msg.h"
 
 
 namespace callback{
@@ -127,8 +128,7 @@ protected:
 	virtual void applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,bool reverse=false);
 
 	enum OUTPUTFILELIST_OPT{
-		DECODE_UNICODE_ESCAPE=1<<0,
-		REVERSE_FILTER=1<<1
+		REVERSE_FILTER=1<<0
 	};
 
 	//リストファイルにファイルリストを出力
@@ -256,7 +256,7 @@ public:
 		::DosDateTimeToFileTime(m_individual_info.wDate,m_individual_info.wTime,&ft1);
 		::LocalFileTimeToFileTime(&ft1,&ft2);
 		::FileTimeToSystemTime(&ft2,&st);
-		m_fileinfo.date_time=sslib::str::SYSTEMTIME2longlong(st);
+		m_fileinfo.date_time=sslib::strex::SYSTEMTIME2longlong(st);
 
 		//ファイル名
 		tstring buffer(1024,'\0');
@@ -295,9 +295,7 @@ private:
 	ArcDll* m_arcdll_ptr;
 public:
 	//ディレクトリのタイムスタンプを復元
-	bool recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* output_dir_orig,bool decode_uesc=false,bool no_arc_list=false);
-	//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-	bool decodeUnicodeEscape(const TCHAR* arc_path,const TCHAR* output_dir,bool ignore_directory_structures=false,bool no_arc_list=false);
+	bool recoverDirectoryTimestamp(const TCHAR* arc_path,const TCHAR* output_dir_orig,bool no_arc_list=false);
 	//共通パスを取り除く
 	//解凍レンジ「パス情報を最適化して展開する」相当
 	//level=-1で共通パスをすべて取り除く

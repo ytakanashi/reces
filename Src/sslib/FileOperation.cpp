@@ -194,7 +194,7 @@ bool removeFileSH(const TCHAR* file_path_orig){
 		fop.fAnyOperationsAborted==0;
 }
 
-#ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
+#ifndef DISABLE_FILE_SEARCH
 //ファイルやディレクトリを削除
 bool removeFile(const TCHAR* file_path_orig){
 	if(!path::fileExists(file_path_orig))return false;
@@ -258,7 +258,7 @@ void moveDirToDir(const TCHAR* src_path_orig,const TCHAR* dest_path_orig){
 	}
 }
 
-#ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
+#ifndef DISABLE_FILE_SEARCH
 //ディレクトリを削除
 void deleteDirectory(const TCHAR* dir_path_orig){
 	tstring dir_path(path::removeTailSlash(dir_path_orig));
@@ -293,7 +293,7 @@ void deleteDirectory(const TCHAR* dir_path_orig){
 }
 #endif
 
-#ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
+#ifndef DISABLE_FILE_SEARCH
 //ディレクトリ内のファイルやディレクトリを削除(指定されたディレクトリ自身は削除しない)
 void deleteContents(const TCHAR* dir_path){
 	FileSearch fs;
@@ -346,7 +346,7 @@ bool getFileVersion(const TCHAR* file_path,DWORD* major_ver,DWORD* minor_ver){
 	return result;
 }
 
-#ifdef _FILE_H_698018EF_AC41_48e5_9B7B_7AF556131869
+#ifndef DISABLE_FILE
 //ファイルのサイズを取得
 long long getFileSize(const TCHAR* file_path){
 	if(path::isDirectory(file_path))return getDirectorySize(file_path);
@@ -356,7 +356,7 @@ long long getFileSize(const TCHAR* file_path){
 }
 #endif
 
-#ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
+#ifndef DISABLE_FILE_SEARCH
 //ディレクトリのサイズを取得
 long long getDirectorySize(const TCHAR* dir_path){
 	FileSearch fs;
@@ -375,7 +375,7 @@ long long getDirectorySize(const TCHAR* dir_path){
 }
 #endif
 
-#ifdef _FILE_H_698018EF_AC41_48e5_9B7B_7AF556131869
+#ifndef DISABLE_FILE
 //リソースからファイルを取り出す
 bool extractFromResource(const HINSTANCE instance_handle,const WORD id,const TCHAR*type,const TCHAR* file_name){
 	HRSRC info=::FindResource(instance_handle,MAKEINTRESOURCE(id),type);

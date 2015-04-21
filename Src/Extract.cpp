@@ -2,7 +2,7 @@
 //解凍
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -83,6 +83,10 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 	{
 		bool loaded_library=false;
 
+		tstring current_dir(path::getCurrentDirectory());
+
+		::SetCurrentDirectory(m_original_cur_dir.c_str());
+
 		if(!CFG.general.selected_library_name.empty()){
 			//ライブラリが指定されている場合
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
@@ -142,6 +146,8 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 									   &loaded_library);
 			}
 		}
+
+		::SetCurrentDirectory(current_dir.c_str());
 
 		if(!m_arc_dll){
 			if(ARCCFG->m_password_input_cancelled){
@@ -249,8 +255,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 		   !CFG.general.ignore_directory_structures&&
 		   CFG.general.custom_param.empty()&&
 		   CFG.compress.exclude_base_dir==0&&
-		   !CFG.extract.create_dir&&
-		   !CFG.general.decode_uesc){
+		   !CFG.extract.create_dir){
 			//可能であれば解凍->圧縮ではなく、ライブラリの削除コマンドを使用して処理
 
 			tstring current_mhd=static_cast<ArcDll*>(m_arc_dll)->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str());
@@ -442,19 +447,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 		}
 
 		if(!result){
-			void* msg_buffer=NULL;
-
-			::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-							FORMAT_MESSAGE_FROM_SYSTEM,
-							NULL,
-							::GetLastError(),
-							MAKELANGID(LANG_NEUTRAL,SUBLANG_SYS_DEFAULT),
-							static_cast<TCHAR*>(msg_buffer),
-							0,
-							NULL
-							);
-			if(msg_buffer!=NULL)msg::err(_T("%s\n"),static_cast<TCHAR*>(msg_buffer));
-			::LocalFree(msg_buffer);
+			msg::lasterr();
 		}
 
 		if(!CFG.no_display.no_log){

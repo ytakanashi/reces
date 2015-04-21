@@ -1,7 +1,7 @@
 ﻿//Msg.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -15,6 +15,7 @@ namespace msg{
 
 bool info(const TCHAR* msg,...);
 void err(const TCHAR* msg,...);
+void lasterr();
 
 //namespace msg
 }

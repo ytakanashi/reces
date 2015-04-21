@@ -40,7 +40,7 @@ tstring removeLongPathPrefix(const tstring& file_path){
 	}
 }
 
-#ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
+#ifndef DISABLE_FILE_SEARCH
 //ディレクトリを再帰的に検索してlistに追加
 void recursiveSearch(std::list<tstring>* path_list,const TCHAR* search_dir,const TCHAR* wildcard,bool include_dir){
 	if(path_list==NULL)return;
@@ -477,7 +477,7 @@ bool fileExists(const TCHAR* file_path){
 	return file_path&&(::GetFileAttributes(addLongPathPrefix(file_path).c_str())!=0xffffffff);
 }
 
-#ifdef _FILESEARCH_H_5AFE0001_7E75_4496_A177_D666A6867AD3
+#ifndef DISABLE_FILE_SEARCH
 //空のディレクトリである
 bool isEmptyDirectory(const TCHAR* dir_path){
 

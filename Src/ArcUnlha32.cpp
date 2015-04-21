@@ -2,7 +2,7 @@
 //Unlha32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -148,7 +148,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstr
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'に圧縮しています...\n\n"),arc_path);
+	msg::info(_T("'%s'に圧縮しています...\n\n"),arc_path);
 
 
 	//実行
@@ -166,7 +166,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstr
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	msg::info(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	unload();
 
@@ -247,7 +247,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
+	msg::info(_T("'%s'を解凍しています...\n\n"),arc_path);
 
 	//実行
 	int dll_ret=-1;
@@ -264,20 +264,15 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::extract(const TCHAR* arc_path,const TCHAR* ou
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	msg::info(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir_str,'/','\\');
 
-	if(CFG.general.decode_uesc){
-		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
-	}
-
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),true);
 	}
 
 	unload();
@@ -342,7 +337,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_m
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を処理しています...\n\n"),arc_path_orig);
+	msg::info(_T("'%s'を処理しています...\n\n"),arc_path_orig);
 
 	//実行
 	int dll_ret=-1;
@@ -359,7 +354,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_m
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	msg::info(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	unload();
 
@@ -372,7 +367,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::list(const TCHAR* arc_path){
 	replaceDelimiter(arc_path_str);
 
 	if(CFG.output_file_list.api_mode){
-		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,(CFG.general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
+		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter);
 	}else{
 		tstring list_file_path;
 		File list_file;
@@ -420,12 +415,6 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::list(const TCHAR* arc_path){
 //リストファイルにファイルリストを出力
 void ArcUnlha32::outputFileListToFile(const fileinfo::FILEINFO& fileinfo,int opt,File* list_file){
 	if(list_file==NULL)return;
-	tstring file_path(fileinfo.name);
-
-	if(opt&DECODE_UNICODE_ESCAPE){
-		//Unicodeエスケープをデコード
-		str::decodeUnicodeEscape(file_path,file_path.c_str(),false,'#');
-	}
 
 	list_file->writeEx(_T("-jx%s\r\n"),quotePath(fileinfo.name).c_str());
 }
@@ -668,7 +657,7 @@ void ArcUnlha32::setExtractingInfo(UINT state,void* arc_info){
 
 			if(m_last_hash!=0&&
 			   m_last_hash==cur_hash){
-				//Unlha32は圧縮時にまず一時ファイルの情報??を送ってきてくれる優しい子ので
+				//Unlha32は圧縮時にまず一時ファイルの情報??を送ってきてくれる優しい子なので
 				//格納ファイル一つ一つの書き込み状況に就いては更新せず、
 				//格納ファイルのサイズを取り扱うように。
 				if(CFG.mode==MODE_COMPRESS)break;

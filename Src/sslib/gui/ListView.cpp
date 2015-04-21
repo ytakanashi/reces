@@ -35,7 +35,7 @@ int ListView::insertItem(const TCHAR* text,int index)const{
 	return insertItem(&item);
 }
 
-DWORD_PTR ListView::getItemData(int index)const{
+LPARAM ListView::getItemData(int index)const{
 	LVITEM item={0};
 
 	item.mask=LVIF_PARAM;
@@ -45,7 +45,7 @@ DWORD_PTR ListView::getItemData(int index)const{
 
 }
 
-bool ListView::setItemData(DWORD_PTR data,int index)const{
+bool ListView::setItemData(LPARAM data,int index)const{
 	LVITEM item={0};
 
 	item.mask=LVIF_PARAM;

@@ -158,6 +158,9 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="sslib\StringEx.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arc7-zip32.h">
@@ -300,6 +303,9 @@
     </ClInclude>
     <ClInclude Include="Msg.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\StringEx.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

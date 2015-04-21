@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -112,8 +112,6 @@ struct GENERAL{
 	tstring b2e_dir;
 	//wcxがあるディレクトリ
 	tstring wcx_dir;
-	//Unicodeエスケープシーケンスをデコードする
-	bool decode_uesc;
 
 	//初期化
 	GENERAL():
@@ -134,8 +132,7 @@ struct GENERAL{
 		custom_param(),
 		spi_dir(),
 		b2e_dir(),
-		wcx_dir(),
-		decode_uesc(false){}
+		wcx_dir(){}
 };
 
 struct RECOMPRESS{

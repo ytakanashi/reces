@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -18,8 +18,8 @@ using namespace sslib;
 
 
 bool parseOptions(CommandArgument& cmd_arg){
-	struct l{
-		static bool undupList(std::list<tstring>* list){
+	INNER_FUNC(undupList,
+		bool operator()(std::list<tstring>* list){
 			if(!list)return false;
 
 			//重複を削除
@@ -34,7 +34,10 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 			return true;
 		}
-		static bool readFileList(std::list<tstring>* list,File* list_file){
+	);
+
+	INNER_FUNC(readFileList,
+		bool operator()(std::list<tstring>* list,File* list_file){
 			if(!list||!list_file)return false;
 			std::vector<tstring> file_list;
 
@@ -44,13 +47,16 @@ bool parseOptions(CommandArgument& cmd_arg){
 			undupList(list);
 			return true;
 		}
-		static void removeDllExt(tstring* libname){
+	);
+
+	INNER_FUNC(removeDllExt,
+		void operator()(tstring* libname){
 			//dllなら拡張子を取り除く
 			if(str::toLower(path::getExtension(*libname))==_T("dll")){
 				*libname=path::removeExtension(*libname);
 			}
 		}
-	};
+	);
 
 	std::vector<tstring>& options=cmd_arg.options();
 	Config cfg_file;
@@ -442,7 +448,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 					//';'で分割
 					str::splitString(&CFG.general.filefilter.pattern_list,options[i].substr(1).c_str(),';');
 					//重複を削除
-					l::undupList(&CFG.general.filefilter.pattern_list);
+					undupList(&CFG.general.filefilter.pattern_list);
 				}else{
 					const TCHAR*p=options[i].c_str()+2,*pp;
 
@@ -458,7 +464,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								//';'で分割
 								str::splitString(&CFG.general.filefilter.pattern_list,str.c_str(),';');
 								//重複を削除
-								l::undupList(&CFG.general.filefilter.pattern_list);
+								undupList(&CFG.general.filefilter.pattern_list);
 								for(std::list<tstring>::iterator ite=CFG.general.filefilter.pattern_list.begin(),
 									end=CFG.general.filefilter.pattern_list.end();
 									ite!=end;
@@ -469,7 +475,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							case 's':{
 								tstring str(p,pp-p);
 
-								CFG.general.filefilter.min_size=str::filesize2longlong(str.c_str());
+								CFG.general.filefilter.min_size=strex::filesize2longlong(str.c_str());
 								dprintf(_T("min_size=%I64d\n"),CFG.general.filefilter.min_size);
 								break;
 							}
@@ -477,7 +483,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							case 'S':{
 								tstring str(p,pp-p);
 
-								CFG.general.filefilter.max_size=str::filesize2longlong(str.c_str());
+								CFG.general.filefilter.max_size=strex::filesize2longlong(str.c_str());
 								dprintf(_T("max_size=%I64d\n"),CFG.general.filefilter.max_size);
 								break;
 							}
@@ -488,7 +494,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 									if(*p=='e'||*p=='E'){
 										//「空ディレクトリのみ格納」は実装しない方向で
 									}else{
-										CFG.general.filefilter.attr|=str::attr2DWORD(*p);
+										CFG.general.filefilter.attr|=strex::attr2DWORD(*p);
 									}
 									++p;
 								}
@@ -497,14 +503,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 							case 'd':{
 								tstring str(p,pp-p);
 
-								CFG.general.filefilter.oldest_date=str::datetime2longlong(str.c_str());
+								CFG.general.filefilter.oldest_date=strex::datetime2longlong(str.c_str());
 								break;
 							}
 
 							case 'D':{
 								tstring str(p,pp-p);
 
-								CFG.general.filefilter.newest_date=str::datetime2longlong(str.c_str(),true);
+								CFG.general.filefilter.newest_date=strex::datetime2longlong(str.c_str(),true);
 								break;
 							}
 
@@ -515,7 +521,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
 									msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
 								}else{
-									l::readFileList(&CFG.general.filefilter.pattern_list,&list_file);
+									readFileList(&CFG.general.filefilter.pattern_list,&list_file);
 								}
 								break;
 							}
@@ -543,7 +549,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 					//';'で分割
 					str::splitString(&CFG.general.file_ex_filter.pattern_list,options[i].substr(1).c_str(),';');
 					//重複を削除
-					l::undupList(&CFG.general.file_ex_filter.pattern_list);
+					undupList(&CFG.general.file_ex_filter.pattern_list);
 				}else{
 					const TCHAR*p=options[i].c_str()+2,*pp;
 
@@ -559,14 +565,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 								//';'で分割
 								str::splitString(&CFG.general.file_ex_filter.pattern_list,str.c_str(),';');
 								//重複を削除
-								l::undupList(&CFG.general.file_ex_filter.pattern_list);
+								undupList(&CFG.general.file_ex_filter.pattern_list);
 								break;
 							}
 
 							case 's':{
 								tstring str(p,pp-p);
 
-								CFG.general.file_ex_filter.min_size=str::filesize2longlong(str.c_str());
+								CFG.general.file_ex_filter.min_size=strex::filesize2longlong(str.c_str());
 								dprintf(_T("min_size=%I64d\n"),CFG.general.file_ex_filter.min_size);
 								break;
 							}
@@ -574,7 +580,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							case 'S':{
 								tstring str(p,pp-p);
 
-								CFG.general.file_ex_filter.max_size=str::filesize2longlong(str.c_str());
+								CFG.general.file_ex_filter.max_size=strex::filesize2longlong(str.c_str());
 								dprintf(_T("max_size=%I64d\n"),CFG.general.file_ex_filter.max_size);
 								break;
 							}
@@ -587,7 +593,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 										CFG.general.file_ex_filter.include_empty_dir=false;
 										dprintf(_T("CFG.general.file_ex_filter.include_empty_dir=false\n"));
 									}else{
-										CFG.general.file_ex_filter.attr|=str::attr2DWORD(*p);
+										CFG.general.file_ex_filter.attr|=strex::attr2DWORD(*p);
 									}
 									++p;
 								}
@@ -596,14 +602,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 							case 'd':{
 								tstring str(p,pp-p);
 
-								CFG.general.file_ex_filter.oldest_date=str::datetime2longlong(str.c_str());
+								CFG.general.file_ex_filter.oldest_date=strex::datetime2longlong(str.c_str());
 								break;
 							}
 
 							case 'D':{
 								tstring str(p,pp-p);
 
-								CFG.general.file_ex_filter.newest_date=str::datetime2longlong(str.c_str(),true);
+								CFG.general.file_ex_filter.newest_date=strex::datetime2longlong(str.c_str(),true);
 								break;
 							}
 
@@ -614,7 +620,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
 									msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
 								}else{
-									l::readFileList(&CFG.general.file_ex_filter.pattern_list,&list_file);
+									readFileList(&CFG.general.file_ex_filter.pattern_list,&list_file);
 								}
 								break;
 							}
@@ -801,15 +807,6 @@ bool parseOptions(CommandArgument& cmd_arg){
 				break;
 			}//case 'C'
 
-			case 'U':{
-				//Unicodeエスケープシーケンスをデコードする
-				if(options[i].find(_T("UESC"))==0){
-					CFG.general.decode_uesc=true;
-					dprintf(_T("CFG.general.decode_uesc=%d\n"),CFG.general.decode_uesc);
-				}
-				break;
-			}//case 'U'
-
 			case 'q':{
 				//処理終了後閉じる
 				switch(options[i].c_str()[1]){
@@ -855,7 +852,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 	}
 
 	//dllなら拡張子を取り除く
-	l::removeDllExt(&CFG.general.selected_library_name);
+	removeDllExt(&CFG.general.selected_library_name);
 
 	//圧縮形式が指定されていない場合'zip'に設定
 	if(CFG.compress.compression_type.empty()){

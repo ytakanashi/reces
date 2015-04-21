@@ -2,7 +2,7 @@
 //Uniso32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -149,7 +149,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
+	msg::info(_T("'%s'を解凍しています...\n\n"),arc_path);
 
 	//実行
 	int dll_ret=-1;
@@ -166,20 +166,15 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
 
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+	msg::info(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
 
 	//パス区切り文字を'\\'に
 	if(*m_delimiter=='/')str::replaceCharacter(output_dir_str,'/','\\');
 
-	if(CFG.general.decode_uesc){
-		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		m_util->decodeUnicodeEscape(arc_path,output_dir_str.c_str(),CFG.general.ignore_directory_structures);
-	}
-
 	if(!CFG.general.ignore_directory_structures&&
 	   CFG.extract.directory_timestamp){
 		//ディレクトリの更新日時を復元
-		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),CFG.general.decode_uesc,true);
+		m_util->recoverDirectoryTimestamp(arc_path,output_dir_str.c_str(),true);
 	}
 
 	unload();
@@ -198,7 +193,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::list(const TCHAR* arc_path){
 	replaceDelimiter(arc_path_str);
 
 	if(CFG.output_file_list.api_mode){
-		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter,(CFG.general.decode_uesc)?DECODE_UNICODE_ESCAPE:0);
+		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter);
 	}else{
 		tstring list_file_path;
 		File list_file;

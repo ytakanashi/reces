@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -22,6 +22,9 @@
 
 
 using namespace sslib;
+
+
+MAIN_INSTANCE(Reces);
 
 
 namespace{
@@ -96,10 +99,6 @@ namespace{
 	void startmsg(const TCHAR* file_path){
 		if(total>1)msg::info(_T("[%I64d / %I64d] '%s'\n"),done++,total,file_path);
 	}
-}
-
-void createInstance(){
-	new Reces;
 }
 
 bool Reces::init(){
@@ -396,8 +395,6 @@ void Reces::usage(){
 						  _T("\t/Cutf16\t\t ;UTF16-LE\n")
 						  _T("\t/Cutf16be\t ;UTF16-BE\n")
 						  _T("\n")
-						  _T("\t/UESC\t\t #Unicodeエスケープシーケンスをデコードする {mr/me/ml}\n")
-						  _T("\n")
 						  _T("\t/{<filename>\t #設定をファイルから読み込む\n")
 						  _T("\t/}<filename>\t #設定をファイルに書き出す\n")
 						  _T("\n")
@@ -646,8 +643,8 @@ unsigned __stdcall Reces::manageProgressBar(void* param){
 					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 
 					this_ptr->m_progressbar->update(arc_processing_info.done,
-										   arc_processing_info.total,
-										   arc_processing_info.file_name.c_str());
+													arc_processing_info.total,
+													arc_processing_info.file_name.c_str());
 				}else{
 					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}
@@ -1124,42 +1121,24 @@ bool Reces::version(std::vector<tstring>& filepaths){
 		//対応するライブラリ全てのバージョンを表示
 		for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 			if(m_arcdll_list[i]!=NULL){
-#if 0
-				STDOUT.outputString(_T("%-12s %s\n"),
-									m_arcdll_list[i]->name().c_str(),
-									getVersion(m_arcdll_list[i]->name().c_str()).c_str());
-#else
 				STDOUT.outputString(_T("%-12s %s\n"),
 									m_arcdll_list[i]->name().c_str(),
 									m_arcdll_list[i]->getVersionStr().c_str());
-#endif
 			}
 		}
 
 #ifndef _WIN64
 		if(m_b2e_dll){
-#if 0
-			STDOUT.outputString(_T("%-12s %s\n"),
-								m_b2e_dll->name().c_str(),
-								getVersion(m_b2e_dll->name().c_str()).c_str());
-#else
 			STDOUT.outputString(_T("%-12s %s\n"),
 								m_b2e_dll->name().c_str(),
 								m_b2e_dll->getVersionStr().c_str());
-#endif
 		}
 #endif
 
 		for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
 			if(m_spi_list[i]!=NULL){
-#if 0
-				STDOUT.outputString(_T("%-12s %s\n"),
-									m_spi_list[i]->name().c_str(),
-									getVersion(m_spi_list[i]->name().c_str()).c_str());
-#else
 				STDOUT.outputString(_T("%s\n"),
 									m_spi_list[i]->getInformation().c_str());
-#endif
 			}
 		}
 

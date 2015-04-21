@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -12,6 +12,7 @@
 #include"StdAfx.h"
 #include"Spi.h"
 #include"ArcCfg.h"
+#include"Msg.h"
 
 #include<iterator>
 
@@ -219,7 +220,9 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 	}
 
 	result=ARC_SUCCESS;
-	if(!CFG.no_display.no_information)STDOUT.outputString(_T("'%s'を解凍しています...\n\n"),arc_path);
+	msg::info(_T("'%s'を解凍しています...\n\n"),arc_path);
+
+	long now=0,last=0;
 
 	for(;arc_info->method[0]&&!IS_TERMINATED&&!ARCCFG->m_password_input_cancelled;++arc_info){
 		tstring file_path=str::sjis2utf16(arc_info->path);
@@ -242,10 +245,6 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 					decoded_path=output_dir+excludeCommonPath(decoded_path.substr(output_dir.length()).c_str(),delimiter_count);
 				}
 
-				if(CFG.general.decode_uesc){
-					str::decodeUnicodeEscape(decoded_path,decoded_path.c_str(),false,'#');
-				}
-
 				fileoperation::createDirectory(decoded_path.c_str());
 				continue;
 			}else{
@@ -260,20 +259,20 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 						decoded_path=output_dir+excludeCommonPath(decoded_path.substr(output_dir.length()).c_str(),delimiter_count);
 					}
 
-					//ディレクトリ名に含まれるUnicodeエスケープシーケンスをデコードする
-					if(CFG.general.decode_uesc){
-						str::decodeUnicodeEscape(decoded_path,decoded_path.c_str(),false,'#');
-					}
-
 					fileoperation::createDirectory(decoded_path.c_str());
 				}
 			}
 		}
 
 		if(m_progress_thread_id){
-			ARC_PROCESSING_INFO spi_processing_info((arc_info-arc_info_header)+1,file_count,file_path+file_name);
+			SYSTEMTIME st={};
+			::GetSystemTime(&st);
+			now=st.wSecond*1000+st.wMilliseconds;
+			if(now-last>100){
+				ARC_PROCESSING_INFO spi_processing_info((arc_info-arc_info_header)+1,file_count,file_path+file_name);
 
-			misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,reinterpret_cast<void*>(&spi_processing_info));
+				misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,reinterpret_cast<void*>(&spi_processing_info));
+			}
 		}
 
 		HLOCAL file;
@@ -308,7 +307,7 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 		if(arc_info->timestamp){
 			FILETIME ft={};
 
-			ft=str::lltoft(((long long)arc_info->timestamp+11644473600)*10000000);
+			ft=strex::lltoft(((long long)arc_info->timestamp+11644473600)*10000000);
 
 			dest.setFileTime(&ft);
 		}
@@ -316,15 +315,6 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 		tstring cur_path(dest.filepath());
 
 		dest.close();
-
-		//ファイル名に含まれるUnicodeエスケープシーケンスをデコードする
-		if(CFG.general.decode_uesc){
-			tstring decoded_path;
-
-			str::decodeUnicodeEscape(decoded_path,cur_path.c_str(),false,'#');
-
-			fileoperation::renameFile(cur_path.c_str(),decoded_path.c_str());
-		}
 
 		::LocalUnlock(file);
 		::LocalFree(file);
@@ -360,17 +350,12 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 					if(m_arc_info[i].date_time){
 						FILETIME ft={};
 
-						ft=str::lltoft(m_arc_info[i].date_time);
+						ft=strex::lltoft(m_arc_info[i].date_time);
 
 						//共通パスを取り除く
 						tstring cur_path(output_dir+excludeCommonPath(m_arc_info[i].name.c_str(),delimiter_count));
 
 						if(path::removeTailSlash(cur_path)==path::removeTailSlash(output_dir))continue;
-
-						if(CFG.general.decode_uesc){
-							//Unicodeエスケープがあれば変換
-							str::decodeUnicodeEscape(cur_path,cur_path.c_str(),false,'#');
-						}
 
 						File dest(cur_path.c_str());
 
@@ -460,7 +445,7 @@ Spi::ARC_RESULT Spi::list(const TCHAR* arc_path){
 				FILETIME ft={},tmp={};
 				SYSTEMTIME st;
 
-				tmp=str::lltoft(((long long)arc_info->timestamp+11644473600)*10000000);
+				tmp=strex::lltoft(((long long)arc_info->timestamp+11644473600)*10000000);
 
 				if(!::FileTimeToLocalFileTime(&tmp,&ft)){
 					continue;
@@ -476,20 +461,10 @@ Spi::ARC_RESULT Spi::list(const TCHAR* arc_path){
 				STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("                    "));
 			}
 
-			if(CFG.general.decode_uesc){
-				//Unicodeエスケープをデコード
-				str::decodeUnicodeEscape(full_path,full_path.c_str(),false,'#');
-			}
-
 			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%10d %s\n"),
 										 arc_info->filesize,
 										 full_path.c_str());
 		}else{
-			if(CFG.general.decode_uesc){
-				//Unicodeエスケープをデコード
-				str::decodeUnicodeEscape(full_path,full_path.c_str(),false,'#');
-			}
-
 			if(file_name.find_last_of(_T("\\/"))==file_name.length()-1){
 				//ディレクトリ
 				STDOUT.outputString(Console::LOW_YELLOW,Console::NONE,_T("%s\n"),

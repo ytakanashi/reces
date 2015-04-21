@@ -11,7 +11,11 @@ namespace{
 		if(fmt!=NULL){
 			int buffer_length=_vsctprintf(fmt,argp)+sizeof(TCHAR);
 			if(p_buffer->size()<(UINT)buffer_length)p_buffer->resize(buffer_length);
-			_vstprintf(&(*p_buffer)[0],fmt,argp);
+			_vstprintf(&(*p_buffer)[0],
+#ifdef _MSC_VER
+					   p_buffer->size(),
+#endif
+					   fmt,argp);
 			return true;
 		}else{
 			return false;

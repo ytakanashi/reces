@@ -2,7 +2,7 @@
 //書庫操作共通
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -20,9 +20,11 @@ namespace{
 //書庫内の最小共通区切り文字数を取得
 int countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths){
 	static tstring::size_type next_pos=0;
-	struct l{
+
+	INNER_FUNC(isCommonComponent,
 		static tstring extractComponent(const tstring& str,tstring::size_type pos){
-			tstring::size_type first_pos=pos,second_pos=first_pos;
+			tstring::size_type first_pos=pos;
+			tstring::size_type second_pos=first_pos;
 
 			++(next_pos=second_pos=str.find_first_of(_T("\\/"),first_pos));
 			if(second_pos==tstring::npos)next_pos=second_pos=str.length();
@@ -31,13 +33,13 @@ int countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths){
 				_T("");
 		}
 
-		static bool isCommonComponent(const std::vector<fileinfo::FILEINFO>& paths,int max_length_index,tstring::size_type pt){
+		bool operator()(const std::vector<fileinfo::FILEINFO>& paths,int max_length_index,tstring::size_type pt){
 			bool result=false;
 
-			tstring max_length_str=(extractComponent(paths[max_length_index].name,pt));
+			tstring max_length_str=extractComponent(paths[max_length_index].name,pt);
 			for(int i=0,size=paths.size();i<size;i++){
 				if(i!=max_length_index){
-					tstring str=(extractComponent(paths[i].name,pt));
+					tstring str=extractComponent(paths[i].name,pt);
 
 					//自分と異なる空白以外の要素があれば終了
 					if(!str.empty()&&max_length_str!=str){
@@ -51,7 +53,7 @@ int countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths){
 			}
 			return result;
 		}
-	};
+	);
 
 	next_pos=0;
 
@@ -70,7 +72,7 @@ int countCommonComponents(const std::vector<fileinfo::FILEINFO>& paths){
 	}
 
 	for(int size=str::countCharacter(paths[max_length_index].name,_T("\\/"));result<size;++result){
-		if(!l::isCommonComponent(paths,max_length_index,next_pos))break;
+		if(!isCommonComponent(paths,max_length_index,next_pos))break;
 	}
 
 	return result;
@@ -214,8 +216,8 @@ bool recover(const TCHAR* dir,const FILETIME& arc_ft,const std::vector<tstring>&
 	static const FILETIME m_arc_ft=arc_ft;
 	static const std::vector<tstring> m_recovered_dirs=recovered_dirs;
 
-	struct l{
-		static bool getFILETIME(FILETIME* ft,const TCHAR* dir){
+	INNER_FUNC(getFILETIME,
+		bool operator()(FILETIME* ft,const TCHAR* dir){
 			FileSearch fs;
 
 			for(fs.first(dir);!IS_TERMINATED&&fs.next();){
@@ -225,7 +227,7 @@ bool recover(const TCHAR* dir,const FILETIME& arc_ft,const std::vector<tstring>&
 
 						d.getFileTime(ft);
 					}else{
-						if(!getFILETIME(ft,fs.filepath().c_str())){
+						if(!operator()(ft,fs.filepath().c_str())){
 							*ft=m_arc_ft;
 						}
 					}
@@ -237,12 +239,12 @@ bool recover(const TCHAR* dir,const FILETIME& arc_ft,const std::vector<tstring>&
 			}
 			return false;
 		}
-	};
+	);
 
 	if(path::isDirectory(dir)){
 		FILETIME ft={};
 
-		if(!l::getFILETIME(&ft,dir)){
+		if(!getFILETIME(&ft,dir)){
 			ft=m_arc_ft;
 		}
 
