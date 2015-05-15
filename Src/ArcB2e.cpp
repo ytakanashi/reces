@@ -2,7 +2,7 @@
 //B2e.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -27,15 +27,15 @@ ArcB2e::ArcB2e():
 }
 
 ArcB2e::ARC_RESULT ArcB2e::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcB2e::ARC_RESULT ArcB2e::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcB2e::ARC_RESULT ArcB2e::list(const TCHAR* arc_path){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す

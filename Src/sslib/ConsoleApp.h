@@ -27,6 +27,9 @@ protected:
 	}
 
 	Console m_stdout;
+#ifndef _MSC_VER
+public:
+#endif
 	static bool m_terminated;
 
 private:
@@ -47,7 +50,6 @@ public:
 	inline sslib::Console& stdOut(){return m_stdout;}
 	inline int getExitCode()const{return m_exit_code;}
 	inline void setExitCode(int code){m_exit_code=code;}
-	inline bool isTerminated()const{return m_terminated;}
 	inline bool getUsageFlag()const{return m_show_usage;}
 	inline void setUsageFlag(bool enable){m_show_usage=enable;}
 };
@@ -55,6 +57,10 @@ public:
 ConsoleApp* app();
 bool isTerminated();
 void terminateApp(bool force=false);
+
+#ifndef _MSC_VER
+	#define IS_TERMINATED sslib::ConsoleApp::m_terminated
+#endif
 
 //namespace sslib
 }

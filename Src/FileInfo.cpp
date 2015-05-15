@@ -29,7 +29,7 @@ namespace{
 	//bar
 	//bar/baz
 	//baz
-	void makePossibilityPattern(std::list<tstring>* pattern_list,const TCHAR* sz,int delimiter){
+	void makeSubsets(std::list<tstring>* pattern_list,const TCHAR* sz,int delimiter){
 		if(pattern_list==NULL)return;
 
 		tstring::size_type pos=0;
@@ -153,7 +153,7 @@ bool matchPattern(const FILEINFO& fileinfo,const FILEFILTER& filefilter,const TC
 
 		if(filefilter.recursive){
 			//デリミタで区切られた要素から、順序を変えずに一つ以上の要素を持つ組み合わせを作成
-			makePossibilityPattern(&file_name_list,file_name.c_str(),'/');
+			makeSubsets(&file_name_list,file_name.c_str(),'/');
 		}else{
 			str::splitString(&file_name_list,file_name.c_str(),'/');
 		}

@@ -150,9 +150,7 @@ bool Archiver::setBackgroundMode(bool mode){
 
 //処理を中止する
 void Archiver::abort(){
-	if(!IS_TERMINATED){
-		terminateApp();
-	}
+	terminateApp();
 }
 
 //true=break/false=continue

@@ -83,7 +83,7 @@ int Wcx::getFileCount(const TCHAR* arc_path){
 }
 
 Wcx::ARC_RESULT Wcx::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 Wcx::ARC_RESULT Wcx::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,tstring* log_msg){

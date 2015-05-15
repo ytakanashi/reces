@@ -1,7 +1,7 @@
 ﻿//ArcUnrar32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -25,14 +25,14 @@ protected:
 	bool writeFormatedList(const sslib::File& list_file,const tstring& full_path);
 
 	//ファイル処理情報を格納
-	void setExtractingInfo(UINT state,void* arc_info);
+	void setExtractingInfo(/*UINT state,*/void* arc_info);
 
 	//関数対応を操作
 	bool querySupport(int func);
 
 public:
 	//対応している書庫であるか
-	bool isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode=CHECKARCHIVE_BASIC);
+	bool isSupportedArchive(const TCHAR* arc_path_orig,int mode=CHECKARCHIVE_BASIC);
 	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
 	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);
 	ARC_RESULT list(const TCHAR* arc_path);

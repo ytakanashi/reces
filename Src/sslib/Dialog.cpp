@@ -46,18 +46,24 @@ bool Dialog::showDialog(int cmd_show){
 //ダイアログを閉じる
 bool Dialog::endDialog(UINT exit_code){
 	setExitCode(exit_code);
-	bool result=((type()==MODAL)?::EndDialog(handle(),exit_code):(::DestroyWindow(handle())))!=0;
-	return result;
+	return ::EndDialog(handle(),exit_code)!=0;
 }
 
 INT_PTR Dialog::onInitDialog(WPARAM wparam,LPARAM lparam){
 	return true;
 }
 
+INT_PTR Dialog::onClose(){
+	if(type()==MODAL){
+		::EndDialog(handle(),IDOK);
+	}else{
+		::DestroyWindow(handle());
+	}
+	return true;
+}
+
 INT_PTR Dialog::onDestroy(){
-	setHandle(NULL);
-	::SetWindowLongPtr(handle(),DWLP_USER,0);
-	if(type()!=MODAL)::PostQuitMessage(0);
+	if(type()==MODELESS)::PostQuitMessage(0);
 	return true;
 }
 
@@ -128,7 +134,13 @@ INT_PTR Dialog::handleMessage(HWND dlg_handle,UINT message,WPARAM wparam,LPARAM 
 			::SetWindowLongPtr(dlg_handle,DWLP_USER,lparam);
 			return onInitDialog(wparam,lparam);
 		}
+		case WM_CLOSE:return onClose();
 		case WM_DESTROY:return onDestroy();
+		case WM_QUIT:{
+			::SetWindowLongPtr(handle(),DWLP_USER,0);
+			setHandle(NULL);
+			return true;
+		}
 		case WM_COMMAND:{
 			switch(LOWORD(wparam)){
 				case IDOK:{

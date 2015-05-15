@@ -200,6 +200,19 @@ bool parseOptions(CommandArgument& cmd_arg){
 						break;
 					}
 
+					case 'd':{
+						//削除
+						CFG.mode=MODE_DELETE;
+						dprintf(_T("mode : delete\n"));
+
+						if(options[i].c_str()[2]!='\0'){
+							//ライブラリ名を直接指定した場合
+							CFG.general.selected_library_name=options[i].substr(2);
+							dprintf(_T("select library: %s\n"),CFG.general.selected_library_name.c_str());
+						}
+						break;
+					}
+
 					case 's':
 					case 'S':{
 						if(options[i].c_str()[1]=='s'){

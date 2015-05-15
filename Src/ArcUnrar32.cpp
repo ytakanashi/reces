@@ -144,7 +144,7 @@ ArcUnrar32::ArcUnrar32():
 }
 
 //対応している書庫であるか
-bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
+bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,int mode){
 	bool result=false;
 
 	tstring arc_path(arc_path_orig);
@@ -227,7 +227,7 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::test(const TCHAR* arc_path){
 }
 
 ArcUnrar32::ARC_RESULT ArcUnrar32::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
@@ -446,14 +446,14 @@ bool ArcUnrar32::preCallback(const TCHAR* file_name,const TCHAR* progress){
 	m_processing_info.done=++hook::progress_done;
 	m_processing_info.total=hook::progress_total;
 
-	if(!callbackProcV(NULL,0,ARCEXTRACT_INPROCESS,&arc_info)){
+	if(!callbackProcV(NULL,0,/*ARCEXTRACT_INPROCESS,*/&arc_info)){
 		return false;
 	}
 	return true;
 }
 
 //ファイル処理情報を格納
-void ArcUnrar32::setExtractingInfo(UINT state,void* arc_info){
+void ArcUnrar32::setExtractingInfo(/*UINT state,*/void* arc_info){
 	//dwFileSizeは処理中のファイルのサイズ
 	//dwWriteSizeは処理中ファイルの書き込まれたサイズ
 	switch(m_extracting_info_struct_size){

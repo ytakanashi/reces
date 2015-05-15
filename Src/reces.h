@@ -1,7 +1,7 @@
 ﻿//reces.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -17,8 +17,8 @@
 class Reces:public sslib::ConsoleApp,public RecesBase{
 public:
 	Reces():
-		m_hook_dll_module(NULL),
-		m_hook_dll_path(),
+		m_hook_dll_schedule_del(),
+		m_hook_dll(),
 		m_pInstallHook(NULL),
 		m_pUninstallHook(NULL),
 		m_progressbar(NULL),
@@ -33,8 +33,8 @@ public:
 
 private:
 	//パスワード入力ダイアログのフック
-	HMODULE m_hook_dll_module;
-	tstring m_hook_dll_path;
+	sslib::fileoperation::scheduleDelete m_hook_dll_schedule_del;
+	sslib::Library m_hook_dll;
 	typedef bool(*INSTALLHOOK_PTR)(const DWORD,const unsigned int,const unsigned int);
 	typedef bool(*UNINSTALLHOOK_PTR)();
 	INSTALLHOOK_PTR m_pInstallHook;

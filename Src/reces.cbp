@@ -73,6 +73,7 @@
 			<Add library="ole32" />
 			<Add library="uuid" />
 			<Add library="imagehlp" />
+			<Add library="gdi32" />
 		</Linker>
 		<Unit filename="Arc7-zip32.cpp" />
 		<Unit filename="Arc7-zip32.h" />
@@ -120,6 +121,8 @@
 		<Unit filename="Archiver.h" />
 		<Unit filename="Compress.cpp" />
 		<Unit filename="Compress.h" />
+		<Unit filename="Delete.cpp" />
+		<Unit filename="Delete.h" />
 		<Unit filename="Extract.cpp" />
 		<Unit filename="Extract.h" />
 		<Unit filename="FileInfo.cpp" />
@@ -176,6 +179,10 @@
 		<Unit filename="sslib\Console.h" />
 		<Unit filename="sslib\ConsoleApp.cpp" />
 		<Unit filename="sslib\ConsoleApp.h" />
+		<Unit filename="sslib\Dialog.cpp" />
+		<Unit filename="sslib\Dialog.h" />
+		<Unit filename="sslib\EnvironmentVariable.cpp" />
+		<Unit filename="sslib\EnvironmentVariable.h" />
 		<Unit filename="sslib\File.cpp" />
 		<Unit filename="sslib\File.h" />
 		<Unit filename="sslib\FileOperation.cpp" />

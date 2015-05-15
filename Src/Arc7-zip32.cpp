@@ -67,7 +67,7 @@ Arc7zip32::Arc7zip32():
 }
 
 //対応している書庫であるか
-bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode){
+bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,int mode){
 	bool result=false;
 
 	tstring arc_path(arc_path_orig);
@@ -491,11 +491,13 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	File list_file;
 	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 
-	if(!use_filter||
+	if(!use_filter
+	   /*||
 	   !CFG.recompress.run_command.disable()||
 	   CFG.general.ignore_directory_structures||
-	   CFG.compress.compression_level!=default_compressionlevel){
-		return ARC_FAILURE;
+	   CFG.compress.compression_level!=default_compressionlevel
+	   */){
+		return ARC_NO_FILTER;
 	}
 
 	//リストファイルを作成
@@ -517,9 +519,6 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	replaceDelimiter(arc_path);
 	replaceDelimiter(list_file_path);
 
-	//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
-	arc_path+=_T(".");
-
 	tstring cmd_line(format(_T("%s %s %s -t%s %s %s @%s"),
 							_T("d"),
 							_T("-y"),
@@ -527,15 +526,16 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 							_T("-hide"),
 
 							//書庫形式指定
+							//注意:7-zip32.dll 9.38.00.01以降だとgetArchiveType()に.を付加したファイル名を渡すとエラーとなる
 							getCompressionMethod(arc_path.c_str()).c_str(),
 
 							_T("--"),
 
-							quotePath(arc_path).c_str(),
+							//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
+							quotePath(arc_path+_T(".")).c_str(),
 							quotePath(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
-
 	msg::info(_T("'%s'を処理しています...\n\n"),arc_path_orig);
 
 	//実行

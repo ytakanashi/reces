@@ -292,11 +292,12 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_m
 	File list_file;
 	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 
-	if(!use_filter||
+	if(!use_filter
+	   /*||
 	   !CFG.recompress.run_command.disable()||
 	   CFG.general.ignore_directory_structures||
-	   CFG.compress.compression_level!=default_compressionlevel){
-		return ARC_FAILURE;
+	   CFG.compress.compression_level!=default_compressionlevel*/){
+		return ARC_NO_FILTER;
 	}
 
 	//リストファイルを作成
@@ -620,7 +621,7 @@ bool ArcUnlha32::writeFormatedList(const File& list_file,const tstring& full_pat
 }
 
 //ファイル処理情報を格納
-void ArcUnlha32::setExtractingInfo(UINT state,void* arc_info){
+void ArcUnlha32::setExtractingInfo(/*UINT state,*/void* arc_info){
 	switch(m_extracting_info_struct_size){
 		case sizeof(EXTRACTINGINFOEX64):{
 			//処理中ファイル名

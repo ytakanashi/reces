@@ -17,6 +17,7 @@
 #include"SendCommands.h"
 #include"Test.h"
 #include"Settings.h"
+#include"Delete.h"
 #include"Hook/HookArchiverDialog.h"
 #include"resources/resource.h"
 
@@ -99,6 +100,33 @@ namespace{
 	void startmsg(const TCHAR* file_path){
 		if(total>1)msg::info(_T("[%I64d / %I64d] '%s'\n"),done++,total,file_path);
 	}
+
+	//gui4rcesでパスワード入力を行うため...
+	class PasswordDialog:public Dialog{
+	public:
+		PasswordDialog(tstring& password,bool hide_password):
+		Dialog(IDD_DIALOG_PASSWORD),
+		m_password(password),
+		m_hide_password(hide_password){}
+	private:
+		tstring& m_password;
+		bool m_hide_password;
+	private:
+		INT_PTR onInitDialog(WPARAM wparam,LPARAM lparam){
+			if(m_hide_password){
+				sendItemMessage(IDC_EDIT_PASSWORD,EM_SETPASSWORDCHAR,(WPARAM)_T('*'),0);
+			}
+			setForegroundWindow(handle());
+			::SetFocus(getDlgItem(IDC_EDIT_PASSWORD));
+			return true;
+		}
+		INT_PTR onOk(){
+			std::vector<TCHAR> password(1024);
+			::GetWindowText(getDlgItem(IDC_EDIT_PASSWORD),&password[0],password.size());
+			m_password.assign(&password[0]);
+			return true;
+		}
+	};
 }
 
 bool Reces::init(){
@@ -151,7 +179,7 @@ bool Reces::init(){
 
 	//spi,wcxの読み込みはrun()で行う
 
-	m_hook_dll_path=
+	tstring hook_dll_path=
 		path::addTailSlash(path::getTempDirPath())+
 			_T("rcsDlgHook")+
 #ifndef _WIN64
@@ -165,16 +193,17 @@ bool Reces::init(){
 	m_pInstallHook=NULL;
 	m_pUninstallHook=NULL;
 
-	if(((!path::fileExists(m_hook_dll_path.c_str())&&fileoperation::extractFromResource(NULL,IDR_HOOK_LIB,_T("BINARY"),m_hook_dll_path.c_str()))||
-	   path::fileExists(m_hook_dll_path.c_str()))&&
-		(m_hook_dll_module=::LoadLibrary(m_hook_dll_path.c_str()))!=NULL){
-		m_pInstallHook=(INSTALLHOOK_PTR)::GetProcAddress(m_hook_dll_module,"installPasswordDialogHook");
-		m_pUninstallHook=(UNINSTALLHOOK_PTR)::GetProcAddress(m_hook_dll_module,"uninstallPasswordDialogHook");
-		//削除登録
-		ARCCFG->m_schedule_list.push_back(new fileoperation::scheduleDelete(m_hook_dll_path.c_str()));
+	::DeleteFile(hook_dll_path.c_str());
+
+	if(fileoperation::extractFromResource(NULL,IDR_HOOK_LIB,_T("BINARY"),hook_dll_path.c_str())&&
+	   m_hook_dll.load(hook_dll_path.c_str())){
+		m_pInstallHook=(INSTALLHOOK_PTR)::GetProcAddress(m_hook_dll.module(),"installPasswordDialogHook");
+		m_pUninstallHook=(UNINSTALLHOOK_PTR)::GetProcAddress(m_hook_dll.module(),"uninstallPasswordDialogHook");
 	}else{
 		msg::err(_T("フック用ライブラリの読み込みに失敗しました。\n"));
 	}
+	//削除登録
+	m_hook_dll_schedule_del.set(m_hook_dll.name().c_str());
 
 	return true;
 }
@@ -201,11 +230,8 @@ void Reces::cleanup(){
 
 	//パスワードダイアログのフックを終了
 	if(m_pUninstallHook){
-		::SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG,300,NULL);
-
 		m_pUninstallHook();
-		::FreeLibrary(m_hook_dll_module);
-		m_hook_dll_module=NULL;
+		::SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG|SMTO_NOTIMEOUTIFNOTHUNG,300,NULL);
 	}
 
 	freeArcLib();
@@ -238,7 +264,7 @@ void Reces::usage(){
 	STDOUT.outputString(_T("usage:\n"));
 	STDOUT.outputString(_T("\treces [/<options>...] [/@<listfiles>...] [<files>...]\n\n"));
 	STDOUT.outputString(_T("options:\n")
-						  _T("\t/m<r|R|c|C|e|E|l|L|s|S|v>\t #動作モード\n")
+						  _T("\t/m<r|R|c|C|e|E|l|L|t|d|s|S|v>    #動作モード\n")
 						  _T("\t/mr[type|@[option]][:library]\t #再圧縮\n")
 						  _T("\t/mR[type|@[option]][:library]\t #再圧縮 (ディレクトリ階層を無視)\n")
 						  _T("\t\t\t  ('@'を指定すると入力書庫と同じ形式で、\n")
@@ -250,8 +276,9 @@ void Reces::usage(){
 						  _T("\t/me[library]\t #解凍\n")
 						  _T("\t/mE[library]\t #解凍 (ディレクトリ階層を無視)\n")
 						  _T("\t/ml[library]\t #書庫内容一覧 (by reces)\n")
-						  _T("\t/mL[library]\t #書庫内容一覧 (by Library)\n")
+						  _T("\t/mL[library]\t #書庫内容一覧 (by ライブラリ)\n")
 						  _T("\t/mt[library]\t #テスト\n")
+						  _T("\t/md[library]\t #削除\n")
 						  _T("\t/ms[lib][:prefix]#ライブラリ直接操作\n")
 						  _T("\t\t\t  prefixの指定で非対応のライブラリも使用可能\n")
 						  _T("\t/mS<lib>[:prefix]#設定ダイアログ表示\n")
@@ -305,7 +332,7 @@ void Reces::usage(){
 						  _T("\n")
 						  _T("\t/N\t\t #書庫を新規作成 {mr/mc}\n")
 						  _T("\n")
-						  _T("\t/I<pattern...>\t #処理対象フィルタ(文字列) {mr/mc/me/ml}\n")
+						  _T("\t/I<pattern...>\t #処理対象フィルタ(文字列) {mr/mc/me/ml/md}\n")
 						  _T("\t\t\t  (ワイルドカード指定可能)\n")
 						  _T("\t\t\t ('/i'でサブディレクトリ検索をしない)\n")
 						  _T("\t\t\t  (';'で区切って複数指定可能)\n")
@@ -328,7 +355,7 @@ void Reces::usage(){
 						  _T("\t/i:@<filename>\t #処理対象フィルタリストファイル\n")
 						  _T("\t\t\t  (サブディレクトリ検索をしない)\n")
 						  _T("\n")
-						  _T("\t/X<pattern...>\t #処理対象除外フィルタ(文字列) {mr/mc/me/ml}\n")
+						  _T("\t/X<pattern...>\t #処理対象除外フィルタ(文字列) {mr/mc/me/ml/md}\n")
 						  _T("\t\t\t  (ワイルドカード指定可能)\n")
 						  _T("\t\t\t  ('/x'でサブディレクトリ検索をしない)\n")
 						  _T("\t\t\t  (';'で区切って複数指定可能)\n")
@@ -380,7 +407,7 @@ void Reces::usage(){
 						  _T("\n")
 						  _T("\t/P<param>\t #ユーザ独自のパラメータ {mr/mc/me/ms}\n")
 						  _T("\n")
-						  _T("\t/t\t\t #更新日時を元ファイルと同じにする {mr/mc}\n")
+						  _T("\t/t\t\t #更新日時を元ファイルと同じにする {mr/mc/md}\n")
 						  _T("\n")
 						  _T("\t/DIRTS\t\t #ディレクトリのタイムスタンプを復元する {mr/me}\n")
 						  _T("\n")
@@ -431,10 +458,7 @@ void Reces::ctrlCEvent(){
 	}
 
 	::WaitForSingleObject(m_arc_thread,INFINITE);
-	{
-		misc::Lock lock(m_arc_cs);
-		SAFE_CLOSE(m_arc_thread);
-	}
+	SAFE_CLOSE(m_arc_thread);
 
 	if(!STDOUT.isRedirected()&&
 	   !CFG.no_display.no_information){
@@ -451,51 +475,60 @@ void Reces::ctrlCEvent(){
 
 //パスワードの入力を求める
 bool Reces::requirePassword(){
-	Console input_password(STD_INPUT_HANDLE);
-	DWORD mode=0;
+	tstring addr;
 
-	input_password.getConsoleMode(&mode);
+	if(!env::get(_T("PASSWORD_DIALOG"),&addr)){
+		Console input_password(STD_INPUT_HANDLE);
+		DWORD mode=0;
 
-	if(CFG.no_display.no_password){
-		if(!STDOUT.isRedirected()){
-			STDOUT.outputString(_T("\nパスワード(表示されません): "));
+		input_password.getConsoleMode(&mode);
+
+		if(CFG.no_display.no_password){
+			if(!STDOUT.isRedirected()){
+				STDOUT.outputString(_T("\nパスワード(表示されません): "));
+			}else{
+				//標準エラー出力でメッセージを表示
+				Console password_message(STD_ERROR_HANDLE);
+				password_message.outputString(_T("\nパスワード(表示されません): "));
+			}
+			//入力した文字を表示しないようにする
+			input_password.setConsoleMode(mode&~ENABLE_ECHO_INPUT);
 		}else{
-			//標準エラー出力でメッセージを表示
-			Console password_message(STD_ERROR_HANDLE);
-			password_message.outputString(_T("\nパスワード(表示されません): "));
+			if(!STDOUT.isRedirected()){
+				STDOUT.outputString(_T("\nパスワード: "));
+			}else{
+				//標準エラー出力でメッセージを表示
+				Console password_message(STD_ERROR_HANDLE);
+				password_message.outputString(_T("\nパスワード: "));
+			}
 		}
-		//入力した文字を表示しないようにする
-		input_password.setConsoleMode(mode&~ENABLE_ECHO_INPUT);
-	}else{
-		if(!STDOUT.isRedirected()){
-			STDOUT.outputString(_T("\nパスワード: "));
+
+		//カーソル再表示
+		STDOUT.showCursor(true);
+
+		std::vector<TCHAR> buffer(1024,'\0');
+
+		_fgetts(&buffer[0],buffer.size(),stdin);
+		CFG.general.password.assign(&buffer[0]);
+		if(CFG.general.password.c_str()[0]=='\n'){
+			CFG.general.password.clear();
 		}else{
-			//標準エラー出力でメッセージを表示
-			Console password_message(STD_ERROR_HANDLE);
-			password_message.outputString(_T("\nパスワード: "));
+			str::replaceCharacter(CFG.general.password,_T('\n'),_T('\0'));
 		}
-	}
 
-	//カーソル再表示
-	STDOUT.showCursor(true);
+		//カーソル再非表示
+		STDOUT.showCursor(false);
 
-	std::vector<TCHAR> buffer(1024,'\0');
+		//元に戻す
+		input_password.setConsoleMode(mode);
 
-	_fgetts(&buffer[0],buffer.size(),stdin);
-	CFG.general.password.assign(&buffer[0]);
-	if(CFG.general.password.c_str()[0]=='\n'){
-		CFG.general.password.clear();
+		if(CFG.no_display.no_password)STDOUT.outputString(_T("\n\n"));
 	}else{
-		str::replaceCharacter(CFG.general.password,_T('\n'),_T('\0'));
+		//gui4recesから渡されたログウインドウダイアログのハンドル
+		HWND logdialog_wnd=reinterpret_cast<HWND>(_ttoi(addr.c_str()));
+		PasswordDialog passwordDialog(CFG.general.password,CFG.no_display.no_password);
+		passwordDialog.doModal(logdialog_wnd);
 	}
-
-	//カーソル再非表示
-	STDOUT.showCursor(false);
-
-	//元に戻す
-	input_password.setConsoleMode(mode);
-
-	if(CFG.no_display.no_password)STDOUT.outputString(_T("\n\n"));
 
 	return !CFG.general.password.empty();
 }
@@ -634,19 +667,21 @@ unsigned __stdcall Reces::manageProgressBar(void* param){
 					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 				}
 			}else if(msg.message==Archiver::WM_UPDATE_PROGRESSBAR){
-				if(!this_ptr->IS_TERMINATED&&
-				   this_ptr->m_progressbar&&
-				   msg.wParam){
-					Archiver::ARC_PROCESSING_INFO arc_processing_info=
-						*(reinterpret_cast<Archiver::ARC_PROCESSING_INFO*>(reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->data));
+				if(msg.wParam){
+					if(!IS_TERMINATED){
+						Archiver::ARC_PROCESSING_INFO arc_processing_info=
+							*(reinterpret_cast<Archiver::ARC_PROCESSING_INFO*>(reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->data));
 
-					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
+						reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
 
-					this_ptr->m_progressbar->update(arc_processing_info.done,
-													arc_processing_info.total,
-													arc_processing_info.file_name.c_str());
-				}else{
-					reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
+						if(this_ptr->m_progressbar){
+							this_ptr->m_progressbar->update(arc_processing_info.done,
+															arc_processing_info.total,
+															arc_processing_info.file_name.c_str());
+						}
+					}else{
+						reinterpret_cast<misc::thread::PARAM*>(msg.wParam)->ready.signal();
+					}
 				}
 			}else if(msg.message==WM_DESTROY_PROGRESSBAR){
 				if(this_ptr->m_progressbar){
@@ -678,7 +713,7 @@ unsigned __stdcall Reces::dialogHookProc(void* param){
 		while(::GetMessage(&msg,NULL,0,0)>0){
 			if(msg.message==WM_HOOKDIALOG){
 				HWND console_handle=this_ptr->wnd();
-				HWND target_handle=reinterpret_cast<HWND>(msg.wParam);
+				ARCCFG->m_extracting_wnd_handle=reinterpret_cast<HWND>(msg.wParam);
 				ARCCFG->m_hook_dialog_type=static_cast<int>(msg.lParam);
 
 				if(ARCCFG->m_hook_dialog_type!=HOOK_XACRETT_EXTRACT){
@@ -700,25 +735,23 @@ unsigned __stdcall Reces::dialogHookProc(void* param){
 							//パスワード入力がキャンセルされた
 							ARCCFG->m_password_input_cancelled=true;
 							if(ARCCFG->m_hook_dialog_type!=HOOK_XACRETT_PASSWORD){
-								::SendMessage(::GetDlgItem(::GetParent(target_handle),IDCANCEL),BM_CLICK,0,0);
+								::SendMessage(::GetDlgItem(::GetParent(ARCCFG->m_extracting_wnd_handle),IDCANCEL),BM_CLICK,0,0);
 							}else{
-								::SendMessage(::GetDlgItem(target_handle,IDOK),BM_CLICK,0,0);
+								::SendMessage(::GetDlgItem(ARCCFG->m_extracting_wnd_handle,IDOK),BM_CLICK,0,0);
 							}
 						}
 					}
 
-					if(this_ptr->IS_TERMINATED){
+					if(IS_TERMINATED){
 						//OK押下
-						::SendMessage(::GetDlgItem(::GetParent(target_handle),IDOK),BM_CLICK,0,0);
+						::SendMessage(::GetDlgItem(::GetParent(ARCCFG->m_extracting_wnd_handle),IDOK),BM_CLICK,0,0);
 					}else{
 						//パスワード入力
-						::SendMessage(target_handle,WM_SETTEXT,(WPARAM)0,(LPARAM)CFG.general.password.c_str());
+						::SendMessage(ARCCFG->m_extracting_wnd_handle,WM_SETTEXT,(WPARAM)0,(LPARAM)CFG.general.password.c_str());
 
 						//OK押下
-						::SendMessage(::GetDlgItem(::GetParent(target_handle),IDOK),BM_CLICK,0,0);
+						::SendMessage(::GetDlgItem(::GetParent(ARCCFG->m_extracting_wnd_handle),IDOK),BM_CLICK,0,0);
 					}
-				}else{
-					ARCCFG->m_extracting_wnd_handle=target_handle;
 				}
 
 				if(ARCCFG->m_hook_dialog_type!=HOOK_XACRETT_EXTRACT){
@@ -926,33 +959,6 @@ bool Reces::recompress(std::list<tstring>& file_list){
 				break;
 			}//ARC_SUCCESS(Extract)
 
-			case ARC_DELETE_COMMAND:{
-				//再圧縮ではなく削除コマンドで対応
-				if(CFG.compress.copy_timestamp){
-					//タイムスタンプを設定
-					copyArcTimestamp(
-						(!CFG.compress.split_value.empty())?
-						//分割ファイル
-						(path::getParentDirectory(*ite_list)+
-						 _T("\\")+
-						 path::getFileName(m_cur_file.arc_path)+
-						 _T(".")+
-						 path::createPartExtension(1)):
-						//通常ファイル
-						m_cur_file.arc_path,
-						&orig_arc_timestamp);
-				}
-				if(CFG.general.remove_source!=RMSRC_DISABLE&&
-				   !m_cur_file.auto_renamed){
-					if(!str::isEqualStringIgnoreCase(m_cur_file.arc_path,*ite_list)&&
-					   !splitfile::removeSplitFile(ite_list->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
-						dprintf(_T("removeFile(%s)\n"),ite_list->c_str());
-						removeFile(ite_list->c_str());
-					}
-				}
-				break;
-			}//ARC_DELETE_COMMAND
-
 			default:
 				extract_thread.err();
 				break;
@@ -1055,6 +1061,8 @@ bool Reces::compress(std::list<tstring>& file_list){
 }
 
 template<typename T>bool Reces::extract(std::list<tstring>& file_list){
+	//元書庫のタイムスタンプ
+	FILETIME orig_arc_timestamp;
 	total=file_list.size();
 	ARCCFG->m_password_input_cancelled=false;
 
@@ -1063,6 +1071,17 @@ template<typename T>bool Reces::extract(std::list<tstring>& file_list){
 		ite!=end&&!IS_TERMINATED;
 		++ite){
 		ArchiverThread thread(this,*ite);
+
+		if(CFG.mode==MODE_DELETE&&
+		   CFG.compress.copy_timestamp){
+			//元書庫のタイムスタンプを保存
+			File orig_arc(ite->c_str(),
+						  OPEN_EXISTING,
+						  GENERIC_READ,
+						  FILE_SHARE_READ);
+
+			orig_arc.getFileTime(&orig_arc_timestamp);
+		}
 
 		startmsg(ite->c_str());
 
@@ -1081,6 +1100,11 @@ template<typename T>bool Reces::extract(std::list<tstring>& file_list){
 						}
 					}
 				}
+				if(CFG.mode==MODE_DELETE&&
+				   CFG.compress.copy_timestamp){
+					//タイムスタンプを設定
+					copyArcTimestamp(ite->c_str(),&orig_arc_timestamp);
+					}
 				break;
 
 			default:
@@ -1210,6 +1234,8 @@ bool Reces::run(CommandArgument& cmd_arg){
 			  CFG.general.wcx_dir.c_str():
 			  path::getExeDirectory().c_str());
 
+	if(IS_TERMINATED)return false;
+
 	if(!STDOUT.isRedirected()&&
 	   !CFG.no_display.no_information){
 		//プログレスバーを管理するスレッドを作成
@@ -1221,12 +1247,15 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 	done=total=1;
 
+	if(IS_TERMINATED)return false;
+
 	switch(CFG.mode){
 		case MODE_RECOMPRESS:
 		case MODE_COMPRESS:
 		case MODE_EXTRACT:
 		case MODE_LIST:
-		case MODE_TEST:{
+		case MODE_TEST:
+		case MODE_DELETE:{
 			//パスワードダイアログのフックを開始
 			if(m_pInstallHook){
 				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread.id,WM_HOOKDIALOG)){
@@ -1257,6 +1286,8 @@ bool Reces::run(CommandArgument& cmd_arg){
 				case MODE_TEST:
 					extract<Test>(file_list);
 					break;
+				case MODE_DELETE:
+					extract<Delete>(file_list);
 				default:
 					break;
 			}

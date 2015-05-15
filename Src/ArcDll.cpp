@@ -198,7 +198,7 @@ tstring ArcDll::getVersionStr(){
 }
 
 //ファイル処理情報を格納
-void ArcDll::setExtractingInfo(UINT state,void* arc_info){
+void ArcDll::setExtractingInfo(/*UINT state,*/void* arc_info){
 	switch(m_extracting_info_struct_size){
 		case sizeof(EXTRACTINGINFOEX64):
 			//処理済みサイズ
@@ -228,7 +228,7 @@ void ArcDll::setExtractingInfo(UINT state,void* arc_info){
 }
 
 ArcDll::ARC_RESULT ArcDll::del(const TCHAR* arc_path_orig,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcDll::ARC_RESULT ArcDll::test(const TCHAR* arc_path){
@@ -261,7 +261,7 @@ bool ArcDll::configurationDialog(HWND wnd_handle){
 	return configDialog(wnd_handle,NULL,1);
 }
 
-bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info){
+bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,/*UINT state,*/void* info){
 	if(IS_TERMINATED)return false;
 	if(!info||m_disable_callback)return true;
 
@@ -273,7 +273,7 @@ bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info){
 
 		//ファイル処理情報を格納
 		if(!CFG.no_display.no_information){
-			setExtractingInfo(state,info);
+			setExtractingInfo(/*state,*/info);
 			if(m_processing_info.file_name.empty())return true;
 		}
 
@@ -294,7 +294,7 @@ bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info){
 
 namespace callback{
 BOOL __stdcall proc(HWND wnd_handle,UINT msg,UINT state,void* info){
-	return (ptr)?ptr->callbackProcV(wnd_handle,msg,state,info):false;
+	return (ptr)?ptr->callbackProcV(wnd_handle,msg,/*state,*/info):false;
 }
 }
 

@@ -114,7 +114,7 @@ protected:
 	tstring quotePath(const tstring& path);
 
 	//ファイル処理情報を格納
-	virtual void setExtractingInfo(UINT state,void* arc_info);
+	virtual void setExtractingInfo(/*UINT state,*/void* arc_info);
 	//コールバック通知を無効にする
 	bool m_disable_callback;
 
@@ -158,7 +158,7 @@ public:
 	virtual int sendCommands(const TCHAR* commands,tstring* log_msg=NULL);
 
 protected:
-	bool callbackProcV(HWND wnd_handle,UINT msg,UINT state,void* info);
+	bool callbackProcV(HWND wnd_handle,UINT msg,/*UINT state,*/void* info);
 private:
 	friend BOOL __stdcall callback::proc(HWND wnd_handle,UINT msg,UINT state,void* info);
 

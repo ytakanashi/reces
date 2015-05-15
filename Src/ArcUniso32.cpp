@@ -64,7 +64,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::test(const TCHAR* arc_path){
 }
 
 ArcUniso32::ARC_RESULT ArcUniso32::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){

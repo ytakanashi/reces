@@ -161,6 +161,15 @@
     <ClCompile Include="sslib\StringEx.cpp">
       <Filter>sslib\ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Delete.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\Dialog.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="sslib\EnvironmentVariable.cpp">
+      <Filter>sslib\ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arc7-zip32.h">
@@ -305,6 +314,15 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="sslib\StringEx.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Delete.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\Dialog.h">
+      <Filter>sslib\ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="sslib\EnvironmentVariable.h">
       <Filter>sslib\ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

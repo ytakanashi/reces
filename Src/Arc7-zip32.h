@@ -1,7 +1,7 @@
 ﻿//Arc7zip32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -46,7 +46,7 @@ protected:
 
 public:
 	//対応している書庫であるか
-	bool isSupportedArchive(const TCHAR* arc_path_orig,const DWORD mode=CHECKARCHIVE_BASIC);
+	bool isSupportedArchive(const TCHAR* arc_path_orig,int mode=CHECKARCHIVE_BASIC);
 	//圧縮形式を取得(その形式に対応している場合のみ)
 	tstring getCompressionMethod(const TCHAR* arc_path_orig);
 

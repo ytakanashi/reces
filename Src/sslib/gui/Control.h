@@ -19,6 +19,7 @@ private:
 	HWND m_parent_handle;
 	HWND m_handle;
 	bool m_sub_class;
+	void* m_param;
 
 protected:
 	WNDPROC m_default_proc;
@@ -30,13 +31,29 @@ protected:
 public:
 	virtual LRESULT handleMessage(HWND dlg_handle,UINT message,WPARAM wparam,LPARAM lparam);
 
-	LRESULT sendMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0);
-	bool postMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0);
+	LRESULT sendMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0){
+		return ::SendMessage(handle(),message,wparam,lparam);
+	}
 
-	UINT resource_id()const{return m_resource_id;}
-	HWND parent_handle()const{return m_parent_handle;}
-	HWND handle()const{return m_handle;}
-	WNDPROC default_proc()const{return m_default_proc;}
+	LRESULT sendParentMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0){
+		return ::SendMessage(parent_handle(),message,wparam,lparam);
+	}
+
+	bool postMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0){
+		return ::PostMessage(handle(),message,wparam,lparam)!=0;
+	}
+
+	bool postParentMessage(UINT message,WPARAM wparam=0,LPARAM lparam=0){
+		return ::PostMessage(parent_handle(),message,wparam,lparam)!=0;
+	}
+
+	inline void setParam(void* param){m_param=param;}
+
+	inline UINT resource_id()const{return m_resource_id;}
+	inline HWND parent_handle()const{return m_parent_handle;}
+	inline HWND handle()const{return m_handle;}
+	inline WNDPROC default_proc()const{return m_default_proc;}
+	inline void* param()const{return m_param;}
 };
 
 //namespace sslib

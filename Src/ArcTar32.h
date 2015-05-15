@@ -1,7 +1,7 @@
 ﻿//ArcTar32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -61,7 +61,7 @@ protected:
 	bool writeFormatedList(const sslib::File& list_file,const tstring& full_path);
 
 	//ファイル処理情報を格納
-	void setExtractingInfo(UINT state,void* arc_info);
+	void setExtractingInfo(/*UINT state,*/void* arc_info);
 
 public:
 	//圧縮形式を取得(その形式に対応している場合のみ)

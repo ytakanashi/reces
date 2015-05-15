@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.40
+//                  sslib ver.1.42
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -88,6 +88,7 @@ template<typename T>bool strvalid(T str){
 #else
 	#include"WindowApp.h"
 #endif
+
 extern void createInstance();
 #define MAIN_INSTANCE(class_name)\
 	void createInstance(){\
@@ -95,7 +96,9 @@ extern void createInstance();
 	}\
 
 #if !defined(SSLIB_GUI)&&!defined(SSLIB_GUI_DIALOG)
-	#define IS_TERMINATED isTerminated()
+	#ifdef _MSC_VER
+		#define IS_TERMINATED isTerminated()
+	#endif
 #else
 	#define IS_TERMINATED false
 #endif
@@ -173,6 +176,9 @@ extern void createInstance();
 #endif
 #endif
 
+
+//Ver.1.42(150515)
+//reces Ver.0.00r27/gui4reces Ver.0.0.1.4で使用
 
 //Ver.1.41(150421)
 //reces Ver.0.00r27aで使用

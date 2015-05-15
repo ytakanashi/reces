@@ -22,14 +22,14 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
     {
         BLOCK "041103A4"
         {
-            VALUE "Comments", "DlgHook.dll for reces Ver.0.00r27a"
+            VALUE "Comments", "DlgHook.dll for reces Ver.0.00r27"
             VALUE "CompanyName", "Frost Moon Project"
-            VALUE "FileDescription", "DlgHook.dll for reces Ver.0.00r27a"
-            VALUE "FileVersion", "0.00r27a"
-            VALUE "InternalName", "DlgHook.dll for reces Ver.0.00r27a"
+            VALUE "FileDescription", "DlgHook.dll for reces Ver.0.00r27"
+            VALUE "FileVersion", "0.00r27"
+            VALUE "InternalName", "DlgHook.dll for reces Ver.0.00r27"
             VALUE "LegalCopyright", "Coded by x@rgs"
             VALUE "OriginalFilename", "DlgHook.dll"
-            VALUE "ProductVersion", "0.00r27a"
+            VALUE "ProductVersion", "0.00r27"
         }
     }
     BLOCK "VarFileInfo"

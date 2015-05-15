@@ -5,7 +5,6 @@
 #include"sslib.h"
 
 
-
 namespace sslib{
 
 
@@ -39,11 +38,8 @@ ProgressBar::~ProgressBar(){
 bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 	if(!total||done>total)return false;
 
-	unsigned int fraction_done=static_cast<unsigned int>(done*100/total);
-	int dots=int(((float)fraction_done/100)*m_progress_length);
-
-	dots=clamp(dots,0,m_progress_length);
-	fraction_done=clamp(fraction_done,static_cast<unsigned>(0),static_cast<unsigned>(100));
+	unsigned int fraction_done=std::min<unsigned int>((unsigned int)(done*100/total),100);
+	int dots=std::min<int>(int((float(fraction_done)/100)*m_progress_length),m_progress_length);
 
 	if(m_last_fraction_done==fraction_done&&
 	   fraction_done==100)return false;

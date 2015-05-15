@@ -1,7 +1,7 @@
 ﻿//ArcCfg.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -22,6 +22,7 @@ public:
 		m_config(),
 		m_recmp_temp_dir(),
 		m_list_temp_dir(),
+		m_schedule_list(),
 		m_password_input_cancelled(false),
 		m_hook_dialog_type(0),
 		m_extracting_wnd_handle(NULL),

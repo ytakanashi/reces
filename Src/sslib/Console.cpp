@@ -162,7 +162,9 @@ bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
 	DWORD written=0;
 
 	if(isRedirected()){
-		result=::WriteFile(m_handle,buffer,buffer_size*sizeof(TCHAR),&written,NULL)!=0;
+		tstring buffer_str((const TCHAR*)buffer);
+		str::replaceString(buffer_str,_T("\n"),_T("\r\n"));
+		result=::WriteFile(m_handle,buffer_str.c_str(),buffer_str.length()*sizeof(TCHAR),&written,NULL)!=0;
 		if(written_chars)*written_chars=written/sizeof(TCHAR);
 	}else{
 		//バッファサイズが大き過ぎる場合出力されない

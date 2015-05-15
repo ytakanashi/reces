@@ -2,11 +2,15 @@
 //パスワード入力ダイアログなどをフック
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
+#ifndef _DEBUG
+#pragma comment(linker,"/merge:.data=.text")
+#pragma comment(linker,"/section:.text,erw")
+#endif
 
 #include"../StdAfx.h"
 #include"HookArchiverDialog.h"
@@ -28,7 +32,6 @@ struct ENUM_CHILD_PARAM{
 	}
 };
 
-
 //ダイアログを画面外に追いやる
 void hideDialog(HWND wnd_handle){
 	SetWindowLongPtr(wnd_handle,GWL_EXSTYLE,GetWindowLongPtr(wnd_handle,GWL_EXSTYLE)|WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
@@ -41,13 +44,10 @@ BOOL CALLBACK EnumChildProc(HWND wnd_handle,LPARAM lparam){
 	GetWindowInfo(wnd_handle,&info);
 
 	if(info.dwStyle&ES_PASSWORD){
-		int dialog_type=((ENUM_CHILD_PARAM*)lparam)->dialog_type;
-		HWND parent_handle=GetParent(wnd_handle);
-
 		//ダイアログを画面外に追いやる
-		hideDialog(parent_handle);
+		hideDialog(GetParent(wnd_handle));
 
-		PostThreadMessage(g_post_thread_id,WM_HOOKDIALOG,(WPARAM)wnd_handle,(LPARAM)dialog_type);
+		PostThreadMessage(g_post_thread_id,WM_HOOKDIALOG,(WPARAM)wnd_handle,(LPARAM)((ENUM_CHILD_PARAM*)lparam)->dialog_type);
 		*(reinterpret_cast<ENUM_CHILD_PARAM*>(lparam)->result)=true;
 
 		return FALSE;
@@ -59,8 +59,8 @@ BOOL CALLBACK EnumChildProc(HWND wnd_handle,LPARAM lparam){
 LRESULT CALLBACK CBTProc(int code,WPARAM wparam,LPARAM lparam){
 	if(g_hook_process_id==GetCurrentProcessId()&&
 	   code==HCBT_ACTIVATE){
-		TCHAR window_name[1024];
-		TCHAR class_name[255];
+		TCHAR window_name[256];
+		TCHAR class_name[256];
 		HWND wnd_handle=(HWND)wparam;
 		int hook_dialog=0;
 
@@ -107,6 +107,9 @@ LRESULT CALLBACK CBTProc(int code,WPARAM wparam,LPARAM lparam){
 				EnumChildWindows(wnd_handle,EnumChildProc,(LPARAM)&enum_child_param);
 				return result;
 			}
+
+			//gui4reces(ログウインドウ付)でax7z_s.spiをで使用すると入力ダイアログが表示されない問題対策
+			::ShowWindow(wnd_handle,SW_SHOWNA);
 		}
 	}
 
@@ -127,15 +130,14 @@ bool DLL_EXPORT installPasswordDialogHook(const DWORD hook_process_id,const unsi
 
 //フックをアンインストール
 bool DLL_EXPORT uninstallPasswordDialogHook(){
-	bool result=false;
-
-	if(g_hook_handle!=NULL){
-		result=UnhookWindowsHookEx(g_hook_handle)!=0;
-		SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG,100,NULL);
+	if(g_hook_handle!=NULL&&
+	   UnhookWindowsHookEx(g_hook_handle)!=0){
+		SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG|SMTO_NOTIMEOUTIFNOTHUNG,3000,NULL);
 		g_hook_handle=NULL;
+		return true;
 	}
 
-	return result;
+	return false;
 }
 
 //extern "C"必須

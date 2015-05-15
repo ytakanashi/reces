@@ -33,6 +33,7 @@ protected:
 
 	//メッセージハンドラ
 	virtual INT_PTR onInitDialog(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onClose();
 	virtual INT_PTR onDestroy();
 	virtual INT_PTR onOk();
 	virtual INT_PTR onCancel();

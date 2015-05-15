@@ -1,7 +1,7 @@
 ﻿//Archiver.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -30,6 +30,10 @@ public:
 		ARC_CANNOT_OPEN_LISTFILE,
 		//マッチするファイルがない
 		ARC_NO_MATCHES_FOUND,
+		//機能が実装されていない
+		ARC_NOT_IMPLEMENTED,
+		//フィルタが指定されていない
+		ARC_NO_FILTER,
 		//処理失敗
 		ARC_FAILURE
 	};

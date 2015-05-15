@@ -2,7 +2,7 @@
 //対応外の統合アーカイバライブラリ操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -27,15 +27,15 @@ ArcCAL::ArcCAL(const TCHAR* library_name,const TCHAR* library_prefix):
 }
 
 ArcCAL::ARC_RESULT ArcCAL::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcCAL::ARC_RESULT ArcCAL::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcCAL::ARC_RESULT ArcCAL::list(const TCHAR* arc_path){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す

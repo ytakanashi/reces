@@ -1,4 +1,4 @@
-﻿//List.h
+﻿//Delete.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 //              reces Ver.0.00r27 by x@rgs
@@ -7,18 +7,18 @@
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
 
-#ifndef _LIST_H_16F1B33D_22D3_41f5_9339_A48E7F86337B
-#define _LIST_H_16F1B33D_22D3_41f5_9339_A48E7F86337B
+#ifndef _DELETE_H_7FA67ED9_665F_46f3_8D09_3146CF2E9A44
+#define _DELETE_H_7FA67ED9_665F_46f3_8D09_3146CF2E9A44
 
 #include"recesBase.h"
 
 
 
-class List:public RecesBase{
+class Delete:public RecesBase{
 public:
-	List(){}
-	~List(){}
+	Delete(){}
+	~Delete(){}
 public:
 	RecesBase::ARC_RESULT operator()(const tstring& arc_path,tstring& err_msg);
 };
-#endif //_LIST_H_16F1B33D_22D3_41f5_9339_A48E7F86337B
+#endif //_DELETE_H_7FA67ED9_665F_46f3_8D09_3146CF2E9A44

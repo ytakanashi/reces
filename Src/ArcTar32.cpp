@@ -569,7 +569,7 @@ bool ArcTar32::writeFormatedList(const File& list_file,const tstring& full_path)
 }
 
 //ファイル処理情報を格納
-void ArcTar32::setExtractingInfo(UINT state,void* arc_info){
+void ArcTar32::setExtractingInfo(/*UINT state,*/void* arc_info){
 	//dwFileSizeは処理中のファイルのサイズ
 	//dwWriteSizeは処理中ファイルの書き込まれたサイズ
 	switch(m_extracting_info_struct_size){

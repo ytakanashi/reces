@@ -125,6 +125,16 @@ private:
 	LARGE_INTEGER m_freq,m_begin;
 };
 
+template <typename T>
+class BackupVariable{
+public:
+	BackupVariable(T& value):m_value(value),m_ref(value){}
+	~BackupVariable(){m_ref=m_value;}
+private:
+	T m_value;
+	T& m_ref;
+};
+
 
 
 //namespace misc

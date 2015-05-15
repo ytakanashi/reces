@@ -51,14 +51,6 @@ LRESULT Control::handleMessage(HWND handle,UINT message,WPARAM wparam,LPARAM lpa
 	}
 }
 
-LRESULT Control::sendMessage(UINT message,WPARAM wparam,LPARAM lparam){
-	return ::SendMessage(handle(),message,wparam,lparam);
-}
-
-bool Control::postMessage(UINT message,WPARAM wparam,LPARAM lparam){
-	return ::PostMessage(handle(),message,wparam,lparam)!=0;
-}
-
 
 
 //namespace sslib

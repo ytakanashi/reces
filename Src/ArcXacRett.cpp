@@ -117,7 +117,7 @@ ArcXacrett::ArcXacrett():
 }
 
 ArcXacrett::ARC_RESULT ArcXacrett::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg){
@@ -327,7 +327,7 @@ bool ArcXacrett::preCallback(const char* file_name){
 	//処理中ファイル名
 	lstrcpynA(arc_info.exinfo.szSourceFileName,file_name,FNAME_MAX32);
 
-	if(!callbackProcV(NULL,0,ARCEXTRACT_INPROCESS,&arc_info)){
+	if(!callbackProcV(NULL,0,/*ARCEXTRACT_INPROCESS,*/&arc_info)){
 		hook::uninstall();
 		return false;
 	}
@@ -335,7 +335,7 @@ bool ArcXacrett::preCallback(const char* file_name){
 }
 
 //ファイル処理情報を格納
-void ArcXacrett::setExtractingInfo(UINT state,void* arc_info){
+void ArcXacrett::setExtractingInfo(/*UINT state,*/void* arc_info){
 	switch(m_extracting_info_struct_size){
 		case sizeof(EXTRACTINGINFOEX64):
 			break;

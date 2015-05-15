@@ -1,7 +1,7 @@
 ﻿//recesBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r26 by x@rgs
+//              reces Ver.0.00r27 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -45,9 +45,6 @@ protected:
 
 		//パスワードの入力がキャンセルされた
 		ARC_INPUT_PASSWORD_CANCEL,
-
-		//再圧縮ではなく削除コマンドで対応
-		ARC_DELETE_COMMAND,
 
 		//C-cによりキャンセルされた
 		ARC_USER_CANCEL,
@@ -99,9 +96,50 @@ protected:
 	//m_arcdll_list解放
 	void freeArcLib();
 	//読み込みと対応チェック
-	template<typename I>Archiver* loadAndCheck(I ite,I end,const TCHAR* arc_path=NULL,bool* loaded_library=NULL,const TCHAR* ext=NULL,const TCHAR* libname=NULL,const TCHAR* full_libname=NULL);
+	template<typename I>Archiver* loadAndCheck(I ite,I end,const TCHAR* arc_path=NULL,bool* loaded_library=NULL,const TCHAR* ext=NULL,const TCHAR* libname=NULL,const TCHAR* full_libname=NULL){
+		for(;!IS_TERMINATED&&ite!=end;++ite){
+			if(!(ext&&!(*ite)->isSupportedExtension(ext))&&
+			   !(!ext&&libname!=NULL&&!sslib::str::isEqualStringIgnoreCase((*ite)->name(),libname))){
+				if(!(!(*ite)->isLoaded()&&!(*ite)->load((full_libname!=NULL)?full_libname:libname,NULL))){
+					if(loaded_library!=NULL)*loaded_library=true;
+					if(!(arc_path!=NULL&&!(*ite)->isSupportedArchive(arc_path))){
+						return *ite;
+					}else{
+						if(libname!=NULL)return NULL;
+					}
+				}
+			}
+		}
+		return NULL;
+	}
 	//spiやwcxなどプラグインの読み込みと対応チェック
-	template<typename T>Archiver* loadAndCheckPlugin(std::vector<T*>* plugin_list,const TCHAR* arc_path,bool* loaded_library,const tstring& plugin_dir,const TCHAR* libname,Archiver::ARC_TYPE type);
+	template<typename T>Archiver* loadAndCheckPlugin(std::vector<T*>* plugin_list,const TCHAR* arc_path,bool* loaded_library,const tstring& plugin_dir,const TCHAR* libname,Archiver::ARC_TYPE type){
+		//フルパスを取得
+		std::vector<TCHAR> full_path(MAX_PATH);
+
+		if(sslib::path::getFullPath(&full_path[0],full_path.size(),libname)&&
+		   sslib::path::fileExists(&full_path[0])){
+			T* plugin=new T(&full_path[0]);
+
+			if(plugin->type()==type){
+				if(plugin_list!=NULL)plugin_list->insert(plugin_list->begin(),plugin);
+			}else{
+				SAFE_DELETE(plugin);
+				return NULL;
+			}
+		}else{
+			//プラグインディレクトリ以下にあると仮定
+			if(!plugin_dir.empty()&&
+				sslib::path::getFullPath(&full_path[0],full_path.size(),libname,plugin_dir.c_str())){
+			}
+		}
+		return loadAndCheck(plugin_list->begin(),
+							plugin_list->end(),
+							arc_path,
+							loaded_library,
+							NULL,
+							&full_path[0]);
+	}
 	//'od'と'of'を反映した作成する書庫のパスを作成
 	ARC_RESULT updateArcFileName(CUR_FILE* new_cur_file,const tstring& arc_path,tstring& err_msg);
 	//ファイルのフルパスリストを作成

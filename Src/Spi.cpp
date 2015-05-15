@@ -184,7 +184,7 @@ bool Spi::getErrorMessage(tstring* msg,int code){
 }
 
 Spi::ARC_RESULT Spi::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,tstring* log_msg){
@@ -484,7 +484,7 @@ Spi::ARC_RESULT Spi::list(const TCHAR* arc_path){
 }
 
 Spi::ARC_RESULT Spi::test(const TCHAR* arc_path){
-	return ARC_FAILURE;
+	return ARC_NOT_IMPLEMENTED;
 }
 
 //書庫内のすべてのファイルの情報を取得
