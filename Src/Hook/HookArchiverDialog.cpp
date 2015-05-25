@@ -2,7 +2,7 @@
 //パスワード入力ダイアログなどをフック
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -77,6 +77,14 @@ LRESULT CALLBACK CBTProc(int code,WPARAM wparam,LPARAM lparam){
 				//unrar32.dll
 				//パスワードダイアログ
 				hook_dialog=HOOK_UNRAR32_PASSWORD;
+			}else if(lstrcmp(window_name,_T("圧縮状況"))==0){
+				//7-zip32.dll
+				//圧縮ダイアログ
+				hook_dialog=HOOK_7ZIP32_COMPRESS;
+			}else if(lstrcmp(window_name,_T("解凍状況"))==0){
+				//7-zip32.dll/unrar32.dll
+				//解凍ダイアログ
+				hook_dialog=HOOK_7ZIP32_UNRAR32_EXTRACT;
 			}
 #ifndef _WIN64
 			 else if(lstrcmp(window_name,_T("Please Input Password"))==0){

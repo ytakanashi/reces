@@ -2,7 +2,7 @@
 //Unrar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -288,7 +288,7 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 	replaceDelimiter(output_dir_str);
 
 	tstring cmd_line(format(_T("%s %s %s %s %s %s"),
-							(!CFG.general.ignore_directory_structures)?_T("-x"):_T("-x -e"),
+							(!CFG.general.ignore_directory_structures)?_T("-x"):_T("-e"),
 							_T("-s -o -y"),
 							//-s     : filespec の比較を厳密に行います
 

@@ -2,7 +2,7 @@
 //統合アーカイバDll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -21,7 +21,7 @@ using namespace sslib;
 namespace callback{
 namespace{
 ArcDll* ptr=NULL;
-long now=0,last=0;
+long now=0,last_updade=0;
 }
 }
 
@@ -268,8 +268,12 @@ bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,/*UINT state,*/void* info){
 	SYSTEMTIME st={};
 	::GetSystemTime(&st);
 	callback::now=st.wSecond*1000+st.wMilliseconds;
-	if(callback::now-callback::last>100){
-		callback::last=callback::now;
+	long diff=(callback::now>callback::last_updade)?
+		callback::now-callback::last_updade:
+		60000-callback::last_updade+callback::now;
+
+	if(diff>100){
+		callback::last_updade=callback::now;
 
 		//ファイル処理情報を格納
 		if(!CFG.no_display.no_information){
@@ -311,7 +315,7 @@ bool ArcDll::setArchiveProc(){
 
 	if(result){
 		callback::ptr=this;
-		callback::now=callback::last=0;
+		callback::now=callback::last_updade=0;
 	}
 
 	return result;
@@ -341,7 +345,7 @@ void ArcDll::clearCallback(){
 				break;
 		}
 		callback::ptr=NULL;
-		callback::now=callback::last=0;
+		callback::now=callback::last_updade=0;
 		m_extracting_info_struct_size=0;
 		m_progress_thread_id=0;
 	}
