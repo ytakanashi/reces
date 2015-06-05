@@ -2,7 +2,7 @@
 //ファイル情報の操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -693,10 +693,25 @@ void FileTree::makeExcludeTree(DWORD options,const TCHAR* base_dir){
 	if(!CFG.general.ignore_directory_structures)disableExternalParent(&m_tree,true);
 }
 
+//フィルタ適用の結果発生する空ディレクトリを防ぐ
 void FileTree::disableExternalParent(FILEINFONODE** pp,bool reverse){
 	if(*pp==NULL)return;
 
 #define NODE_DISABLE(p) ((p)->disable==reverse)
+
+	INNER_FUNC(disableCheckedLine,
+		void operator()(FILEINFONODE**pp){
+			if(!*pp)return;
+
+			FILEINFONODE**node=&(*pp)->parent_dir;
+
+			while(*node){
+				(*node)->disable_checked=true;
+				node=&(*node)->parent_dir;
+			}
+			return;
+		}
+	);
 
 	if((*pp)->child){
 		if(NODE_DISABLE(*pp)){
@@ -707,7 +722,8 @@ void FileTree::disableExternalParent(FILEINFONODE** pp,bool reverse){
 			}
 		}
 	}else if((*pp)->parent_dir&&
-			 NODE_DISABLE((*pp)->parent_dir)){
+			 NODE_DISABLE((*pp)->parent_dir)&&
+			 !(*pp)->parent_dir->disable_checked){
 		bool disable_item=false;
 		FILEINFONODE** pp_=pp;
 		do{
@@ -715,7 +731,11 @@ void FileTree::disableExternalParent(FILEINFONODE** pp,bool reverse){
 			if(!disable_item&&NODE_DISABLE(*pp_))disable_item=true;
 		}while(*(pp_=&(*pp_)->next));
 		if(!disable_item){
+			//空ディレクトリとなるので削除
 			(*pp)->parent_dir->disable=!reverse;
+		}else{
+			//disable変更防止
+			disableCheckedLine(pp);
 		}
 		return;
 	}

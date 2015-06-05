@@ -1,7 +1,7 @@
 ﻿//FileInfo.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -90,7 +90,9 @@ struct FILEINFONODE{
 	FILEINFONODE* next;
 
 	bool disable;
-	FILEINFONODE():fileinfo(),parent_dir(NULL),child(NULL),next(NULL),disable(false){}
+	//disableExternalParent()で使用
+	bool disable_checked;
+	FILEINFONODE():fileinfo(),parent_dir(NULL),child(NULL),next(NULL),disable(false),disable_checked(false){}
 };
 
 public:
