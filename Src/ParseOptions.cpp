@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -443,9 +443,22 @@ bool parseOptions(CommandArgument& cmd_arg){
 				break;
 			}
 
-			case 'N':{//書庫新規作成
-				CFG.compress.create_new=true;
-				dprintf(_T("CFG.compress.create_new=%d\n"),CFG.compress.create_new);
+			case 'N':{
+				//新規作成
+				switch(options[i].c_str()[1]){
+					case 'F':
+					//書庫強制新規作成
+					CFG.compress.force_create_new=true;
+					dprintf(_T("CFG.compress.force_create_new=%d\n"),CFG.compress.force_create_new);
+						break;
+
+					case '\0':
+					default:
+						//書庫新規作成
+						CFG.compress.create_new=true;
+						dprintf(_T("CFG.compress.create_new=%d\n"),CFG.compress.create_new);
+						break;
+				}
 				break;
 			}
 

@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -151,6 +151,9 @@ struct COMPRESS{
 	bool each_file;
 	//書庫新規作成
 	bool create_new;
+	//書庫強制新規作成
+	//上書き先を予め削除して作成
+	bool force_create_new;
 	//基底ディレクトリを含まない
 	//解凍の場合-1で共通パスをすべて除く
 	int exclude_base_dir;
@@ -169,6 +172,7 @@ struct COMPRESS{
 		compression_type(_T("zip")),
 		each_file(false),
 		create_new(false),
+		force_create_new(false),
 		exclude_base_dir(0),
 		compression_level(-1),
 		split_value(),

@@ -2,7 +2,7 @@
 //テスト
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -62,14 +62,16 @@ Test::ARC_RESULT Test::operator()(const tstring& arc_path,tstring& err_msg){
 			//拡張子からの推測
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 								   m_arcdll_list.end(),
-								   NULL,
-								   NULL,
+								   arc_path.c_str(),
+								   &loaded_library,
 								   path::getExtension(arc_path).c_str());
 
-			//リスト先頭から読み込み
+			//総当たり
 			if(!m_arc_dll){
 				m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
-									   m_arcdll_list.end());
+									   m_arcdll_list.end(),
+									   arc_path.c_str(),
+									   &loaded_library);
 			}
 		}
 

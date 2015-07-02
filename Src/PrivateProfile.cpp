@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -79,6 +79,8 @@ bool Config::save(){
 	write(_T("Compress"),_T("EachFile"),CFG_VALUE(compress.each_file));
 	//書庫新規作成
 	write(_T("Compress"),_T("CreateNew"),CFG_VALUE(compress.create_new));
+	//書庫強制新規作成
+	write(_T("Compress"),_T("ForceCreateNew"),CFG_VALUE(compress.force_create_new));
 	//基底ディレクトリを含まない
 	if(m_cfg.compress.exclude_base_dir<-1)m_cfg.compress.exclude_base_dir=-1;
 	write(_T("Compress"),_T("ExcludeBaseDir"),CFG_VALUE(compress.exclude_base_dir));
@@ -265,8 +267,10 @@ bool Config::load(){
 	getStringDataEx(_T("Compress"),_T("Type"),&m_cfg.compress.compression_type);
 	//個別圧縮
 	getDataEx(_T("Compress"),_T("EachFile"),&m_cfg.compress.each_file);
-	//書庫個別圧縮
+	//書庫新規作成
 	getDataEx(_T("Compress"),_T("CreateNew"),&m_cfg.compress.create_new);
+	//書庫強制新規作成
+	getDataEx(_T("Compress"),_T("ForceCreateNew"),&m_cfg.compress.force_create_new);
 	//基底ディレクトリを含まない
 	getDataEx(_T("Compress"),_T("ExcludeBaseDir"),&m_cfg.compress.exclude_base_dir);
 	if(m_cfg.compress.exclude_base_dir<-1)m_cfg.compress.exclude_base_dir=-1;

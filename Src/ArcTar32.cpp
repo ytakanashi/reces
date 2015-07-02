@@ -2,7 +2,7 @@
 //Tar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r28 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -170,6 +170,7 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 
 	//書庫にファイルを追加する
 	bool add_files=!CFG.compress.create_new&&
+					!CFG.compress.force_create_new&&
 					path::fileExists(arc_path);
 
 	tstring list_file_path;
@@ -226,6 +227,12 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 	list_file.close();
 
 	if(IS_TERMINATED)return ARC_FAILURE;
+
+	if(CFG.compress.force_create_new&&
+	   path::fileExists(arc_path)){
+		//出力先が存在すれば削除
+		::DeleteFile(arc_path);
+	}
 
 	//区切り文字置換
 	replaceDelimiter(arc_path_str);
