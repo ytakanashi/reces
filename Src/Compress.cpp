@@ -2,7 +2,7 @@
 //圧縮
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -90,7 +90,7 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 
 		if(split_file){
 			orig_dir=path::getParentDirectory(m_cur_file.arc_path);
-			m_cur_file.arc_path=m_split_temp_dir+_T("\\")+path::getFileName(m_cur_file.arc_path);
+			m_cur_file.arc_path=path::addTailSlash(m_split_temp_dir)+path::getFileName(m_cur_file.arc_path);
 		}
 
 		if(IS_TERMINATED)return ARC_USER_CANCEL;

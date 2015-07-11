@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -230,8 +230,9 @@ void Reces::cleanup(){
 
 	//パスワードダイアログのフックを終了
 	if(m_pUninstallHook){
-		m_pUninstallHook();
-		::SendMessageTimeout(HWND_BROADCAST,WM_NULL,0,0,SMTO_ABORTIFHUNG|SMTO_NOTIMEOUTIFNOTHUNG,300,NULL);
+		if(m_pUninstallHook()){
+			PostMessage(HWND_BROADCAST,WM_NULL,0,0);
+		}
 	}
 
 	freeArcLib();
@@ -305,9 +306,10 @@ void Reces::usage(){
 						  _T("\t/na \t\t ;エラーメッセージ除く全て\n")
 						  _T("\n")
 						  _T("\t/c[options...]\t #ディレクトリを新規作成 {mr/me}\n")
-						  _T("\t/c<1|2>\t\t #不要なディレクトリを新規作成しない\n")
+						  _T("\t/c<1|2|3>\t\t #不要なディレクトリを新規作成しない\n")
 						  _T("\t/c1\t\t ;ファイルが一つしか含まれない\n")
 						  _T("\t/c2\t\t ;二重ディレクトリ\n")
+						  _T("\t/c3\t\t ;同名の二重ディレクトリ\n")
 						  _T("\t/c<n|s>\t\t #末尾から数字や記号を取り除く\n")
 						  _T("\t/cn\t\t ;数字\n")
 						  _T("\t/cs\t\t ;記号\n")
@@ -321,7 +323,7 @@ void Reces::usage(){
 						  _T("\n")
 						  _T("\t/eb\t\t #作成する基底ディレクトリを除外 {mr/mc}\n")
 						  _T("\t\t\t  (共通パスを一つ除外)\n")
-						  _T("\t/eb[[level]|x]\t #共通パスを除外して解凍 {mr/me}\n")
+						  _T("\t/eb<[level]|x>\t #共通パスを除外して解凍 {mr/me}\n")
 						  _T("\t/eb[level]\t ;共通パスを指定の数だけ除外して解凍\n")
 						  _T("\t/ebx\t\t ;共通パスを全て除外して解凍\n")
 						  _T("\n")
@@ -331,6 +333,8 @@ void Reces::usage(){
 						  _T("\t/Dw<directory>\t ;wcxのあるディレクトリを指定 {mr/me/ml/mv}\n")
 						  _T("\n")
 						  _T("\t/N\t\t #書庫を新規作成 {mr/mc}\n")
+						  _T("\t/NF\t\t #書庫を強制的に新規作成 {mr/mc}\n")
+						  _T("\t\t\t (出力先が存在すれば予め削除)\n")
 						  _T("\n")
 						  _T("\t/I<pattern...>\t #処理対象フィルタ(文字列) {mr/mc/me/ml/md}\n")
 						  _T("\t\t\t  (ワイルドカード指定可能)\n")

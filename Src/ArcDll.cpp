@@ -2,7 +2,7 @@
 //統合アーカイバDll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -21,7 +21,7 @@ using namespace sslib;
 namespace callback{
 namespace{
 ArcDll* ptr=NULL;
-long now=0,last_updade=0;
+DWORD now=0,last_updade=0;
 }
 }
 
@@ -265,16 +265,9 @@ bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,/*UINT state,*/void* info){
 	if(IS_TERMINATED)return false;
 	if(!info||m_disable_callback)return true;
 
-	SYSTEMTIME st={};
-	::GetSystemTime(&st);
-	callback::now=st.wSecond*1000+st.wMilliseconds;
-	long diff=(callback::now>callback::last_updade)?
-		callback::now-callback::last_updade:
-		60000-callback::last_updade+callback::now;
+	callback::now=::GetTickCount();
 
-	if(diff>100){
-		callback::last_updade=callback::now;
-
+	if(unsigned int(callback::now-callback::last_updade)>100){
 		//ファイル処理情報を格納
 		if(!CFG.no_display.no_information){
 			setExtractingInfo(/*state,*/info);
@@ -287,6 +280,7 @@ bool ArcDll::callbackProcV(HWND wnd_handle,UINT msg,/*UINT state,*/void* info){
 		if(!IS_TERMINATED){
 			if(m_progress_thread_id){
 				misc::thread::post(m_progress_thread_id,WM_UPDATE_PROGRESSBAR,&m_processing_info,NULL/*reinterpret_cast<void*>(state)*/);
+				callback::last_updade=callback::now;
 			}
 			return true;
 		}else{
@@ -505,7 +499,7 @@ bool ArcDll::outputFileListEx(const TCHAR* arc_path,const fileinfo::FILEFILTER& 
 }
 
 //作成しようとするディレクトリは不要であるかどうか
-bool ArcDll::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file){
+bool ArcDll::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file,tstring* root_dir){
 	if(!check_double_dir&&!check_only_file)return false;
 
 	bool result=false;
@@ -577,6 +571,8 @@ bool ArcDll::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool che
 		result=true;
 		m_arc_info.onlyFile(true);
 	}
+
+	if(root_dir)*root_dir=redundant_dir.root_dir();
 
 	return result;
 }

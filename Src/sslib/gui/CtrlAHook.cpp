@@ -35,7 +35,7 @@ LRESULT CALLBACK CtrlAHook::CtrlAHookProc(int nCode,WPARAM wParam,LPARAM lParam)
 			hwnd=::GetFocus();
 			if(hwnd!=NULL){
 				::GetClassName(hwnd,class_name,ARRAY_SIZEOF(class_name));
-				if(lstrcmpi(class_name,_T("Edit"))==0){
+				if(lstrcmpi(class_name,WC_EDIT)==0){
 					//フォーカスがエディットコントロールにある
 					::SendMessage(hwnd,EM_SETSEL,0,-1);
 					return true;

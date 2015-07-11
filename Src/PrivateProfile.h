@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -39,9 +39,11 @@ struct NODISPLAY{
 struct REMOVEREDUNDANTDIR{
 	//二重ディレクトリを防ぐ
 	bool double_dir;
+	//同名の二重ディレクトリを防ぐ
+	bool same_dir;
 	//ファイル単体の場合作成しない
 	bool only_file;
-	REMOVEREDUNDANTDIR():double_dir(false),only_file(false){}
+	REMOVEREDUNDANTDIR():double_dir(false),only_file(false),same_dir(false){}
 };
 
 struct OMITNUMBERANDSYMBOL{

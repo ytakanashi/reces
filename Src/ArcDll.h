@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -192,7 +192,7 @@ public:
 	bool outputFileListEx(const TCHAR* arc_path,const fileinfo::FILEFILTER& filefilter,const fileinfo::FILEFILTER& file_ex_filter,int opt=0,sslib::File* list_file=NULL);
 
 	//作成しようとするディレクトリは不要であるかどうか
-	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file);
+	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file,tstring* root_dir=NULL);
 
 	//圧縮形式その他情報を取得
 	inline const COMPRESSION_METHOD& getMethod()const{return m_compression_methods[m_method_index];}

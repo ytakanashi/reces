@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -101,6 +101,8 @@ bool Config::save(){
 	write(_T("Extract"),_T("CreateDir"),CFG_VALUE(extract.create_dir));
 	//二重ディレクトリを防ぐ
 	write(_T("Extract"),_T("DoubleDir"),CFG_VALUE(extract.create_dir_optimization.remove_redundant_dir.double_dir));
+	//同名の二重ディレクトリを防ぐ
+	write(_T("Extract"),_T("SameDir"),CFG_VALUE(extract.create_dir_optimization.remove_redundant_dir.same_dir));
 	//ファイル単体の場合作成しない
 	write(_T("Extract"),_T("OnlyFile"),CFG_VALUE(extract.create_dir_optimization.remove_redundant_dir.only_file));
 	//ディレクトリ名末尾の数字を削除
@@ -290,6 +292,8 @@ bool Config::load(){
 	getDataEx(_T("Extract"),_T("CreateDir"),&m_cfg.extract.create_dir);
 	//二重ディレクトリを防ぐ
 	getDataEx(_T("Extract"),_T("DoubleDir"),&m_cfg.extract.create_dir_optimization.remove_redundant_dir.double_dir);
+	//同名の二重ディレクトリを防ぐ
+	getDataEx(_T("Extract"),_T("SameDir"),&m_cfg.extract.create_dir_optimization.remove_redundant_dir.same_dir);
 	//ファイル単体の場合作成しない
 	getDataEx(_T("Extract"),_T("OnlyFile"),&m_cfg.extract.create_dir_optimization.remove_redundant_dir.only_file);
 	//ディレクトリ名末尾の数字を削除

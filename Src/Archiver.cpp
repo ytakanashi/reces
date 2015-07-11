@@ -2,7 +2,7 @@
 //書庫操作共通
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -172,11 +172,9 @@ bool RedundantDir::operator()(const fileinfo::FILEINFO& fileinfo){
 			m_has_dir=true;
 		}else{
 			//ファイル
-			if(!m_file_in_root_dir){
-				//最初のファイルを確認
-				//二つ目のファイルが見つかれば二重ディレクトリの疑いは晴れる
-				m_file_in_root_dir=true;
-			}else if(m_file_in_root_dir||m_has_dir){
+			m_file_in_root_dir=true;
+
+			if(m_has_dir){
 				m_is_double_dir=false;
 				return true;
 			}

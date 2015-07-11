@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -330,12 +330,19 @@ bool parseOptions(CommandArgument& cmd_arg){
 						case '1':
 							//ファイル単体の場合作成しない
 							CFG.extract.create_dir_optimization.remove_redundant_dir.only_file=true;
-							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.bOnlyFile=true\n"));
+							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.only_file=true\n"));
 							break;
 						case '2':
 							//二重ディレクトリを作成しない
 							CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=true;
-							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.bDoubleDir=true\n"));
+							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=true\n"));
+							break;
+						case '3':
+							//同名の二重ディレクトリを作成しない
+							CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=true;
+							CFG.extract.create_dir_optimization.remove_redundant_dir.same_dir=true;
+							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=true\n"));
+							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.same_dir=true\n"));
 							break;
 
 						//ディレクトリ名末尾の数字や記号を削除

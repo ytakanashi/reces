@@ -26,7 +26,7 @@ public:
 
 public:
 	//「ファイルを開く」でフォルダを選択できるダイアログ表示
-	bool doModalOpen(tstring* file_path,HWND wnd_handle=NULL,const TCHAR* filter=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL);
+	bool doModalOpen(tstring* file_path,HWND wnd_handle=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL);
 };
 
 //namespace sslib

@@ -1,7 +1,7 @@
 ﻿//Spi.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -57,7 +57,7 @@ public:
 	ARC_RESULT test(const TCHAR* arc_path);
 
 	//作成しようとするディレクトリは不要であるかどうか
-	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file);
+	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file,tstring* root_dir=NULL);
 };
 
 #endif //_SPI_H_4F4E72AA_0C47_4f12_8683_6D9F77D3AE58

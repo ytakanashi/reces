@@ -1,7 +1,7 @@
 ﻿//Archiver.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -100,7 +100,7 @@ public:
 	//書庫内のすべてのファイルの情報を取得
 	virtual bool createFilesList(const TCHAR* arc_path)=0;
 	//作成しようとするディレクトリは不要であるかどうか
-	virtual bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file)=0;
+	virtual bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file,tstring* root_dir=NULL)=0;
 	//--[ここまで]--
 	//プラグインについての情報を取得
 	virtual tstring getInformation();
@@ -135,6 +135,7 @@ private:
 public:
 	inline bool isDoubleDir()const{return m_is_double_dir;}
 	inline bool hasDir()const{return m_has_dir;}
+	inline const tstring root_dir()const{return m_root_dir;}
 	//true=break/false=continue
 	bool operator()(const fileinfo::FILEINFO& fileinfo);
 };

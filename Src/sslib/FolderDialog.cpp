@@ -5,6 +5,7 @@
 #include"sslib.h"
 
 #include<shlwapi.h>
+#include<shlobj.h>
 
 
 
@@ -26,7 +27,140 @@ namespace sslib{
 	#define SHACF_AUTOAPPEND_FORCE_OFF		0x80000000
 #endif
 
+#ifndef BFFM_INITIALIZED
+	#define BFFM_INITIALIZED 1
+	#define BFFM_SELCHANGED 2
+	#define BFFM_VALIDATEFAILEDA 3
+	#define BFFM_VALIDATEFAILEDW 4
+	#define BFFM_SETSTATUSTEXTA (WM_USER + 100)
+	#define BFFM_SETSTATUSTEXTW (WM_USER + 104)
+	#define BFFM_ENABLEOK (WM_USER + 101)
+	#define BFFM_SETSELECTIONA (WM_USER + 102)
+	#define BFFM_SETSELECTIONW (WM_USER + 103)
+	#define BFFM_SETOKTEXT (WM_USER + 105)
+	#define BFFM_SETEXPANDED (WM_USER + 106)
 
+	#ifdef UNICODE
+		#define BFFM_SETSTATUSTEXT  BFFM_SETSTATUSTEXTW
+		#define BFFM_SETSELECTION   BFFM_SETSELECTIONW
+		#define BFFM_VALIDATEFAILED BFFM_VALIDATEFAILEDW
+	#else
+		#define BFFM_SETSTATUSTEXT  BFFM_SETSTATUSTEXTA
+		#define BFFM_SETSELECTION   BFFM_SETSELECTIONA
+		#define BFFM_VALIDATEFAILED BFFM_VALIDATEFAILEDA
+	#endif
+#endif
+
+
+BOOL CALLBACK EnumChildCallbackProc(HWND wnd_handle,LPARAM lparam){
+	TCHAR class_name[MAX_PATH]={};
+
+	::GetClassName(wnd_handle,class_name,ARRAY_SIZEOF(class_name));
+	if(lstrcmpi(class_name,WC_TREEVIEWW)==0){
+		if(lparam){
+			*(HWND*)lparam=wnd_handle;
+		}
+		return FALSE;
+	}
+	return TRUE;
+}
+
+int CALLBACK BrowseForFolderCallbackProc(HWND wnd_handle,UINT message,LPARAM lparam,LPARAM data){
+	static HWND edit_handle,tree_handle;
+
+	switch(message){
+		case BFFM_INITIALIZED:{
+			if(data){
+				//初期ディレクトリ設定
+				SendMessage(wnd_handle,BFFM_SETSELECTION,(WPARAM)true,(LPARAM)data);
+				edit_handle=::FindWindowEx(wnd_handle,NULL,WC_EDIT,NULL);
+
+				if(edit_handle){
+					//エディットコントロールにオートコンプリート機能を実装
+					::SHAutoComplete(edit_handle,SHACF_FILESYSTEM|SHACF_URLALL|SHACF_FILESYS_ONLY|SHACF_USETAB);
+				}
+
+				::EnumChildWindows(wnd_handle,EnumChildCallbackProc,(LPARAM)&tree_handle);
+				::SetFocus(tree_handle);
+			}
+			break;
+		}
+
+		case BFFM_SELCHANGED:{
+			LPITEMIDLIST item_id_list=(LPITEMIDLIST)lparam;
+			TCHAR directory[MAX_PATHW]={};
+
+			//TODO:マイコンピュータを素通りしてしまう
+			if(SHGetPathFromIDList(item_id_list,directory)){
+				if(edit_handle){
+					SendMessage(edit_handle,WM_SETTEXT,(WPARAM)0,(LPARAM)path::addTailSlash(directory).c_str());
+				}
+			}
+			TreeView_EnsureVisible(tree_handle,TreeView_GetSelection(tree_handle));
+			::SetFocus(tree_handle);
+			break;
+		}
+
+		//無効なディレクトリ名であった場合
+		case BFFM_VALIDATEFAILED:
+			return 1;
+
+		default:
+			break;
+	}
+	return 0;
+}
+
+bool FolderDialog::doModalOpen(tstring* file_path,HWND wnd_handle,const TCHAR* title,const TCHAR* init_dir){
+	bool result=false;
+	std::vector<TCHAR> file_buffer(MAX_PATHW);
+
+	::CoInitialize(NULL);
+	LPTSTR buffer=NULL;
+	LPITEMIDLIST id_root=NULL;
+	LPITEMIDLIST item_id_list=NULL;
+	LPMALLOC lpmalloc=NULL;
+	if(FAILED(::SHGetMalloc(&lpmalloc)))return false;
+	if((buffer=(LPTSTR)lpmalloc->Alloc(MAX_PATHW))==NULL)return false;
+	if(!SUCCEEDED(::SHGetSpecialFolderLocation(NULL,CSIDL_DESKTOP,&id_root))){
+		lpmalloc->Free(buffer);
+		::CoUninitialize();
+		return false;
+	}
+
+	//デスクトップのパスを取得
+	SHFILEINFO shFileInfo={};
+
+	::SHGetFileInfo((LPCTSTR)id_root,0,&shFileInfo,sizeof(SHFILEINFO),SHGFI_DISPLAYNAME|SHGFI_PIDL);
+
+	BROWSEINFO browse_info={};
+	browse_info.hwndOwner=wnd_handle;
+	browse_info.pidlRoot=id_root;
+	browse_info.pszDisplayName=buffer;
+	browse_info.lpszTitle=(title)?title:_T("フォルダを選択してください");
+	//BIF_DONTGOBELOWDOMAINを有効にすると、デスクトップ上のファイルが列挙されてしまう
+	browse_info.ulFlags=BIF_USENEWUI|BIF_NONEWFOLDERBUTTON|BIF_RETURNONLYFSDIRS/*|BIF_DONTGOBELOWDOMAIN*/|BIF_VALIDATE;
+	browse_info.lpfn=BrowseForFolderCallbackProc;
+	browse_info.lParam=reinterpret_cast<LPARAM>((init_dir)?init_dir:shFileInfo.szDisplayName);
+
+	item_id_list=::SHBrowseForFolder(&browse_info);
+	if(item_id_list){
+		if(::SHGetPathFromIDList(item_id_list,&file_buffer[0])){
+			if(file_path!=NULL){
+				file_path->assign(&file_buffer[0]);
+				result=true;
+			}
+		}
+		lpmalloc->Free(item_id_list);
+	}
+	lpmalloc->Free(id_root);
+	lpmalloc->Free(buffer);
+	lpmalloc->Release();
+	::CoUninitialize();
+	return result;
+}
+
+#if 0
 LRESULT CALLBACK OpenDialogProc(HWND wnd_handle,UINT msg,WPARAM wparam,LPARAM lparam){
 	//インスタンスのポインタを取り出す
 	FolderDialog* folder_dialog=reinterpret_cast<FolderDialog*>(::GetWindowLongPtr(wnd_handle,GWLP_USERDATA));
@@ -153,6 +287,7 @@ bool FolderDialog::doModalOpen(tstring* file_path,HWND wnd_handle,const TCHAR* f
 	*file_path=m_dir_path;
 	return result;
 }
+#endif
 
 //namespace sslib
 }

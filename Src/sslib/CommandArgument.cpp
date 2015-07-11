@@ -98,7 +98,8 @@ CommandArgument::CommandArgument(DWORD opt):
 				case '-':
 				case '/':
 					if(i+1!=size&&
-					   args()[i]==args()[i+1]){
+					   args()[i]==args()[i+1]&&
+					   (args()[i]==_T("-")||args()[i]==_T("/"))){
 						//解析終了
 						end_switch_scan=true;
 						continue;

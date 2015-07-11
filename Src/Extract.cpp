@@ -2,7 +2,7 @@
 //解凍
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -267,39 +267,51 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 				CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=false;
 			}
 
+			tstring root_dir;
+
 			if(CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir||
 			   CFG.extract.create_dir_optimization.remove_redundant_dir.only_file){
 				redundant_dir=
 					m_arc_dll->isRedundantDir((!split_file)?arc_path.c_str():join_file_name.c_str(),
 														 CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir,
-														 CFG.extract.create_dir_optimization.remove_redundant_dir.only_file);
+														 CFG.extract.create_dir_optimization.remove_redundant_dir.only_file,
+														 &root_dir);
 			}
 
-			if(!redundant_dir){
+			{
 				//新規ディレクトリ名作成
 				tstring new_dir_name(path::getFileName((!split_file)?arc_path:join_file_name));
 
 				//tar系を考慮しつつ拡張子削除
 				new_dir_name=removeExtensionEx(new_dir_name);
 
-				if(CFG.extract.create_dir_optimization.omit_number_and_symbol.number&&
-				   CFG.extract.create_dir_optimization.omit_number_and_symbol.symbol){
-					//ディレクトリ名末尾の数字と記号を削除
-					new_dir_name=path::removeLastNumberAndSymbol(new_dir_name);
-				}else if(CFG.extract.create_dir_optimization.omit_number_and_symbol.number){
-					//ディレクトリ名末尾の数字を削除
-					new_dir_name=path::removeLastNumber(new_dir_name);
-				}else if(CFG.extract.create_dir_optimization.omit_number_and_symbol.symbol){
-					//ディレクトリ名末尾の記号を削除
-					new_dir_name=path::removeLastSymbol(new_dir_name);
+				//同名の二重ディレクトリを防ぐ
+				if(redundant_dir&&
+				   CFG.extract.create_dir_optimization.remove_redundant_dir.same_dir&&
+				   new_dir_name!=root_dir){
+					redundant_dir=false;
 				}
 
-				output_dir=path::addTailSlash(output_dir)+=new_dir_name;
+				if(!redundant_dir){
+					if(CFG.extract.create_dir_optimization.omit_number_and_symbol.number&&
+					   CFG.extract.create_dir_optimization.omit_number_and_symbol.symbol){
+						//ディレクトリ名末尾の数字と記号を削除
+						new_dir_name=path::removeLastNumberAndSymbol(new_dir_name);
+					}else if(CFG.extract.create_dir_optimization.omit_number_and_symbol.number){
+						//ディレクトリ名末尾の数字を削除
+						new_dir_name=path::removeLastNumber(new_dir_name);
+					}else if(CFG.extract.create_dir_optimization.omit_number_and_symbol.symbol){
+						//ディレクトリ名末尾の記号を削除
+						new_dir_name=path::removeLastSymbol(new_dir_name);
+					}
 
-				created_dir=fileoperation::createDirectory(output_dir.c_str());
-				if(!created_dir){
-					err_msg=format(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
-					return ARC_CANNOT_CREATE_DIRECTORY;
+					output_dir=path::addTailSlash(output_dir)+=new_dir_name;
+
+					created_dir=fileoperation::createDirectory(output_dir.c_str());
+					if(!created_dir){
+						err_msg=format(_T("ディレクトリ '%s' の作成に失敗しました。\n"),output_dir.c_str());
+						return ARC_CANNOT_CREATE_DIRECTORY;
+					}
 				}
 			}
 		}

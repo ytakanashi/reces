@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -485,7 +485,7 @@ bool Wcx::createFilesList(const TCHAR* arc_path){
 }
 
 //作成しようとするディレクトリは不要であるかどうか
-bool Wcx::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file){
+bool Wcx::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file,tstring* root_dir){
 	if(!check_double_dir&&!check_only_file)return false;
 
 	bool result=false;
@@ -557,6 +557,8 @@ bool Wcx::isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_
 		//ファイル単体のみ
 		result=true;
 	}
+
+	if(root_dir)*root_dir=redundant_dir.root_dir();
 
 	return result;
 }
