@@ -11,8 +11,12 @@ namespace sslib{
 namespace path{
 
 namespace{
-	int isNumberOrSymbol(int c){
+	int isNumbersOrSymbols(int c){
 		return str::isSymbol(c)||isdigit(c);
+	}
+
+	int isSpacesOrDots(int c){
+		return c==' '||c=='.';
 	}
 
 	static const TCHAR long_path_prefix[]=_T("\\\\?\\");
@@ -299,7 +303,7 @@ tstring removeQuotation(const tstring& file_path){
 }
 
 //末尾の条件に合致する文字を削除
-tstring removeLastCharacter(const tstring& file_path,int(*check)(int c)){
+tstring removeLastCharacters(const tstring& file_path,int(*check)(int c)){
 	for(int i=file_path.length()-1;i!=-1;--i){
 #ifndef UNICODE
 		if(::IsDBCSLeadByte(file_path.c_str()[i])){
@@ -321,18 +325,23 @@ tstring removeLastCharacter(const tstring& file_path,int(*check)(int c)){
 }
 
 //末尾の記号を削除
-tstring removeLastSymbol(const tstring& file_path){
-	return removeLastCharacter(file_path,str::isSymbol);
+tstring removeLastSymbols(const tstring& file_path){
+	return removeLastCharacters(file_path,str::isSymbol);
 }
 
 //末尾の数字を削除
-tstring removeLastNumber(const tstring& file_path){
-	return removeLastCharacter(file_path,isdigit);
+tstring removeLastNumbers(const tstring& file_path){
+	return removeLastCharacters(file_path,isdigit);
 }
 
 //末尾の数字と記号を削除
-tstring removeLastNumberAndSymbol(const tstring& file_path){
-	return removeLastCharacter(file_path,isNumberOrSymbol);
+tstring removeLastNumbersAndSymbols(const tstring& file_path){
+	return removeLastCharacters(file_path,isNumbersOrSymbols);
+}
+
+//末尾のスペースとドットを削除
+tstring removeSpacesAndDots(const tstring& file_path){
+	return removeLastCharacters(file_path,isSpacesOrDots);
 }
 
 //一時ディレクトリのパスを取得(末尾に\有り)

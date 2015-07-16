@@ -76,9 +76,9 @@ typedef std::basic_string<TCHAR>tstring;
 	}name;\
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r29a_Debug")
+	#define SOFTWARE_VERSION _T("0.00r29b_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r29a")
+	#define SOFTWARE_VERSION _T("0.00r29b")
 #endif
 
 //#define DISABLE_MISC

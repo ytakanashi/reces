@@ -2,7 +2,7 @@
 //Unlha32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -664,7 +664,7 @@ void ArcUnlha32::setExtractingInfo(/*UINT state,*/void* arc_info){
 
 			if(m_last_hash!=0&&
 			   m_last_hash==cur_hash){
-				//Unlha32は圧縮時にまず一時ファイルの情報??を送ってきてくれる優しい子なので
+				//Unlha32は圧縮時にまず一時ファイルの情報??を送信するようなので、
 				//格納ファイル一つ一つの書き込み状況に就いては更新せず、
 				//格納ファイルのサイズを取り扱うように。
 				if(CFG.mode==MODE_COMPRESS)break;

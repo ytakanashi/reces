@@ -63,13 +63,15 @@ tstring getLongPathName(const TCHAR* file_path);
 //二重引用符を取り除く
 tstring removeQuotation(const tstring& file_path);
 //末尾の条件に合致する文字を削除
-tstring removeLastCharacter(const tstring& file_path,int(*check)(int c));
+tstring removeLastCharacters(const tstring& file_path,int(*check)(int c));
 //末尾の記号を削除
-tstring removeLastSymbol(const tstring& file_path);
+tstring removeLastSymbols(const tstring& file_path);
 //末尾の数字を削除
-tstring removeLastNumber(const tstring& file_path);
+tstring removeLastNumbers(const tstring& file_path);
 //末尾の数字と記号を削除
-tstring removeLastNumberAndSymbol(const tstring& file_path);
+tstring removeLastNumbersAndSymbols(const tstring& file_path);
+//末尾のスペースとドットを削除
+tstring removeSpacesAndDots(const tstring& file_path);
 
 //一時ディレクトリのパスを取得(末尾に\有り)
 tstring getTempDirPath();

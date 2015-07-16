@@ -2,7 +2,7 @@
 //Tar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -454,8 +454,6 @@ bool ArcTar32::writeFormatedList(const File& list_file,const tstring& full_path)
 	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 
 	tstring base_dir(path::getParentDirectory(full_path));
-	//unlha32.dll以外は不要なはず...
-//	replaceDelimiter(base_dir);
 	tstring file_name(path::getFileName(full_path));
 
 	if(path::isDirectory(full_path.c_str())&&
@@ -465,7 +463,6 @@ bool ArcTar32::writeFormatedList(const File& list_file,const tstring& full_path)
 		if(CFG.compress.exclude_base_dir!=0){
 			//基底ディレクトリを含まない
 			base_dir=full_path;
-//			replaceDelimiter(base_dir);
 		}
 
 		std::list<size_info> relative_path_list;
@@ -475,6 +472,7 @@ bool ArcTar32::writeFormatedList(const File& list_file,const tstring& full_path)
 			std::vector<fileinfo::FILEINFO> exclude_list;
 
 			FileTree file_tree(CFG.general.filefilter,CFG.general.file_ex_filter);
+
 			file_tree.createFileTree(full_path.c_str());
 			file_tree.makeIncludeTree(FileTree::TO_EXCLUDE_DIR,full_path.c_str());
 

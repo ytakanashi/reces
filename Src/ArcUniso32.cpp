@@ -2,7 +2,7 @@
 //Uniso32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -136,10 +136,18 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 							   quotePath(list_file_path).c_str()));
 	}
 
+#if 1
+	//-oで指定するディレクトリにスペースが2つ以上含まれると1つに削られてしまうので予めSetCurrentDirectory()で移動しておく
+	fileoperation::temporaryCurrentDirectory temp_dir(output_dir_str.c_str());
+	cmd_line.append(format(_T("%s %s"),
+						   _T("--"),
+						   quotePath(arc_path_str).c_str()));
+#else
 	cmd_line.append(format(_T("-o%s %s %s"),
 						   quotePath(output_dir_str).c_str(),
 						   _T("--"),
 						   quotePath(arc_path_str).c_str()));
+#endif
 
 	if(use_filter&&
 	   CFG.general.ignore_directory_structures){

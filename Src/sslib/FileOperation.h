@@ -59,6 +59,20 @@ private:
 	tstring m_file_path;
 };
 
+//一時的にカレントディレクトリを変更
+class temporaryCurrentDirectory:private misc::NonCopyable<temporaryCurrentDirectory>{
+public:
+	temporaryCurrentDirectory(const TCHAR* dir_path):m_cur_path(){
+		m_cur_path=path::getCurrentDirectory();
+		if(!m_cur_path.empty())::SetCurrentDirectory(dir_path);
+	}
+	~temporaryCurrentDirectory(){
+		if(!m_cur_path.empty())::SetCurrentDirectory(m_cur_path.c_str());
+	}
+private:
+	tstring m_cur_path;
+};
+
 //ファイルのバージョンを取得
 bool getFileVersion(const TCHAR* file_path,DWORD* major_ver,DWORD* minor_ver);
 

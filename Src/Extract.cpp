@@ -296,14 +296,17 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 					if(CFG.extract.create_dir_optimization.omit_number_and_symbol.number&&
 					   CFG.extract.create_dir_optimization.omit_number_and_symbol.symbol){
 						//ディレクトリ名末尾の数字と記号を削除
-						new_dir_name=path::removeLastNumberAndSymbol(new_dir_name);
+						new_dir_name=path::removeLastNumbersAndSymbols(new_dir_name);
 					}else if(CFG.extract.create_dir_optimization.omit_number_and_symbol.number){
 						//ディレクトリ名末尾の数字を削除
-						new_dir_name=path::removeLastNumber(new_dir_name);
+						new_dir_name=path::removeLastNumbers(new_dir_name);
 					}else if(CFG.extract.create_dir_optimization.omit_number_and_symbol.symbol){
 						//ディレクトリ名末尾の記号を削除
-						new_dir_name=path::removeLastSymbol(new_dir_name);
+						new_dir_name=path::removeLastSymbols(new_dir_name);
 					}
+
+					//ディレクトリ名末尾のスペースとドットを削除
+					new_dir_name=path::removeSpacesAndDots(new_dir_name);
 
 					output_dir=path::addTailSlash(output_dir)+=new_dir_name;
 

@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -425,10 +425,18 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 							   quotePath(list_file_path).c_str()));
 	}
 
+#if 1
+	//-oで指定するディレクトリにスペースが2つ以上含まれると1つに削られてしまうので予めSetCurrentDirectory()で移動しておく
+	fileoperation::temporaryCurrentDirectory temp_dir(output_dir_str.c_str());
+	cmd_line.append(format(_T("%s %s"),
+						   _T("--"),
+						   quotePath(arc_path_str).c_str()));
+#else
 	cmd_line.append(format(_T("-o%s %s %s"),
 						   quotePath(output_dir_str).c_str(),
 						   _T("--"),
 						   quotePath(arc_path_str).c_str()));
+#endif
 
 	if(use_filter&&
 	   CFG.general.ignore_directory_structures){
@@ -743,14 +751,16 @@ bool Arc7zip32::writeFormatedList(const File& list_file,File& exclude_list_file,
 			return false;
 		}
 
-		//処理対象リストに書き出し
-		if(CFG.compress.exclude_base_dir==0){
-			writeFormatedPath(list_file,full_path.c_str());
-		}else{
-			//'C:\~\DIR\*'
-			file_name=path::addTailSlash(full_path);
-			file_name+=_T("*");
-			writeFormatedPath(list_file,file_name.c_str());
+		if(!CFG.general.ignore_directory_structures){
+			//処理対象リストに書き出し
+			if(CFG.compress.exclude_base_dir==0){
+				writeFormatedPath(list_file,full_path.c_str());
+			}else{
+				//'C:\~\DIR\*'
+				file_name=path::addTailSlash(full_path);
+				file_name+=_T("*");
+				writeFormatedPath(list_file,file_name.c_str());
+			}
 		}
 
 		if(!use_filter){
