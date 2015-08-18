@@ -2,7 +2,7 @@
 //テスト
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -95,7 +95,7 @@ Test::ARC_RESULT Test::operator()(const tstring& arc_path,tstring& err_msg){
 			}else{
 				STDOUT.outputString(_T("\n"));
 				err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
-				return ARC_NOT_SUPPORTED_METHOD;
+				return ARC_NOT_SUPPORTED_FORMAT;
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 ﻿//ArcTar32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -65,7 +65,7 @@ protected:
 
 public:
 	//圧縮形式を取得(その形式に対応している場合のみ)
-	tstring getCompressionMethod(const TCHAR* arc_path_orig);
+	tstring getCompressionFormat(const TCHAR* arc_path_orig);
 
 	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
 	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);

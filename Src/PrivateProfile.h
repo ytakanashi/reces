@@ -105,8 +105,12 @@ struct GENERAL{
 	bool auto_rename;
 	//ソースを削除
 	RMSRC remove_source;
+	//アーカイバに送る文字コード(現在7-zip32.dllのみ対象)
+	unsigned int arc_codepage;
 	//パスワードリストファイル、リストファイルの文字コード
-	sslib::File::CODEPAGE codepage;
+	sslib::File::CODEPAGE list_codepage;
+	//文字をANSI(sjis)で出力
+	bool ansi_stdout;
 	//ユーザ独自のパラメータ
 	tstring custom_param;
 	//spiがあるディレクトリ
@@ -131,7 +135,9 @@ struct GENERAL{
 		default_base_dir(false),
 		auto_rename(false),
 		remove_source(RMSRC_DISABLE),
-		codepage(sslib::File::SJIS),
+		arc_codepage(0),
+		list_codepage(sslib::File::SJIS),
+		ansi_stdout(false),
 		custom_param(),
 		spi_dir(),
 		b2e_dir(),
@@ -144,6 +150,16 @@ struct RECOMPRESS{
 	//コマンド実行
 	RUNCOMMAND run_command;
 	RECOMPRESS():new_password(),run_command(){}
+};
+
+struct B2E{
+	//圧縮形式
+	tstring format;
+	//圧縮メソッド
+	tstring method;
+	//自己解凍形式指定
+	bool sfx;
+	B2E():format(),method(),sfx(false){}
 };
 
 struct COMPRESS{
@@ -169,6 +185,10 @@ struct COMPRESS{
 	bool raw_file_name;
 	//更新日時を元書庫と同じにする
 	bool copy_timestamp;
+	//対象ディレクトリを再帰的検索
+	bool recursive;
+	//圧縮用b2eスクリプト
+	B2E b2e;
 
 	COMPRESS():
 		compression_type(_T("zip")),
@@ -180,7 +200,9 @@ struct COMPRESS{
 		split_value(),
 		output_file(),
 		raw_file_name(false),
-		copy_timestamp(false){}
+		copy_timestamp(false),
+		recursive(false),
+		b2e(){}
 };
 
 struct EXTRACT{

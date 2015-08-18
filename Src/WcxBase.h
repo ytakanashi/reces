@@ -1,7 +1,7 @@
 ﻿//WcxBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -81,7 +81,7 @@ typedef struct{
 	int FileCRC;
 	int FileTime;
 	int UnpVer;
-	int Method;
+	int Format;
 	int FileAttr;
 	char* CmtBuf;
 	int CmtBufSize;
@@ -101,7 +101,7 @@ typedef struct{
 	int FileCRC;
 	int FileTime;
 	int UnpVer;
-	int Method;
+	int Format;
 	int FileAttr;
 	char* CmtBuf;
 	int CmtBufSize;
@@ -122,7 +122,7 @@ typedef struct{
 	int FileCRC;
 	int FileTime;
 	int UnpVer;
-	int Method;
+	int Format;
 	int FileAttr;
 	char* CmtBuf;
 	int CmtBufSize;

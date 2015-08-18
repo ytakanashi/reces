@@ -25,11 +25,11 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
             VALUE "Comments", "DlgHook.dll for reces Ver.0.00r29"
             VALUE "CompanyName", "Frost Moon Project"
             VALUE "FileDescription", "DlgHook.dll for reces Ver.0.00r29"
-            VALUE "FileVersion", "0.00r29b"
+            VALUE "FileVersion", "0.00r29"
             VALUE "InternalName", "DlgHook.dll for reces Ver.0.00r29"
             VALUE "LegalCopyright", "Coded by x@rgs"
             VALUE "OriginalFilename", "DlgHook.dll"
-            VALUE "ProductVersion", "0.00r29b"
+            VALUE "ProductVersion", "0.00r29"
         }
     }
     BLOCK "VarFileInfo"

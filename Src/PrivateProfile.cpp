@@ -43,6 +43,12 @@ bool Config::save(){
 	write(_T("General"),_T("AutoRename"),CFG_VALUE(general.auto_rename));
 	//ソースを削除
 	write(_T("General"),_T("RemoveSource"),CFG_VALUE(general.remove_source));
+	//アーカイバに送る文字コード(現在7-zip32.dllのみ対象)
+	write(_T("General"),_T("ArcCodePage"),CFG_VALUE(general.arc_codepage));
+	//パスワードリストファイル、リストファイルの文字コード
+	write(_T("General"),_T("ListCodePage"),CFG_VALUE(general.list_codepage));
+	//文字をANSI(sjis)で出力
+	write(_T("General"),_T("ANSIstdout"),CFG_VALUE(general.ansi_stdout));
 	//ユーザ独自のパラメータ
 	write(_T("General"),_T("CustomParam"),CFG_VALUE(general.custom_param));
 	//spiがあるディレクトリ
@@ -94,6 +100,14 @@ bool Config::save(){
 	write(_T("Compress"),_T("RawFileName"),CFG_VALUE(compress.raw_file_name));
 	//更新日時を元書庫と同じにする
 	write(_T("Compress"),_T("CopyTimestamp"),CFG_VALUE(compress.copy_timestamp));
+	//対象ディレクトリを再帰的検索
+	write(_T("Compress"),_T("Recursive"),CFG_VALUE(compress.recursive));
+	//b2eスクリプトの圧縮形式
+	write(_T("Compress"),_T("B2eFormat"),CFG_VALUE(compress.b2e.format));
+	//b2eスクリプトの圧縮メソッド
+	write(_T("Compress"),_T("B2eMethod"),CFG_VALUE(compress.b2e.method));
+	//b2eスクリプトの自己解凍形式指定
+	write(_T("Compress"),_T("B2eSfx"),CFG_VALUE(compress.b2e.sfx));
 
 
 	//解凍
@@ -236,6 +250,12 @@ bool Config::load(){
 	getDataEx(_T("General"),_T("AutoRename"),&m_cfg.general.auto_rename);
 	//ソースを削除
 	getDataEx(_T("General"),_T("RemoveSource"),&m_cfg.general.remove_source);
+	//アーカイバに送る文字コード(現在7-zip32.dllのみ対象)
+	getDataEx(_T("General"),_T("ArcCodePage"),&m_cfg.general.arc_codepage);
+	//パスワードリストファイル、リストファイルの文字コード
+	getDataEx(_T("General"),_T("ListCodePage"),&m_cfg.general.list_codepage);
+	//文字をANSI(sjis)で出力
+	getDataEx(_T("General"),_T("ANSI"),&m_cfg.general.ansi_stdout);
 	//ユーザ独自のパラメータ
 	getStringDataEx(_T("General"),_T("CustomParam"),&m_cfg.general.custom_param);
 	//spiのあるディレクトリ
@@ -286,6 +306,14 @@ bool Config::load(){
 	getDataEx(_T("Compress"),_T("RawFileName"),&m_cfg.compress.raw_file_name);
 	//更新日時を元書庫と同じにする
 	getDataEx(_T("Compress"),_T("CopyTimestamp"),&m_cfg.compress.copy_timestamp);
+	//対象ディレクトリを再帰的検索
+	getDataEx(_T("Compress"),_T("Recursive"),&m_cfg.compress.recursive);
+	//b2eスクリプトの圧縮形式
+	getStringDataEx(_T("Compress"),_T("B2eFormat"),&m_cfg.compress.b2e.format);
+	//b2eスクリプトの圧縮メソッド
+	getStringDataEx(_T("Compress"),_T("B2eMethod"),&m_cfg.compress.b2e.method);
+	//b2eスクリプトの自己解凍形式指定
+	getDataEx(_T("Compress"),_T("B2eSfx"),&m_cfg.compress.b2e.sfx);
 
 	//解凍
 	//ディレクトリを作成する

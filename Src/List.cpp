@@ -2,7 +2,7 @@
 //リスト
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -109,6 +109,28 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 			}
 		}
 
+		if(!m_arc_dll&&m_b2e_dll){
+			if(!CFG.general.selected_library_name.empty()&&
+			   str::isEqualStringIgnoreCase(path::removeExtension(path::getFileName(CFG.general.selected_library_name)),
+											m_b2e_dll->name())||
+			   CFG.general.selected_library_name.empty()){
+
+				std::vector<Archiver*> v;
+
+				v.push_back(m_b2e_dll);
+
+				if(!m_b2e_dir.empty()){
+					//b2eスクリプトのあるディレクトリを指定
+					m_b2e_dll->setScriptDirectory(m_b2e_dir.c_str());
+				}
+
+				m_arc_dll=loadAndCheck(v.begin(),
+									   v.end(),
+									   arc_path.c_str(),
+									   &loaded_library);
+			}
+		}
+
 		if(!m_arc_dll){
 			if(ARCCFG->m_password_input_cancelled){
 				STDOUT.outputString(_T("\n"));
@@ -121,7 +143,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 			}else{
 				STDOUT.outputString(_T("\n"));
 				err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
-				return ARC_NOT_SUPPORTED_METHOD;
+				return ARC_NOT_SUPPORTED_FORMAT;
 			}
 		}
 	}

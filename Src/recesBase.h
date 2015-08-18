@@ -1,7 +1,7 @@
 ﻿//recesBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -13,9 +13,7 @@
 #include"ArcCfg.h"
 #include"Msg.h"
 #include"ArcDll.h"
-#ifndef _WIN64
 #include"ArcB2e.h"
-#endif
 #include"Spi.h"
 #include"Wcx.h"
 #include"PrivateProfile.h"
@@ -31,7 +29,7 @@ protected:
 		ARC_SUCCESS,
 
 		//対応していない書庫形式
-		ARC_NOT_SUPPORTED_METHOD,
+		ARC_NOT_SUPPORTED_FORMAT,
 		//SFX+Sは選択できない
 		ARC_INCORRECT_OPTION_SFX_S,
 		//ライブラリの読み込みに失敗
@@ -55,10 +53,10 @@ protected:
 
 	static std::vector<ArcDll*> m_arcdll_list;
 
-#ifndef _WIN64
 	//B2e.dllは特別扱い
 	static ArcB2e* m_b2e_dll;
-#endif
+	//b2eのあるディレクトリ(フルパス)
+	static tstring m_b2e_dir;
 
 	//対応外のライブラリ(ms/Sでのみ対応)
 	static ArcDll* m_cal_dll;

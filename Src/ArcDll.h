@@ -29,7 +29,7 @@ public:
 	virtual ~ArcDll();
 
 public:
-	enum METHOD_OPTIONS{
+	enum FORMAT_OPTIONS{
 		MHD_PASSWORD=1<<0,
 		MHD_HEADERENCRYPTION=1<<1,
 		MHD_SFX=1<<2,
@@ -41,20 +41,20 @@ public:
 	//プラグインについての情報を取得
 	tstring getInformation();
 	//対応している圧縮形式であるか
-	bool isSupportedMethod(const TCHAR* mhd);
+	virtual bool isSupportedFormat(const TCHAR* mhd);
 	//対応している拡張子であるか
 	bool isSupportedExtension(const TCHAR* ext);
 	//対応している書庫であるか
 	virtual bool isSupportedArchive(const TCHAR* arc_path,int mode=CHECKARCHIVE_BASIC);
 	//圧縮形式を取得(その形式に対応している場合のみ)
-	virtual tstring getCompressionMethod(const TCHAR* arc_path);
+	virtual tstring getCompressionFormat(const TCHAR* arc_path);
 
 
 protected:
 	unsigned int m_extracting_info_struct_size;
 	ARC_PROCESSING_INFO m_processing_info;
 
-	struct COMPRESSION_METHOD{
+	struct COMPRESSION_FORMAT{
 		const TCHAR* mhd;
 		const TCHAR* ext;
 		const TCHAR* cmd;
@@ -64,8 +64,8 @@ protected:
 		int minimum_level;
 		int maximum_level;
 	};
-	std::vector<COMPRESSION_METHOD> m_compression_methods;
-	size_t m_method_index;
+	std::vector<COMPRESSION_FORMAT> m_compression_formats;
+	size_t m_format_index;
 
 	//対応拡張子リスト
 	std::list<tstring> m_supported_ext_list;
@@ -110,9 +110,6 @@ protected:
 	void replaceDelimiter(tstring& str);
 	void replaceDelimiter(std::list<tstring>* list);
 
-	//二重引用符でパスを囲む
-	tstring quotePath(const tstring& path);
-
 	//ファイル処理情報を格納
 	virtual void setExtractingInfo(/*UINT state,*/void* arc_info);
 	//コールバック通知を無効にする
@@ -148,7 +145,7 @@ protected:
 	//--[ここまで]--
 
 public:
-	inline ARC_TYPE type(){return isCAL()?CAL:UNKNOWN;}
+	virtual ARC_TYPE type(){return isCAL()?CAL:UNKNOWN;}
 
 	//設定ダイアログを表示
 	virtual bool configurationDialog(HWND wnd_handle=NULL);
@@ -195,8 +192,8 @@ public:
 	bool isRedundantDir(const TCHAR* arc_path,bool check_double_dir,bool check_only_file,tstring* root_dir=NULL);
 
 	//圧縮形式その他情報を取得
-	inline const COMPRESSION_METHOD& getMethod()const{return m_compression_methods[m_method_index];}
-	inline const COMPRESSION_METHOD& getMethod(size_t index)const{return m_compression_methods[index];}
+	inline const COMPRESSION_FORMAT& getFormat()const{return m_compression_formats[m_format_index];}
+	inline const COMPRESSION_FORMAT& getFormat(size_t index)const{return m_compression_formats[index];}
 };
 
 class ArcFileSearch{
@@ -262,7 +259,7 @@ public:
 		tstring buffer(1024,'\0');
 
 		if(m_arcdll_ptr->queryFunctionList(ISARC_GET_FILE_NAME)){
-			m_arcdll_ptr->getFileName(&buffer,1024);
+			m_arcdll_ptr->getFileName(&buffer,buffer.length());
 			m_fileinfo.name.assign(buffer);
 		}else{
 			//GetFileName()が実装されていない場合、INDIVIDUALINFO構造体より取得

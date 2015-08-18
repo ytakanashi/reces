@@ -147,6 +147,28 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			}
 		}
 
+		if(!m_arc_dll&&m_b2e_dll){
+			if(!CFG.general.selected_library_name.empty()&&
+			   str::isEqualStringIgnoreCase(path::removeExtension(path::getFileName(CFG.general.selected_library_name)),
+											m_b2e_dll->name())||
+			   CFG.general.selected_library_name.empty()){
+				std::vector<Archiver*> v;
+
+				v.push_back(m_b2e_dll);
+
+				//loadAndCheck()の前に行うこと
+				if(!m_b2e_dir.empty()){
+					//b2eスクリプトのあるディレクトリを指定
+					m_b2e_dll->setScriptDirectory(m_b2e_dir.c_str());
+				}
+
+				m_arc_dll=loadAndCheck(v.begin(),
+									   v.end(),
+									   arc_path.c_str(),
+									   &loaded_library);
+			}
+		}
+
 		::SetCurrentDirectory(current_dir.c_str());
 
 		if(!m_arc_dll){
@@ -161,7 +183,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			}else{
 				STDOUT.outputString(_T("\n"));
 				err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
-				return ARC_NOT_SUPPORTED_METHOD;
+				return ARC_NOT_SUPPORTED_FORMAT;
 			}
 		}
 	}
@@ -183,6 +205,8 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 		if(CFG.mode==MODE_RECOMPRESS){
 			//'@'の処理で
 			if(CFG.compress.compression_type.c_str()[0]=='@'&&
+			   //b2eのformatが指定されておらず
+			   CFG.compress.b2e.format.empty()&&
 			   //一括再圧縮の一度目か
 			   ((!CFG.compress.each_file&&m_cur_file.recompress_mhd.empty())||
 				//'/e'
@@ -203,14 +227,28 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 
 				if(m_arc_dll->type()==Archiver::CAL){
 					if(m_arc_dll){
-						m_cur_file.recompress_mhd.assign(static_cast<ArcDll*>(m_arc_dll)->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str()));
+						m_cur_file.recompress_mhd.assign(static_cast<ArcDll*>(m_arc_dll)->getCompressionFormat((!split_file)?arc_path.c_str():join_file_name.c_str()));
 					}
-				}else{
+				}else if(m_arc_dll->type()==Archiver::B2E){
+					if(m_b2e_dll){
+						unsigned int index=m_b2e_dll->getExtractorIndex((!split_file)?arc_path.c_str():join_file_name.c_str());
+
+						if(index!=0xffffffff){
+							tstring buffer(128,'\0');
+
+							m_b2e_dll->getCompressType(index,&buffer,buffer.length());
+							m_cur_file.recompress_mhd.assign(buffer);
+							CFG.compress.compression_type.clear();
+						}
+					}
+				}
+
+				if(m_cur_file.recompress_mhd.empty()){
 					//統合アーカイバ以外
 					for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 						if(!(!m_arcdll_list[i]->isLoaded()&&!m_arcdll_list[i]->load())){
 							if(m_arcdll_list[i]->isSupportedArchive((!split_file)?arc_path.c_str():join_file_name.c_str())){
-								if(!(m_cur_file.recompress_mhd.assign(m_arcdll_list[i]->getCompressionMethod((!split_file)?arc_path.c_str():join_file_name.c_str()))).empty()){
+								if(!(m_cur_file.recompress_mhd.assign(m_arcdll_list[i]->getCompressionFormat((!split_file)?arc_path.c_str():join_file_name.c_str()))).empty()){
 									break;
 								}
 							}

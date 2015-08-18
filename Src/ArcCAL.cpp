@@ -2,7 +2,7 @@
 //対応外の統合アーカイバライブラリ操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -20,10 +20,10 @@ ArcCAL::ArcCAL(const TCHAR* library_name,const TCHAR* library_prefix):
 			library_prefix,
 			_T("*"),
 			_T("\\")){
-		COMPRESSION_METHOD method[]={
+		COMPRESSION_FORMAT format[]={
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
-		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
+		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
 }
 
 ArcCAL::ARC_RESULT ArcCAL::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){

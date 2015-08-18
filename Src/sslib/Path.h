@@ -7,6 +7,9 @@ namespace sslib{
 namespace path{
 
 
+//スペースが含まれていれば'"'で囲む
+tstring quote(const tstring& file_path);
+
 //MAX_PATHを超えるパスの為の接頭辞'\\?\'を追加
 tstring addLongPathPrefix(const tstring& file_path);
 

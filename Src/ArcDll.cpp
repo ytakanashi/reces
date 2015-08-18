@@ -32,8 +32,8 @@ ArcDll::ArcDll(const TCHAR* library_name,
 	ArcDllBase(library_name,library_prefix),
 	m_extracting_info_struct_size(0),
 	m_processing_info(),
-	m_compression_methods(),
-	m_method_index(0),
+	m_compression_formats(),
+	m_format_index(0),
 	log_buffer_size(2*1024*1024),
 	m_arc_info(),
 	m_disable_callback(false){
@@ -64,15 +64,15 @@ tstring ArcDll::getInformation(){
 }
 
 //対応している圧縮形式であるか
-bool ArcDll::isSupportedMethod(const TCHAR* mhd){
-	size_t size=m_compression_methods.size();
+bool ArcDll::isSupportedFormat(const TCHAR* mhd){
+	size_t size=m_compression_formats.size();
 
-	for(m_method_index=0;
-		m_compression_methods[m_method_index].mhd!=NULL&&
-		lstrcmpi(m_compression_methods[m_method_index].mhd,mhd)!=0&&
-		m_method_index<size;
-		m_method_index++){}
-	return (m_compression_methods[m_method_index].mhd!=NULL);
+	for(m_format_index=0;
+		m_compression_formats[m_format_index].mhd!=NULL&&
+		lstrcmpi(m_compression_formats[m_format_index].mhd,mhd)!=0&&
+		m_format_index<size;
+		m_format_index++){}
+	return (m_compression_formats[m_format_index].mhd!=NULL);
 }
 
 //対応している拡張子であるか
@@ -86,11 +86,11 @@ bool ArcDll::isSupportedArchive(const TCHAR* arc_path,int mode){
 }
 
 //圧縮形式を取得(その形式に対応している場合のみ)
-tstring ArcDll::getCompressionMethod(const TCHAR* arc_path){
+tstring ArcDll::getCompressionFormat(const TCHAR* arc_path){
 	//7-zip32.dll/tar32.dll(<s>/XacRett.dll</s>)はgetArchiveType()を用いて実装
 	//パスワードやSFXは含まない
-	if(m_compression_methods[0].mhd!=NULL){
-		return m_compression_methods[0].mhd;
+	if(m_compression_formats[0].mhd!=NULL){
+		return m_compression_formats[0].mhd;
 	}else{
 		//圧縮に対応していなければ今のところ何もしない
 		return _T("");
@@ -121,13 +121,6 @@ void ArcDll::replaceDelimiter(std::list<tstring>* list){
 								  (*m_delimiter=='/')?'\\':'/',
 								  (*m_delimiter=='/')?'/':'\\');
 		}
-}
-
-//二重引用符でパスを囲む
-tstring ArcDll::quotePath(const tstring& path){
-	return (str::containsWhiteSpace(path))?
-		_T("\"")+path+_T("\""):
-		path;
 }
 
 //書庫を開く

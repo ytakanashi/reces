@@ -2,7 +2,7 @@
 //Unrar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -137,10 +137,10 @@ ArcUnrar32::ArcUnrar32():
 			_T("rar"),
 			_T("\\")){
 		hook::this_ptr=this;
-		COMPRESSION_METHOD method[]={
+		COMPRESSION_FORMAT format[]={
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
-		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
+		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
 }
 
 //対応している書庫であるか
@@ -176,7 +176,7 @@ bool ArcUnrar32::isSupportedArchive(const TCHAR* arc_path_orig,int mode){
 							_T("-l"),
 							_T("-q"),
 							_T("--"),
-							quotePath(arc_path).c_str()));
+							path::quote(arc_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -297,13 +297,13 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 							_T("--"),
 
-							quotePath(arc_path_str).c_str(),
+							path::quote(arc_path_str).c_str(),
 
-							quotePath(output_dir_str).c_str()));
+							path::quote(output_dir_str).c_str()));
 
 	if(use_filter){
 		cmd_line.append(format(_T(" @%s"),
-							   quotePath(list_file_path).c_str()));
+							   path::quote(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -399,11 +399,11 @@ ArcUnrar32::ARC_RESULT ArcUnrar32::list(const TCHAR* arc_path){
 										  _T("-l"),
 										  _T("-q"),
 										  _T("--"),
-										  quotePath(arc_path_str).c_str()));
+										  path::quote(arc_path_str).c_str()));
 
 		if(use_filter){
 			cmd_line.append(format(_T(" @%s"),
-								   quotePath(list_file_path).c_str()));
+								   path::quote(list_file_path).c_str()));
 		}
 
 		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());

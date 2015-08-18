@@ -1,7 +1,7 @@
 ﻿//HookArchiverDialog.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r28 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -34,9 +34,9 @@ extern "C"{
 #endif
 
 //WH_CBTフックをインストール
-bool DLL_EXPORT installPasswordDialogHook(const DWORD hook_process_id,const unsigned int thread_id,const unsigned int msg);
+BOOL DLL_EXPORT installPasswordDialogHook(const DWORD hook_process_id,const unsigned int thread_id,const unsigned int msg);
 //フックをアンインストール
-bool DLL_EXPORT uninstallPasswordDialogHook();
+BOOL DLL_EXPORT uninstallPasswordDialogHook();
 
 #ifdef __cplusplus
 }

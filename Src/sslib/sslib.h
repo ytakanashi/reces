@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.42
+//                  sslib ver.1.43
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -9,9 +9,7 @@
 #define _SSLIB_H_A4D33CA0_5DAF_4b2c_8C16_B956229BC4AD
 
 
-#ifndef MAX_PATHW
-	#define	MAX_PATHW 32768
-#endif
+#ifdef __cplusplus
 
 //数値が範囲内にあるかどうか
 template<typename T>T clamp(T value,T low,T high){
@@ -26,6 +24,14 @@ template<typename T>bool strvalid(T str){
 //delete後NULL代入
 #define SAFE_DELETE(v){delete (v);(v)=NULL;}
 #define SAFE_DELETE_ARRAY(a){delete[] (a);(a)=NULL;}
+
+// __cplusplus
+#endif
+
+#ifndef MAX_PATHW
+	#define	MAX_PATHW 32768
+#endif
+
 //CloseHandle()後NULL代入
 #define SAFE_CLOSE(h)if(h){CloseHandle(h);(h)=NULL;}
 #define SAFE_CLOSE_EX(h,v)if(h){CloseHandle(h);(h)=(v);}
@@ -42,6 +48,9 @@ template<typename T>bool strvalid(T str){
 #else
 	#define dprintf(...)
 #endif
+
+
+#ifdef __cplusplus
 
 #ifndef DISABLE_MISC
 	#include"Misc.h"
@@ -174,8 +183,14 @@ extern void createInstance();
 #ifndef DISABLE_LIST_VIEW
 	#include"gui/ListView.h"
 #endif
+// defined(SSLIB_GUI)||defined(SSLIB_GUI_DIALOG)
+#endif
+// __cplusplus
 #endif
 
+
+//Ver.1.43
+//reces Ver.0.00r29/gui4reces Ver.0.0.1.5で使用
 
 //Ver.1.42(150515)
 //reces Ver.0.00r27/gui4reces Ver.0.0.1.4で使用

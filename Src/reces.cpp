@@ -20,6 +20,7 @@
 #include"Delete.h"
 #include"Hook/HookArchiverDialog.h"
 #include"resources/resource.h"
+#include<mlang.h>
 
 
 using namespace sslib;
@@ -272,8 +273,10 @@ void Reces::usage(){
 						  _T("\t\t\t   圧縮に対応していない形式であればzipで再圧縮)\n")
 						  _T("\t\t\t  options:[pw][he][sfx][pwsfx][hesfx]\n")
 						  _T("\t\t\t  libraryで解凍用ライブラリ指定可能\n")
+						  _T("\t/m<r|R><b2e|b2esfx>:<format|@>[:method]\t #再圧縮(b2eスクリプト)\n")
 						  _T("\t/mc[type]\t #圧縮\n")
 						  _T("\t/mC[type]\t #圧縮 (ディレクトリ階層を無視)\n")
+						  _T("\t/mc<b2e|b2esfx>:<format>[:method]\t #圧縮(b2eスクリプト)\n")
 						  _T("\t/me[library]\t #解凍\n")
 						  _T("\t/mE[library]\t #解凍 (ディレクトリ階層を無視)\n")
 						  _T("\t/ml[library]\t #書庫内容一覧 (by reces)\n")
@@ -283,14 +286,16 @@ void Reces::usage(){
 						  _T("\t/ms[lib][:prefix]#ライブラリ直接操作\n")
 						  _T("\t\t\t  prefixの指定で非対応のライブラリも使用可能\n")
 						  _T("\t/mS<lib>[:prefix]#設定ダイアログ表示\n")
-						  _T("\t/mv \t\t #バージョン表示\n\n"));
+						  _T("\t/mv [libs...|b2e|cp]#バージョン表示\n")
+						  _T("\t\t\t  b2e:format:method表示\n")
+						  _T("\t\t\t  cp :「/C」で指定できる文字コードの一覧表示\n\n"));
 
 	int item_count=0;
 
 	STDOUT.outputString(_T("compression type:\n\t   "));
 	for(size_t i=0;i<m_arcdll_list.size();++i){
-		for(size_t ii=0;m_arcdll_list[i]->getMethod(ii).mhd!=NULL;++ii){
-			STDOUT.outputString(_T(" [%8s]"),m_arcdll_list[i]->getMethod(ii).mhd);
+		for(size_t ii=0;m_arcdll_list[i]->getFormat(ii).mhd!=NULL;++ii){
+			STDOUT.outputString(_T(" [%8s]"),m_arcdll_list[i]->getFormat(ii).mhd);
 			if((item_count+1)%4==0)STDOUT.outputString(_T("\n\t   "));
 			item_count++;
 		}
@@ -328,7 +333,7 @@ void Reces::usage(){
 						  _T("\t/ebx\t\t ;共通パスを全て除外して解凍\n")
 						  _T("\n")
 						  _T("\t/D<b|s|w><dir>\t #特殊なディレクトリを指定\n")
-						  _T("\t/Db<directory>\t ;b2eのあるディレクトリを指定 {ms}\n")
+						  _T("\t/Db<directory>\t ;b2eのあるディレクトリを指定 {mr/mc/me/ml/ms/mv}\n")
 						  _T("\t/Ds<directory>\t ;spiのあるディレクトリを指定 {mr/me/ml/mv}\n")
 						  _T("\t/Dw<directory>\t ;wcxのあるディレクトリを指定 {mr/me/ml/mv}\n")
 						  _T("\n")
@@ -394,7 +399,7 @@ void Reces::usage(){
 						  _T("\t/od[directory]\t #出力先ディレクトリ {mr/mc/me}\n")
 						  _T("\t/od \t\t ;デスクトップに出力\n")
 						  _T("\t/od<directory>\t ;<directory>に出力\n")
-						  _T("\t\t\t  (相対パスは処理元があるディレクトリ基準)\t")
+						  _T("\t\t\t  (相対パスは処理元があるディレクトリ基準)\n")
 						  _T("\n")
 						  _T("\t/of<filename>\t #出力ファイル名 {mr/mc}\n")
 						  _T("\t/oF<filename>\t #出力ファイル名(拡張子をrecesで付加しない) {mr/mc}\n")
@@ -418,13 +423,21 @@ void Reces::usage(){
 						  _T("\t/r[command]\t #コマンド実行 {mr}\n")
 						  _T("\t\t\t  (解凍と圧縮の間にコマンドを実行)\n")
 						  _T("\n")
+						  _T("\t/R\t\t #対象ディレクトリを再帰的検索 {mc}\n")
+						  _T("\n")
 						  _T("\t/b\t\t #バックグラウンドで処理\n")
 						  _T("\n")
-						  _T("\t/C<CodePage>\t #リストファイルの文字コードを指定\n")
-						  _T("\t/Cshiftjis\t ;Shift-JIS\n")
-						  _T("\t/Cutf8\t\t ;UTF-8\n")
-						  _T("\t/Cutf16\t\t ;UTF16-LE\n")
-						  _T("\t/Cutf16be\t ;UTF16-BE\n")
+						  _T("\t/C<CodePage>\t #書庫ファイルの文字コードを指定 {mr/me/ml/mt/md}\n")
+						  _T("\t\t\t  (文字セット指定も可能)\n")
+						  _T("\t\t\t  (zip書庫のみ対応)\n")
+						  _T("\n")
+						  _T("\t/C:@<...>\t #リストファイルの文字コードを指定\n")
+						  _T("\t/C:@shiftjis\t ;Shift-JIS\n")
+						  _T("\t/C:@utf8\t ;UTF-8\n")
+						  _T("\t/C:@utf16\t ;UTF16-LE\n")
+						  _T("\t/C:@utf16be\t ;UTF16-BE\n")
+						  _T("\n")
+						  _T("\t/C:oa\t\t #文字をANSIに変換し出力\n")
 						  _T("\n")
 						  _T("\t/{<filename>\t #設定をファイルから読み込む\n")
 						  _T("\t/}<filename>\t #設定をファイルに書き出す\n")
@@ -1155,13 +1168,11 @@ bool Reces::version(std::vector<tstring>& filepaths){
 			}
 		}
 
-#ifndef _WIN64
 		if(m_b2e_dll){
 			STDOUT.outputString(_T("%-12s %s\n"),
 								m_b2e_dll->name().c_str(),
 								m_b2e_dll->getVersionStr().c_str());
 		}
-#endif
 
 		for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
 			if(m_spi_list[i]!=NULL){
@@ -1179,6 +1190,44 @@ bool Reces::version(std::vector<tstring>& filepaths){
 		}
 	}else{
 		for(std::vector<tstring>::size_type i=0,size=filepaths.size();!IS_TERMINATED&&i<size;++i){
+			if(str::isEqualStringIgnoreCase(filepaths[i],_T("b2e"))){
+				if(m_b2e_dll){
+					if(!m_b2e_dir.empty()){
+						//b2eスクリプトのあるディレクトリを指定
+						m_b2e_dll->setScriptDirectory(m_b2e_dir.c_str());
+					}
+					//圧縮用b2eスクリプトで使用出来るformatとmethodの組み合わせを表示
+					STDOUT.outputString(_T("%s\n"),
+										m_b2e_dll->getCompressScriptInformation().c_str());
+				}
+				continue;
+			}else if(str::isEqualStringIgnoreCase(filepaths[i],_T("cp"))){
+				::CoInitialize(NULL);
+				IMultiLanguage2* lang=NULL;
+				if(FAILED(CoCreateInstance(CLSID_CMultiLanguage,NULL,
+										   CLSCTX_ALL,IID_IMultiLanguage2,
+										   (LPVOID*)&lang)))
+				   continue;
+
+				IEnumCodePage* cp=NULL;
+				if(SUCCEEDED(lang->EnumCodePages(MIMECONTF_VALID,0,&cp))){
+					MIMECPINFO cpInfo;
+					ULONG ccpInfo;
+					while(SUCCEEDED(cp->Next(1,&cpInfo,&ccpInfo))&&ccpInfo&&!IS_TERMINATED){
+//						if(!IsValidCodePage(cpInfo.uiCodePage))continue;
+						STDOUT.outputString(_T("%d:%s:%s\n"),cpInfo.uiCodePage,
+											cpInfo.wszDescription,
+											cpInfo.wszWebCharset);
+					}
+
+					if(cp)cp->Release();
+				}
+
+				if(lang)lang->Release();
+				::CoUninitialize();
+				continue;
+			}
+
 			STDOUT.outputString(_T("%-12s %s\n"),
 								filepaths[i].c_str(),
 								getVersion(filepaths[i].c_str()).c_str());
@@ -1211,6 +1260,10 @@ bool Reces::run(CommandArgument& cmd_arg){
 		return false;
 	}
 
+	if(CFG.general.ansi_stdout){
+		STDOUT.setAnsiMode(true);
+	}
+
 	if(CFG.mode!=MODE_VERSION&&
 	   CFG.mode!=MODE_SETTINGS&&
 	   !cmd_arg.filepaths().size()){
@@ -1237,6 +1290,16 @@ bool Reces::run(CommandArgument& cmd_arg){
 	searchWcx((!CFG.general.wcx_dir.empty())?
 			  CFG.general.wcx_dir.c_str():
 			  path::getExeDirectory().c_str());
+
+	if(!CFG.general.b2e_dir.empty()){
+		//b2eスクリプトがあるディレクトリのフルパスを取得
+		std::vector<TCHAR> full_path(MAX_PATH);
+
+		if(path::getFullPath(&full_path[0],full_path.size(),CFG.general.b2e_dir.c_str())&&
+		   path::fileExists(&full_path[0])){
+			m_b2e_dir.assign(&full_path[0]);
+		}
+	}
 
 	if(IS_TERMINATED)return false;
 
@@ -1269,7 +1332,8 @@ bool Reces::run(CommandArgument& cmd_arg){
 
 			std::list<tstring> file_list;
 
-			if(!fullPathList(file_list,cmd_arg.filepaths(),CFG.mode!=MODE_COMPRESS)){
+			if(!fullPathList(file_list,cmd_arg.filepaths(),
+							 CFG.mode!=MODE_COMPRESS||CFG.compress.recursive)){
 				msg::err(_T("そのようなファイルは存在しません。\n"));
 				return false;
 			}

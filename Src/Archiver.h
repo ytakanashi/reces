@@ -52,6 +52,8 @@ public:
 	enum ARC_TYPE{
 		//統合アーカイバ
 		CAL=1,
+		//B2e32.dll
+		B2E,
 		//書庫用Susie Plug-in
 		SPI_AM,
 		//画像用Susie Plug-in

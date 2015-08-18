@@ -12,7 +12,11 @@ Console::Console(DWORD handle_type):
 	m_handle(INVALID_HANDLE_VALUE),
 	m_is_redirected(false),
 	m_orig_colors(0),
-	write_buffer_size(2048){
+	write_buffer_size(2048)
+#ifdef UNICODE
+	,m_ansi_mode(false)
+#endif
+	{
 	m_handle=::GetStdHandle(handle_type);
 	_tsetlocale(LC_ALL,_tsetlocale(LC_CTYPE,_T("")));
 	{
@@ -164,6 +168,12 @@ bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
 	if(isRedirected()){
 		tstring buffer_str((const TCHAR*)buffer);
 		str::replaceString(buffer_str,_T("\n"),_T("\r\n"));
+#ifdef UNICODE
+		if(isAnsiMode()){
+			std::string ansi=str::utf162sjis(buffer_str);
+			result=::WriteFile(m_handle,ansi.c_str(),ansi.length()*sizeof(char),&written,NULL)!=0;
+		}else
+#endif
 		result=::WriteFile(m_handle,buffer_str.c_str(),buffer_str.length()*sizeof(TCHAR),&written,NULL)!=0;
 		if(written_chars)*written_chars=written/sizeof(TCHAR);
 	}else{
@@ -171,16 +181,32 @@ bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
 //		result=::WriteConsole(m_handle,buffer,buffer_size,&written,NULL);
 
 		//分割して出力
-		const TCHAR* ptr=static_cast<const TCHAR*>(buffer);
-		const TCHAR* end=ptr+lstrlen(static_cast<const TCHAR*>(buffer));
+#ifdef UNICODE
+		if(!isAnsiMode()){
+#endif
+			const TCHAR* ptr=static_cast<const TCHAR*>(buffer);
+			const TCHAR* end=ptr+lstrlen(static_cast<const TCHAR*>(buffer));
 
-		for(DWORD write_size=write_buffer_size;ptr<end;ptr+=written){
-			if(write_size>static_cast<DWORD>(end-ptr))write_size=end-ptr;
+			for(DWORD write_size=write_buffer_size;ptr<end;ptr+=written){
+				if(write_size>static_cast<DWORD>(end-ptr))write_size=end-ptr;
 
-			result=::WriteConsole(m_handle,ptr,write_size,&written,NULL)!=0;
+				result=::WriteConsole(m_handle,ptr,write_size,&written,NULL)!=0;
+			}
+			if(written_chars)*written_chars=ptr-(const TCHAR*)buffer;
+#ifdef UNICODE
+		}else{
+			std::string ansi=str::utf162sjis(static_cast<const wchar_t*>(buffer));
+			const char* ptr=ansi.c_str();
+			const char* end=ptr+lstrlenA(ansi.c_str());
+
+			for(DWORD write_size=write_buffer_size;ptr<end;ptr+=written){
+				if(write_size>static_cast<DWORD>(end-ptr))write_size=end-ptr;
+
+				result=::WriteConsoleA(m_handle,ptr,write_size,&written,NULL)!=0;
+			}
+			if(written_chars)*written_chars=ptr-ansi.c_str();
 		}
-
-		if(written_chars)*written_chars=ptr-(const TCHAR*)buffer;
+#endif
 	}
 	return result;
 }

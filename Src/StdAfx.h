@@ -39,12 +39,14 @@
 #include<windows.h>
 #include<tchar.h>
 
+#ifdef __cplusplus
 #include<string>
 #include<list>
 #include<vector>
 #include<algorithm>
 
 typedef std::basic_string<TCHAR>tstring;
+#endif
 
 #ifndef _tcstold
 	#ifdef _UNICODE
@@ -76,9 +78,9 @@ typedef std::basic_string<TCHAR>tstring;
 	}name;\
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r29b_Debug")
+	#define SOFTWARE_VERSION _T("0.00r29_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r29b")
+	#define SOFTWARE_VERSION _T("0.00r29")
 #endif
 
 //#define DISABLE_MISC
@@ -112,6 +114,7 @@ typedef std::basic_string<TCHAR>tstring;
 //#define SSLIB_GUI_DIALOG
 #include"sslib/sslib.h"
 
+#ifdef __cplusplus
 inline void dmsg(){MessageBox(NULL,NULL,NULL,MB_OK);}
 inline void dmsg(const TCHAR* format,...){
 	if(!format){dmsg();return;}
@@ -122,5 +125,6 @@ inline void dmsg(const TCHAR* format,...){
 
 	va_end(argp);
 }
+#endif
 
 #endif //_STDAFX_H_B6023879_CF6F_45f4_A1D4_7DBAC5E430F2

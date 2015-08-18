@@ -21,10 +21,10 @@ ArcUniso32::ArcUniso32():
 			_T("UnIso"),
 			_T("iso"),
 			_T("\\")){
-		COMPRESSION_METHOD method[]={
+		COMPRESSION_FORMAT format[]={
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
-		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
+		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
 }
 
 //書庫をテスト
@@ -37,7 +37,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::test(const TCHAR* arc_path){
 							_T("t"),
 							_T("-hide"),
 							_T("--"),
-							quotePath(arc_path_str).c_str()));
+							path::quote(arc_path_str).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -133,7 +133,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 		//通常解凍(with フィルタ)する場合
 		//-xスイッチで処理対象外リストを指定
 		cmd_line.append(format(_T("-x@%s "),
-							   quotePath(list_file_path).c_str()));
+							   path::quote(list_file_path).c_str()));
 	}
 
 #if 1
@@ -141,18 +141,18 @@ ArcUniso32::ARC_RESULT ArcUniso32::extract(const TCHAR* arc_path,const TCHAR* ou
 	fileoperation::temporaryCurrentDirectory temp_dir(output_dir_str.c_str());
 	cmd_line.append(format(_T("%s %s"),
 						   _T("--"),
-						   quotePath(arc_path_str).c_str()));
+						   path::quote(arc_path_str).c_str()));
 #else
 	cmd_line.append(format(_T("-o%s %s %s"),
-						   quotePath(output_dir_str).c_str(),
+						   path::quote(output_dir_str).c_str(),
 						   _T("--"),
-						   quotePath(arc_path_str).c_str()));
+						   path::quote(arc_path_str).c_str()));
 #endif
 
 	if(use_filter&&
 	   CFG.general.ignore_directory_structures){
 		cmd_line.append(format(_T(" @%s"),
-							   quotePath(list_file_path).c_str()));
+							   path::quote(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -202,50 +202,51 @@ ArcUniso32::ARC_RESULT ArcUniso32::list(const TCHAR* arc_path){
 
 	if(CFG.output_file_list.api_mode){
 		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter);
-	}else{
-		tstring list_file_path;
-		File list_file;
-
-		bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
-
-		if(use_filter){
-			//リストファイルを作成
-			list_file_path=tempfile::create(_T("iso"),ARCCFG->m_list_temp_dir.c_str());
-			if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
-				//リストファイルに解凍対象ファイルのみ出力
-				outputFileListEx(arc_path_str.c_str(),
-								 CFG.general.filefilter,
-								 CFG.general.file_ex_filter,
-								 //フィルタ適用を逆にする
-								 REVERSE_FILTER,
-								 &list_file);
-				list_file.close();
-			}else{
-				use_filter=false;
-			}
-		}
-
-		tstring cmd_line(format(_T("%s %s "),
-								_T("l"),
-								_T("-hide")));
-
-		if(use_filter){
-			//-xスイッチで処理対象外リストを指定
-			cmd_line.append(format(_T("-x@%s "),
-								   quotePath(list_file_path).c_str()));
-		}
-
-		cmd_line.append(format(_T("%s %s"),
-							   _T("--"),
-							   quotePath(arc_path_str).c_str()));
-
-		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
-
-		tstring log_msg;
-
-		execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
-		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+		return ARC_SUCCESS;
 	}
+
+	tstring list_file_path;
+	File list_file;
+
+	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
+
+	if(use_filter){
+		//リストファイルを作成
+		list_file_path=tempfile::create(_T("iso"),ARCCFG->m_list_temp_dir.c_str());
+		if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
+			//リストファイルに解凍対象ファイルのみ出力
+			outputFileListEx(arc_path_str.c_str(),
+							 CFG.general.filefilter,
+							 CFG.general.file_ex_filter,
+							 //フィルタ適用を逆にする
+							 REVERSE_FILTER,
+							 &list_file);
+			list_file.close();
+		}else{
+			use_filter=false;
+		}
+	}
+
+	tstring cmd_line(format(_T("%s %s "),
+							_T("l"),
+							_T("-hide")));
+	if(use_filter){
+		//-xスイッチで処理対象外リストを指定
+		cmd_line.append(format(_T("-x@%s "),
+							   path::quote(list_file_path).c_str()));
+	}
+
+	cmd_line.append(format(_T("%s %s"),
+						   _T("--"),
+						   path::quote(arc_path_str).c_str()));
+
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
+
+	tstring log_msg;
+
+	execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
+	STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+
 	return ARC_SUCCESS;
 }
 

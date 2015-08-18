@@ -96,6 +96,7 @@ int CALLBACK BrowseForFolderCallbackProc(HWND wnd_handle,UINT message,LPARAM lpa
 					SendMessage(edit_handle,WM_SETTEXT,(WPARAM)0,(LPARAM)path::addTailSlash(directory).c_str());
 				}
 			}
+			TreeView_Expand(tree_handle,TreeView_GetSelection(tree_handle),TVE_EXPAND);
 			TreeView_EnsureVisible(tree_handle,TreeView_GetSelection(tree_handle));
 			::SetFocus(tree_handle);
 			break;

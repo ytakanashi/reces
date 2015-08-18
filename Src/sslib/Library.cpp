@@ -72,7 +72,9 @@ void Library::clearPrefix(){
 
 //関数のアドレスを取得
 FARPROC WINAPI Library::getAddress(const TCHAR* proc_name_format,...){
-	if(m_module==NULL||proc_name_format==NULL)return NULL;
+	if(proc_name_format==NULL)return NULL;
+
+	if(!isLoaded()&&!load())return NULL;
 
 	va_list argp;
 	va_start(argp,proc_name_format);

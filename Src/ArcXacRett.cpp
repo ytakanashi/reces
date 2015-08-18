@@ -2,7 +2,7 @@
 //Xacrett.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -109,10 +109,10 @@ ArcXacrett::ArcXacrett():
 	m_log_msg(NULL),
 	m_file_size(0),
 	m_write_size(0){
-		COMPRESSION_METHOD method[]={
+		COMPRESSION_FORMAT format[]={
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
-		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
+		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
 		hook::this_ptr=this;
 }
 
@@ -187,14 +187,14 @@ ArcXacrett::ARC_RESULT ArcXacrett::extract(const TCHAR* arc_path,const TCHAR* ou
 							//			_T("-n1"),
 							_T(""),
 
-							quotePath(arc_path_str).c_str(),
+							path::quote(arc_path_str).c_str(),
 
-							quotePath(output_dir_str).c_str()));
+							path::quote(output_dir_str).c_str()));
 
 	if(use_filter){
 		//注意:'@'も二重引用府内に含めること
 		cmd_line.append(format(_T(" %s"),
-							   quotePath(_T("@")+list_file_path).c_str()));
+							   path::quote(_T("@")+list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());

@@ -46,7 +46,7 @@ int Spi::isSusiePlugin(){
 
 	tstring type(12,'\0');
 
-	if(getPluginInfo(SPI_GET_VERSION,&type,12)==0){
+	if(getPluginInfo(SPI_GET_VERSION,&type,type.length())==0){
 		return UNKNOWN;
 	}else{
 		return (type.substr(type.length()-2)==_T("IN"))?SPI_IN:SPI_AM;

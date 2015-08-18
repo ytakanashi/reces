@@ -111,7 +111,8 @@ template<class T>bool File::readList(T* file_list,DWORD opt){
 	if(!isOpened()||file_list==NULL){
 		return false;
 	}
-	long long file_size=getSize();
+	//4GB以上はやめてね
+	DWORD file_size=(DWORD)getSize();
 
 	//ファイルポインタを先頭へ移動
 	seek(0);

@@ -2,7 +2,7 @@
 //recesベース
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -27,9 +27,8 @@ using namespace sslib;
 
 //あかんやつ
 std::vector<ArcDll*> RecesBase::m_arcdll_list;
-#ifndef _WIN64
 ArcB2e* RecesBase::m_b2e_dll;
-#endif
+tstring RecesBase::m_b2e_dir;
 ArcDll* RecesBase::m_cal_dll;
 std::vector<Spi*> RecesBase::m_spi_list;
 std::vector<Wcx*> RecesBase::m_wcx_list;
@@ -157,24 +156,34 @@ RecesBase::ARC_RESULT RecesBase::updateArcFileName(CUR_FILE* new_cur_file,const 
 	tstring ext;
 
 	if(!CFG.compress.raw_file_name){
+
+#define NEED_EXT(need_ext,arc_path)\
+	if(m_arc_dll->isSupportedExtension(path::getExtension(arc_path).c_str())){\
+		if(m_arc_dll->type()==Archiver::CAL){\
+			if(str::isEqualStringIgnoreCase(static_cast<ArcDll*>(m_arc_dll)->getFormat().ext,\
+											tstring(_T("."))+path::getExtension(arc_path))){\
+				need_ext=false;\
+			}\
+		}else{need_ext=false;}\
+	}\
+
 		//new_cur_file->arc_pathに圧縮形式の拡張子があれば追加しない
-		if(m_arc_dll->isSupportedExtension(path::getExtension(new_cur_file->arc_path).c_str())){
-			need_ext=false;
-		}
+		NEED_EXT(need_ext,new_cur_file->arc_path);
 
 		if(!CFG.compress.output_file.empty()){
 			//'/of～'に圧縮形式の拡張子が含まれていれば追加しない
-			if(m_arc_dll->isSupportedExtension((str::toLower(path::getExtension(CFG.compress.output_file))).c_str())){
-				need_ext=false;
-			}
+			NEED_EXT(need_ext,CFG.compress.output_file);
 		}
+
+#undef NEED_EXT
+
 	}else{
 		need_ext=false;
 	}
 
 	if(need_ext){
 		if(m_arc_dll->type()==Archiver::CAL){
-			ext=static_cast<ArcDll*>(m_arc_dll)->getMethod().ext;
+			ext=static_cast<ArcDll*>(m_arc_dll)->getFormat().ext;
 		}
 	}
 
@@ -208,7 +217,7 @@ RecesBase::ARC_RESULT RecesBase::updateArcFileName(CUR_FILE* new_cur_file,const 
 	if(need_ext&&
 	   m_arc_dll->type()==Archiver::CAL){
 		//拡張子を追加
-		new_cur_file->arc_path+=static_cast<ArcDll*>(m_arc_dll)->getMethod().ext;
+		new_cur_file->arc_path+=static_cast<ArcDll*>(m_arc_dll)->getFormat().ext;
 	}
 
 	return ARC_SUCCESS;
@@ -228,9 +237,7 @@ void RecesBase::loadArcLib(){
 #endif
 
 	if(m_arcdll_list.size()!=0
-#ifndef _WIN64
 	   ||m_b2e_dll!=NULL
-#endif
 	   )freeArcLib();
 
 	m_arcdll_list.push_back(new ArcUnlha32());
@@ -251,10 +258,8 @@ void RecesBase::loadArcLib(){
 	m_arcdll_list.push_back(new ArcXacrett());
 #endif
 
-#ifndef _WIN64
 	//B2e.dllは特別扱い
 	m_b2e_dll=new ArcB2e();
-#endif
 }
 
 //m_arcdll_list解放
@@ -265,11 +270,9 @@ void RecesBase::freeArcLib(){
 
 	std::vector<ArcDll*>().swap(m_arcdll_list);
 
-#ifndef _WIN64
 	if(m_b2e_dll!=NULL){
 		SAFE_DELETE(m_b2e_dll);
 	}
-#endif
 }
 
 //ファイルのフルパスリストを作成

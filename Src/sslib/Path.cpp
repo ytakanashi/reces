@@ -25,6 +25,13 @@ namespace{
 	}
 }
 
+//スペースが含まれていれば'"'で囲む
+tstring quote(const tstring& file_path){
+	return (str::containsWhiteSpace(file_path))?
+		_T("\"")+file_path+_T("\""):
+		file_path;
+}
+
 //MAX_PATHを超えるパスの為の接頭辞'\\?\'を追加
 tstring addLongPathPrefix(const tstring& file_path){
 	if(file_path.size()>MAX_PATH&&

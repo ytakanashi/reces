@@ -58,7 +58,7 @@ split::RESULT splitFile(const TCHAR* file_name,const TCHAR* param,const TCHAR* o
 	}
 
 	if(chunks>0){
-		split_sizes=new long long[chunks];
+		split_sizes=new long long[(DWORD)chunks];
 
 		for(int ii=0;ii<chunks;ii++){
 			//小数点以下を切り捨てた数値を配列に代入
@@ -99,7 +99,8 @@ split::RESULT splitFile(const TCHAR* file_name,const TCHAR* param,const TCHAR* o
 	tstring output_path;
 
 	for(long i=0;;i++){
-		long long dest_file_size=0,read_size=0,written_size=0;
+		long long dest_file_size=0;
+		DWORD read_size=0,written_size=0;
 		File dest_file;
 
 		output_path=base_path+_T(".")+path::createPartExtension(i+1);
@@ -111,7 +112,7 @@ split::RESULT splitFile(const TCHAR* file_name,const TCHAR* param,const TCHAR* o
 		if(chunks>0)split_size=split_sizes[i];
 
 		for(dest_file_size=0,read_size=split_buffer_size;dest_file_size<split_size;dest_file_size+=read_size){
-			if(read_size>split_size-dest_file_size)read_size=split_size-dest_file_size;
+			if(read_size>split_size-dest_file_size)read_size=(DWORD)(split_size-dest_file_size);
 
 			written_size=src_file.read(file_buffer,read_size);
 			total_written+=written_size;
@@ -199,7 +200,7 @@ join::RESULT joinFile(const TCHAR* file_name,const TCHAR* output_dir){
 	}
 
 	for(long i=0;;i++){
-		long long dest_file_size=0,written_size=0;
+		DWORD dest_file_size=0,written_size=0;
 
 		src_path=base_path+_T(".")+path::createPartExtension(i,digit);
 

@@ -2,7 +2,7 @@
 //直接操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -48,11 +48,16 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 								   CFG.general.selected_library_name.c_str());
 		}
 
-#ifndef _WIN64
 		if(!m_arc_dll&&m_b2e_dll){
 			std::vector<Archiver*> v;
 
 			v.push_back(m_b2e_dll);
+
+			if(!m_b2e_dir.empty()){
+				//b2eスクリプトのあるディレクトリを指定
+				m_b2e_dll->setScriptDirectory(m_b2e_dir.c_str());
+			}
+
 			m_arc_dll=loadAndCheck(v.begin(),
 								   v.end(),
 								   NULL,
@@ -60,14 +65,7 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
-			if(m_arc_dll!=NULL){
-				if(!CFG.general.b2e_dir.empty()){
-					//b2eスクリプトのあるディレクトリを指定
-					m_b2e_dll->setScriptDirectory(CFG.general.b2e_dir.c_str());
-				}
-			}
 		}
-#endif
 
 		if(!m_arc_dll){
 			STDOUT.outputString(_T("\n"));

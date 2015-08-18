@@ -12,6 +12,7 @@
 #include"ParseOptions.h"
 #include"recesBase.h"
 #include<shlobj.h>
+#include<mlang.h>
 
 
 using namespace sslib;
@@ -55,6 +56,35 @@ bool parseOptions(CommandArgument& cmd_arg){
 			if(str::toLower(path::getExtension(*libname))==_T("dll")){
 				*libname=path::removeExtension(*libname);
 			}
+		}
+	);
+
+	INNER_FUNC(parseB2eOptions,
+		void operator()(tstring& option){
+			//圧縮形式
+			CFG.compress.b2e.format=option.substr(lstrlen((option.find(_T("b2e:"))==2)?_T("b2e:"):_T("b2esfx:"))+2);
+			tstring::size_type pos=CFG.compress.b2e.format.rfind(_T(":"));
+
+			if(pos!=tstring::npos){
+				//圧縮メソッド
+				CFG.compress.b2e.method=CFG.compress.b2e.format.substr(pos+1);
+				//圧縮形式
+				CFG.compress.b2e.format=CFG.compress.b2e.format.substr(0,pos);
+			}
+
+			if(option.find(_T("b2esfx:"))==2)CFG.compress.b2e.sfx=true;
+
+			if(CFG.compress.b2e.format.c_str()[0]=='@'){
+				//b2e:@指定
+				CFG.compress.compression_type=CFG.compress.b2e.format;
+				CFG.compress.b2e.format.clear();
+			}
+
+			dprintf(_T("b2e format: %s\n"),CFG.compress.b2e.format.c_str());
+			if(!CFG.compress.b2e.method.empty()){
+				dprintf(_T("b2e method: %s\n"),CFG.compress.b2e.method.c_str());
+			}
+			dprintf(_T("b2e sfx: %d\n"),CFG.compress.b2e.sfx);
 		}
 	);
 
@@ -116,17 +146,22 @@ bool parseOptions(CommandArgument& cmd_arg){
 						dprintf(_T("mode : recompress\n"));
 
 						if(options[i].c_str()[2]!='\0'){
-							//圧縮形式
-							CFG.compress.compression_type=options[i].substr(2);
+							if(options[i].find(_T("b2e:"))==2||options[i].find(_T("b2esfx:"))==2){
+								//b2eスクリプト
+								parseB2eOptions(options[i]);
+							}else{
+								//圧縮形式
+								CFG.compress.compression_type=options[i].substr(2);
 
-							tstring::size_type pos=CFG.compress.compression_type.find(_T(":"));
-							if(pos!=tstring::npos){
-								//ライブラリ名が指定されている
-								CFG.general.selected_library_name=CFG.compress.compression_type.substr(pos+1);
-								dprintf(_T("select library: %s\n"),CFG.general.selected_library_name.c_str());
-								CFG.compress.compression_type=CFG.compress.compression_type.substr(0,pos);
+								tstring::size_type pos=CFG.compress.compression_type.find(_T(":"));
+								if(pos!=tstring::npos){
+									//ライブラリ名が指定されている
+									CFG.general.selected_library_name=CFG.compress.compression_type.substr(pos+1);
+									dprintf(_T("select library: %s\n"),CFG.general.selected_library_name.c_str());
+									CFG.compress.compression_type=CFG.compress.compression_type.substr(0,pos);
+								}
+								dprintf(_T("compress mode: %s\n"),CFG.compress.compression_type.c_str());
 							}
-							dprintf(_T("compress mode: %s\n"),CFG.compress.compression_type.c_str());
 						}
 						break;
 					}
@@ -142,12 +177,17 @@ bool parseOptions(CommandArgument& cmd_arg){
 						dprintf(_T("mode : compress\n"));
 
 						if(options[i].c_str()[2]=='\0'){
-							//圧縮形式が指定されていな場合
+							//圧縮形式が指定されていない場合
 						}else{
-							//圧縮形式が指定された場合
-							CFG.compress.compression_type=options[i].substr(2);
+							if(options[i].find(_T("b2e:"))==2||options[i].find(_T("b2esfx:"))==2){
+								//b2eスクリプト
+								parseB2eOptions(options[i]);
+							}else{
+								//圧縮形式が指定された場合
+								CFG.compress.compression_type=options[i].substr(2);
 
-							dprintf(_T("compress mode: %s\n"),CFG.compress.compression_type.c_str());
+								dprintf(_T("compress mode: %s\n"),CFG.compress.compression_type.c_str());
+							}
 						}
 						break;
 					}
@@ -551,7 +591,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								tstring file(p,pp-p);
 								File list_file;
 
-								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
+								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.list_codepage)){
 									msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
 								}else{
 									readFileList(&CFG.general.filefilter.pattern_list,&list_file);
@@ -650,7 +690,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								tstring file(p,pp-p);
 								File list_file;
 
-								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
+								if(!list_file.open(file.c_str(),OPEN_EXISTING,GENERIC_READ,0,CFG.general.list_codepage)){
 									msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),file.c_str());
 								}else{
 									readFileList(&CFG.general.file_ex_filter.pattern_list,&list_file);
@@ -811,6 +851,13 @@ bool parseOptions(CommandArgument& cmd_arg){
 				break;
 			}
 
+			case 'R':{
+				//対象ディレクトリを再帰的検索
+				CFG.compress.recursive=true;
+				dprintf(_T("CFG.compress.recursive\n"));
+				break;
+			}
+
 			case 'b':{
 				//バックグラウンドで動作
 				CFG.general.background_mode=true;
@@ -819,22 +866,47 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'C':{
-				//パスワードリストファイル/ファイルリストの文字コード
-				tstring codepage_str(options[i].substr(1).c_str());
+				if(options[i].find(_T("C:@"))==0){
+					//パスワードリストファイル/ファイルリストの文字コード
+					tstring codepage_str(options[i].substr(lstrlen(_T("C:@"))).c_str());
 
-				//小文字へ変換
-				transform(codepage_str.begin(),codepage_str.end(),codepage_str.begin(),tolower);
+					//小文字へ変換
+					transform(codepage_str.begin(),codepage_str.end(),codepage_str.begin(),tolower);
 
-				if(codepage_str==_T("sjis")||codepage_str==_T("s-jis")||codepage_str==_T("s_jis")||codepage_str==_T("shiftjis")){
-					CFG.general.codepage=File::SJIS;
-				}else if(codepage_str==_T("utf8")||codepage_str==_T("utf-8")||codepage_str==_T("utf_8")){
-					CFG.general.codepage=File::UTF8;
-				}else if(codepage_str==_T("utf16")||codepage_str==_T("utf-16")||codepage_str==_T("utf_16")||
-						 codepage_str==_T("utf16le")||codepage_str==_T("utf-16le")||codepage_str==_T("utf_16le")||
-						 codepage_str==_T("unicode")){
-					CFG.general.codepage=File::UTF16LE;
-				}else if(codepage_str==_T("utf16be")||codepage_str==_T("utf-16be")||codepage_str==_T("utf_16be")){
-					CFG.general.codepage=File::UTF16BE;
+					if(codepage_str==_T("sjis")||codepage_str==_T("s-jis")||codepage_str==_T("s_jis")||codepage_str==_T("shiftjis")){
+						CFG.general.list_codepage=File::SJIS;
+					}else if(codepage_str==_T("utf8")||codepage_str==_T("utf-8")||codepage_str==_T("utf_8")){
+						CFG.general.list_codepage=File::UTF8;
+					}else if(codepage_str==_T("utf16")||codepage_str==_T("utf-16")||codepage_str==_T("utf_16")||
+							 codepage_str==_T("utf16le")||codepage_str==_T("utf-16le")||codepage_str==_T("utf_16le")||
+							 codepage_str==_T("unicode")){
+						CFG.general.list_codepage=File::UTF16LE;
+					}else if(codepage_str==_T("utf16be")||codepage_str==_T("utf-16be")||codepage_str==_T("utf_16be")){
+						CFG.general.list_codepage=File::UTF16BE;
+					}
+				}else if(options[i].find(_T("C:oa"))==0){
+					CFG.general.ansi_stdout=true;
+					dprintf(_T("CFG.general.ansi_stdout=%d\n"),CFG.general.ansi_stdout);
+				}else if(options[i].c_str()[1]!='\0'){
+					//アーカイバに送る文字コード(現在7-zip32.dllのみ対象)
+					if(isdigit(options[i].c_str()[1])){
+						CFG.general.arc_codepage=_ttoi(options[i].substr(1).c_str());
+					}else{
+						::CoInitialize(NULL);
+						IMultiLanguage2* lang=NULL;
+						if(FAILED(CoCreateInstance(CLSID_CMultiLanguage,NULL,
+												   CLSCTX_ALL,IID_IMultiLanguage2,
+												   (LPVOID*)&lang)))
+						   continue;
+
+						MIMECSETINFO info;
+						if(SUCCEEDED(lang->GetCharsetInfo(const_cast<wchar_t*>(options[i].substr(1).c_str()),&info))){
+							CFG.general.arc_codepage=(info.uiInternetEncoding)?info.uiInternetEncoding:info.uiCodePage;
+						}
+						if(lang)lang->Release();
+						::CoUninitialize();
+					}
+					dprintf(_T("CFG.general.arc_codepage=%d\n"),CFG.general.arc_codepage);
 				}
 
 				break;
@@ -859,7 +931,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 				//リストファイル
 				File list_file;
 
-				if(!list_file.open(options[i].c_str()+1,OPEN_EXISTING,GENERIC_READ,0,CFG.general.codepage)){
+				if(!list_file.open(options[i].c_str()+1,OPEN_EXISTING,GENERIC_READ,0,CFG.general.list_codepage)){
 					msg::err(_T("リストファイル '%s' を開くことが出来ませんでした。"),options[i].c_str()+1);
 				}else{
 					std::vector<tstring> file_list;

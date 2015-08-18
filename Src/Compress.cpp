@@ -22,24 +22,42 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 
 	msg::info(_T("ライブラリを読み込んでいます..."));
 
-	for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
-		if(m_arcdll_list[i]->isSupportedMethod((CFG.compress.compression_type.c_str()[0]!='@')?
-											   CFG.compress.compression_type.c_str():
-											   m_cur_file.recompress_mhd.c_str())){
-			m_arc_dll=m_arcdll_list[i];
-			break;
+	if(CFG.compress.b2e.format.empty()){
+		for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
+			if(m_arcdll_list[i]->isSupportedFormat((CFG.compress.compression_type.c_str()[0]!='@')?
+												   CFG.compress.compression_type.c_str():
+												   m_cur_file.recompress_mhd.c_str())){
+				if(m_arcdll_list[i]->load())m_arc_dll=m_arcdll_list[i];
+				break;
+			}
+		}
+	}
+
+	if(!m_arc_dll&&m_b2e_dll){
+		m_b2e_dll->load();
+		if(!m_b2e_dir.empty()){
+			//b2eスクリプトのあるディレクトリを指定
+			m_b2e_dll->setScriptDirectory(m_b2e_dir.c_str());
+		}
+		//圧縮用スクリプトを列挙
+		m_b2e_dll->enumCompressScript();
+		if(m_b2e_dll->isSupportedFormat((m_cur_file.recompress_mhd.empty())?
+											   CFG.compress.b2e.format.c_str():
+											   m_cur_file.recompress_mhd.c_str(),
+											   CFG.compress.b2e.method.c_str())){
+			m_arc_dll=m_b2e_dll;
 		}
 	}
 
 	if(!m_arc_dll){
 		STDOUT.outputString(_T("\n"));
 		err_msg=_T("対応していない圧縮形式かファイルが壊れています。\n");
-		return ARC_NOT_SUPPORTED_METHOD;
+		return ARC_NOT_SUPPORTED_FORMAT;
 	}
 
 	if(m_arc_dll->type()==Archiver::CAL){
 		if((CFG.mode==MODE_RECOMPRESS||CFG.mode==MODE_COMPRESS)&&
-		   static_cast<ArcDll*>(m_arc_dll)->getMethod().opt&ArcDll::MHD_SFX&&
+		   static_cast<ArcDll*>(m_arc_dll)->getFormat().opt&ArcDll::MHD_SFX&&
 		   !CFG.compress.split_value.empty()){
 			err_msg=_T("オプションの組み合わせが正しくありません。(sfx+/s)\n");
 			return ARC_INCORRECT_OPTION_SFX_S;
@@ -56,7 +74,8 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 
 	msg::info(_T(" %s\n"),m_arc_dll->getInformation().c_str());
 
-	if(m_arc_dll->type()==Archiver::CAL&&
+	if((m_arc_dll->type()==Archiver::CAL||
+		m_arc_dll->type()==Archiver::B2E)&&
 	   static_cast<ArcDll*>(m_arc_dll)->getRunning()){
 		err_msg=_T("他のプロセスで使用中です。\n");
 		return ARC_LIBRARY_IS_BUSY;

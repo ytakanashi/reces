@@ -27,7 +27,7 @@ ArcUnlha32::ArcUnlha32():
 	m_write_size(0),
 	m_last_write_size(0),
 	m_last_hash(0){
-		COMPRESSION_METHOD method[]={
+		COMPRESSION_FORMAT format[]={
 			{_T("lzh"),_T(".lzh"),_T(""),_T(""),
 				0,
 				-1,-1,-1},
@@ -36,7 +36,7 @@ ArcUnlha32::ArcUnlha32():
 				-1,-1,-1},
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
-		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
+		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
 }
 
 //書庫をテスト
@@ -48,7 +48,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::test(const TCHAR* arc_path){
 	tstring cmd_line(format(_T("%s %s %s"),
 							_T("t"),
 							_T("-n1"),
-							quotePath(arc_path_str).c_str()));
+							path::quote(arc_path_str).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -74,7 +74,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::test(const TCHAR* arc_path){
 }
 
 ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	if(m_compression_methods[m_method_index].mhd==NULL)return ARC_FAILURE;
+	if(m_compression_formats[m_format_index].mhd==NULL)return ARC_FAILURE;
 
 	tstring arc_path_str(arc_path);
 
@@ -131,7 +131,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstr
 	replaceDelimiter(list_file_path);
 
 	//勝手に拡張子が付加されないように'.'をファイル名末尾に追加。
-	if(lstrcmp(getMethod().mhd,_T("lzhsfx"))!=0)arc_path_str+=_T(".");
+	if(lstrcmp(getFormat().mhd,_T("lzhsfx"))!=0)arc_path_str+=_T(".");
 
 	tstring cmd_line(format(_T("%s %s %s %s %s %s @%s"),
 									  _T("a"),
@@ -147,10 +147,10 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::compress(const TCHAR* arc_path,std::list<tstr
 									  _T("-n1"),
 
 									  //sfx
-									  getMethod().cmd,
+									  getFormat().cmd,
 
-									  quotePath(arc_path_str).c_str(),
-									  quotePath(list_file_path).c_str()));
+									  path::quote(arc_path_str).c_str(),
+									  path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -243,12 +243,12 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::extract(const TCHAR* arc_path,const TCHAR* ou
 
 							_T("-n1"),
 
-							quotePath(arc_path_str).c_str(),
-							quotePath(output_dir_str).c_str()));
+							path::quote(arc_path_str).c_str(),
+							path::quote(output_dir_str).c_str()));
 
 	if(use_filter){
 		cmd_line.append(format(_T(" @%s"),
-							   quotePath(list_file_path).c_str()));
+							   path::quote(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -339,8 +339,8 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_m
 
 									  _T("-n1"),
 
-									  quotePath(arc_path).c_str(),
-									  quotePath(list_file_path).c_str()));
+									  path::quote(arc_path).c_str(),
+									  path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -375,47 +375,49 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::list(const TCHAR* arc_path){
 
 	if(CFG.output_file_list.api_mode){
 		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter);
-	}else{
-		tstring list_file_path;
-		File list_file;
-
-		bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
-
-		if(use_filter){
-			//リストファイルを作成
-			list_file_path=tempfile::create(_T("lzh"),ARCCFG->m_list_temp_dir.c_str());
-			if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
-				//リストファイルに列挙対象外ファイルを出力
-				outputFileListEx(arc_path_str.c_str(),
-								 CFG.general.filefilter,
-								 CFG.general.file_ex_filter,
-								 //フィルタ適用を逆にする
-								 REVERSE_FILTER,
-								 &list_file);
-				list_file.close();
-			}else{
-				use_filter=false;
-			}
-		}
-
-		replaceDelimiter(list_file_path);
-
-		tstring cmd_line(format(_T("%s %s"),
-								_T("l"),
-								quotePath(arc_path_str).c_str()));
-
-		if(use_filter){
-			cmd_line.append(format(_T(" @%s"),
-								   quotePath(list_file_path).c_str()));
-		}
-
-		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
-
-		tstring log_msg;
-
-		execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
-		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+		return ARC_SUCCESS;
 	}
+
+	tstring list_file_path;
+	File list_file;
+
+	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
+
+	if(use_filter){
+		//リストファイルを作成
+		list_file_path=tempfile::create(_T("lzh"),ARCCFG->m_list_temp_dir.c_str());
+		if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
+			//リストファイルに列挙対象外ファイルを出力
+			outputFileListEx(arc_path_str.c_str(),
+							 CFG.general.filefilter,
+							 CFG.general.file_ex_filter,
+							 //フィルタ適用を逆にする
+							 REVERSE_FILTER,
+							 &list_file);
+			list_file.close();
+		}else{
+			use_filter=false;
+		}
+	}
+
+	replaceDelimiter(list_file_path);
+
+	tstring cmd_line(format(_T("%s %s"),
+							_T("l"),
+							path::quote(arc_path_str).c_str()));
+
+	if(use_filter){
+		cmd_line.append(format(_T(" @%s"),
+							   path::quote(list_file_path).c_str()));
+	}
+
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
+
+	tstring log_msg;
+
+	execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
+	STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+
 	return ARC_SUCCESS;
 }
 
@@ -423,7 +425,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::list(const TCHAR* arc_path){
 void ArcUnlha32::outputFileListToFile(const fileinfo::FILEINFO& fileinfo,int opt,File* list_file){
 	if(list_file==NULL)return;
 
-	list_file->writeEx(_T("-jx%s\r\n"),quotePath(fileinfo.name).c_str());
+	list_file->writeEx(_T("-jx%s\r\n"),path::quote(fileinfo.name).c_str());
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す
@@ -435,8 +437,8 @@ DWORD ArcUnlha32::writeFormatedPath(const File& list_file,const TCHAR* base_dir_
 	file_path=path::removeTailSlash(file_path);
 
 	return list_file.writeEx(_T("%s %s\r\n"),
-							 quotePath(base_dir+m_delimiter).c_str(),
-							 quotePath(file_path).c_str());
+							 path::quote(base_dir+m_delimiter).c_str(),
+							 path::quote(file_path).c_str());
 }
 
 //圧縮対象外ファイルのパスを整形してファイルに書き出す
@@ -453,12 +455,12 @@ DWORD ArcUnlha32::writeFormatedExcludePath(const File& list_file,const TCHAR* ba
 	}
 
 	return list_file.writeEx(_T("%s %s -jx%s%s\r\n"),
-							 quotePath(base_dir+m_delimiter).c_str(),
+							 path::quote(base_dir+m_delimiter).c_str(),
 
-							 (!root_dir.empty())?quotePath(root_dir+m_delimiter+_T("*")).c_str():_T(""),
+							 (!root_dir.empty())?path::quote(root_dir+m_delimiter+_T("*")).c_str():_T(""),
 
 							 m_delimiter,
-							 quotePath(file_path).c_str());
+							 path::quote(file_path).c_str());
 }
 
 //圧縮対象ファイルリストを整形してファイルに書き出す

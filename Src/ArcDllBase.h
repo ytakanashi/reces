@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -447,7 +447,7 @@ public:
 	int setDefaultPassword(const TCHAR*password);
 	//使用する文字コードをUTF-8に設定、及び解除を行います(7-zip32)
 	//ANSI 版 API を UTF-8 の文字コードで使用するかどうかを指定します(UNLHA32.DLL)
-	bool setUnicodeMode(bool unicode);
+	bool setUnicodeMode(BOOL unicode);
 	//DLLの圧縮解凍状況を受け取るためのコールバック関数の指定を行います
 	bool setOwnerWindowEx64(const HWND wnd_handle,LPARCHIVERPROC arc_proc,const DWORD struct_size);
 	//SetOwnerWindowEx64()で設定したウィンドウの設定を解除します

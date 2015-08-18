@@ -1,7 +1,7 @@
 ﻿//ArcXacrett.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -101,7 +101,7 @@ protected:
 	void setExtractingInfo(/*UINT state,*/void* arc_info);
 public:
 	//書庫形式を取得
-//	bool getCompressionMethod(TCHAR* type,const TCHAR* arc_path);
+//	bool getCompressionFormat(TCHAR* type,const TCHAR* arc_path);
 
 	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
 	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);

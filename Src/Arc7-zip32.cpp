@@ -29,7 +29,7 @@ Arc7zip32::Arc7zip32():
 			_T("\\")),
 			m_file_size(0),
 			m_write_size(0){
-		COMPRESSION_METHOD method[]={
+		COMPRESSION_FORMAT format[]={
 			{_T("zip"),_T(".zip"),_T("-tzip"),_T("-mx="),
 				0,
 				5,0,9},
@@ -63,7 +63,7 @@ Arc7zip32::Arc7zip32():
 				5,0,9},
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
-		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
+		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
 }
 
 //対応している書庫であるか
@@ -119,11 +119,20 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 
 	replaceDelimiter(arc_path_str);
 
-	tstring cmd_line(format(_T("%s %s %s %s"),
+	tstring cmd_line(format(_T("%s %s "),
 							_T("t"),
-							_T("-hide"),
+							_T("-hide")));
+
+	//文字コードの設定
+	if(CFG.general.arc_codepage){
+		cmd_line.append(format(_T("-mcp=%d "),
+							   CFG.general.arc_codepage));
+		setUnicodeMode(CFG.general.arc_codepage);
+	}
+
+	cmd_line.append(format(_T("%s %s"),
 							_T("--"),
-							quotePath(arc_path_str).c_str()));
+							path::quote(arc_path_str).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -168,7 +177,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 }
 
 //圧縮形式を取得(その形式に対応している場合のみ)
-tstring Arc7zip32::getCompressionMethod(const TCHAR* arc_path_orig){
+tstring Arc7zip32::getCompressionFormat(const TCHAR* arc_path_orig){
 	tstring arc_path(arc_path_orig);
 	replaceDelimiter(arc_path);
 
@@ -184,7 +193,7 @@ tstring Arc7zip32::getCompressionMethod(const TCHAR* arc_path_orig){
 }
 
 Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	if(getMethod().mhd==NULL)return ARC_FAILURE;
+	if(getFormat().mhd==NULL)return ARC_FAILURE;
 
 	tstring arc_path_str(arc_path);
 
@@ -268,19 +277,19 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 
 	if(CFG.compress.compression_level==minimum_compressionlevel){
 		//'/l'と指定された場合
-		CFG.compress.compression_level=getMethod().minimum_level;
+		CFG.compress.compression_level=getFormat().minimum_level;
 	}else if(CFG.compress.compression_level==maximum_compressionlevel){
 		//'/lx'と指定された場合
-		CFG.compress.compression_level=getMethod().maximum_level;
+		CFG.compress.compression_level=getFormat().maximum_level;
 	}
 
 	if(CFG.compress.compression_level!=default_compressionlevel){
 		//圧縮率を範囲内に収める
 		CFG.compress.compression_level=clamp(CFG.compress.compression_level,
-											   getMethod().minimum_level,
-											   getMethod().maximum_level);
+											   getFormat().minimum_level,
+											   getFormat().maximum_level);
 
-		level_str=getMethod().level;
+		level_str=getFormat().level;
 		level_str+=static_cast<TCHAR>(CFG.compress.compression_level+'0');
 	}
 
@@ -315,7 +324,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 							//-u     :
 							//  p    :ファイルは書庫内に存在するがワイルドカード名と一致しない。
 							//  q    :ファイルは書庫内に存在するがディスク上には存在しない。
-							getMethod().cmd,
+							getFormat().cmd,
 							(CFG.compress.compression_level!=default_compressionlevel&&!level_str.empty())?level_str.c_str():_T(""),
 							CFG.general.custom_param.c_str(),
 							_T("-hide")));
@@ -324,13 +333,13 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 		//ディレクトリを/mcで圧縮(with フィルタ)する場合
 		//-xスイッチで処理対象外リストを指定
 		cmd_line.append(format(_T("-x@%s "),
-							   quotePath(exclude_list_file_path).c_str()));
+							   path::quote(exclude_list_file_path).c_str()));
 	}
 
 	cmd_line.append(format(_T("%s %s @%s"),
 						   _T("--"),
-						   quotePath(arc_path_str).c_str(),
-						   quotePath(list_file_path).c_str()));
+						   path::quote(arc_path_str).c_str(),
+						   path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -372,6 +381,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 	}
 
 	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
+
+	//文字コードの設定
+	if(CFG.general.arc_codepage)setUnicodeMode(CFG.general.arc_codepage);
 
 	if(use_filter){
 		//リストファイルを作成
@@ -422,7 +434,13 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 		//通常解凍(with フィルタ)する場合
 		//-xスイッチで処理対象外リストを指定
 		cmd_line.append(format(_T("-x@%s "),
-							   quotePath(list_file_path).c_str()));
+							   path::quote(list_file_path).c_str()));
+	}
+
+	//文字コードの設定
+	if(CFG.general.arc_codepage){
+		cmd_line.append(format(_T("-mcp=%d "),
+							   CFG.general.arc_codepage));
 	}
 
 #if 1
@@ -430,18 +448,18 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 	fileoperation::temporaryCurrentDirectory temp_dir(output_dir_str.c_str());
 	cmd_line.append(format(_T("%s %s"),
 						   _T("--"),
-						   quotePath(arc_path_str).c_str()));
+						   path::quote(arc_path_str).c_str()));
 #else
 	cmd_line.append(format(_T("-o%s %s %s"),
-						   quotePath(output_dir_str).c_str(),
+						   path::quote(output_dir_str).c_str(),
 						   _T("--"),
-						   quotePath(arc_path_str).c_str()));
+						   path::quote(arc_path_str).c_str()));
 #endif
 
 	if(use_filter&&
 	   CFG.general.ignore_directory_structures){
 		cmd_line.append(format(_T(" @%s"),
-							   quotePath(list_file_path).c_str()));
+							   path::quote(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -500,6 +518,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg){
 	tstring arc_path(arc_path_orig);
 
+	//文字コードの設定
+	if(CFG.general.arc_codepage)setUnicodeMode(CFG.general.arc_codepage);
+
 	tstring list_file_path;
 	File list_file;
 	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
@@ -532,7 +553,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	replaceDelimiter(arc_path);
 	replaceDelimiter(list_file_path);
 
-	tstring cmd_line(format(_T("%s %s %s -t%s %s %s @%s"),
+	tstring cmd_line(format(_T("%s %s %s -t%s "),
 							_T("d"),
 							_T("-y"),
 							//-y     : 全ての質問に yes を仮定
@@ -540,13 +561,20 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 
 							//書庫形式指定
 							//注意:7-zip32.dll 9.38.00.01以降だとgetArchiveType()に.を付加したファイル名を渡すとエラーとなる
-							getCompressionMethod(arc_path.c_str()).c_str(),
+							getCompressionFormat(arc_path.c_str()).c_str()));
 
+	//文字コードの設定
+	if(CFG.general.arc_codepage){
+		cmd_line.append(format(_T("-mcp=%d "),
+							   CFG.general.arc_codepage));
+	}
+
+	cmd_line.append(format(_T("%s %s @%s"),
 							_T("--"),
 
 							//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
-							quotePath(arc_path+_T(".")).c_str(),
-							quotePath(list_file_path).c_str()));
+							path::quote(arc_path+_T(".")).c_str(),
+							path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 	msg::info(_T("'%s'を処理しています...\n\n"),arc_path_orig);
@@ -579,55 +607,65 @@ Arc7zip32::ARC_RESULT Arc7zip32::list(const TCHAR* arc_path){
 	//区切り文字置換
 	replaceDelimiter(arc_path_str);
 
+	//文字コードの設定
+	if(CFG.general.arc_codepage)setUnicodeMode(CFG.general.arc_codepage);
+
 	if(CFG.output_file_list.api_mode){
 //		setDefaultPassword(CFG.general.password.c_str());
 		outputFileListEx(arc_path_str.c_str(),CFG.general.filefilter,CFG.general.file_ex_filter);
 //		setDefaultPassword(NULL);
-	}else{
-		tstring list_file_path;
-		File list_file;
-
-		bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
-
-		if(use_filter){
-			//リストファイルを作成
-			list_file_path=tempfile::create(_T("7z"),ARCCFG->m_list_temp_dir.c_str());
-			if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
-				//リストファイルに列挙対象外ファイルを出力
-				outputFileListEx(arc_path_str.c_str(),
-								 CFG.general.filefilter,
-								 CFG.general.file_ex_filter,
-								 //フィルタ適用を逆にする
-								 REVERSE_FILTER,
-								 &list_file);
-				list_file.close();
-			}else{
-				use_filter=false;
-			}
-		}
-
-		tstring cmd_line(format(_T("%s %s "),
-								_T("l"),
-								_T("-hide")));
-
-		if(use_filter){
-			//-xスイッチで処理対象外リストを指定
-			cmd_line.append(format(_T("-x@%s "),
-								   quotePath(list_file_path).c_str()));
-		}
-
-		cmd_line.append(format(_T("%s %s"),
-							   _T("--"),
-							   quotePath(arc_path_str).c_str()));
-
-		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
-
-		tstring log_msg;
-
-		execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
-		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
-
+		return ARC_SUCCESS;
 	}
+
+	tstring list_file_path;
+	File list_file;
+
+	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
+
+	if(use_filter){
+		//リストファイルを作成
+		list_file_path=tempfile::create(_T("7z"),ARCCFG->m_list_temp_dir.c_str());
+		if(list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
+			//リストファイルに列挙対象外ファイルを出力
+			outputFileListEx(arc_path_str.c_str(),
+							 CFG.general.filefilter,
+							 CFG.general.file_ex_filter,
+							 //フィルタ適用を逆にする
+							 REVERSE_FILTER,
+							 &list_file);
+			list_file.close();
+		}else{
+			use_filter=false;
+		}
+	}
+
+	tstring cmd_line(format(_T("%s %s "),
+							_T("l"),
+							_T("-hide")));
+
+	if(use_filter){
+		//-xスイッチで処理対象外リストを指定
+		cmd_line.append(format(_T("-x@%s "),
+							   path::quote(list_file_path).c_str()));
+	}
+
+	//文字コードの設定
+	if(CFG.general.arc_codepage){
+		cmd_line.append(format(_T("-mcp=%d "),
+							   CFG.general.arc_codepage));
+	}
+
+	cmd_line.append(format(_T("%s %s"),
+						   _T("--"),
+						   path::quote(arc_path_str).c_str()));
+
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
+
+	tstring log_msg;
+
+	execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
+	STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+
 	return ARC_SUCCESS;
 }
 
@@ -655,13 +693,13 @@ void Arc7zip32::applyFilters(std::vector<fileinfo::FILEINFO>* fileinfo_list,cons
 //圧縮対象ファイルのパスを整形してファイルに書き出す
 DWORD Arc7zip32::writeFormatedPath(const File& list_file,const TCHAR* base_dir,const TCHAR* file_path){
 	return list_file.writeEx(_T("%s\r\n"),
-							 quotePath(tstring(base_dir)+m_delimiter+file_path).c_str());
+							 path::quote(tstring(base_dir)+m_delimiter+file_path).c_str());
 }
 
 //圧縮対象ファイルのパスを整形してファイルに書き出す
 DWORD Arc7zip32::writeFormatedPath(const File& list_file,const TCHAR* file_path){
 	return list_file.writeEx(_T("%s\r\n"),
-							 quotePath(file_path).c_str());
+							 path::quote(file_path).c_str());
 }
 
 //圧縮対象ファイルリストを整形してファイルに書き出す

@@ -1,7 +1,7 @@
 ﻿//ArcB2e.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -29,9 +29,29 @@ public:
 		B2E_ABILITY_DELETE=1<<8,//ファイルの削除が可能
 	};
 
+	struct B2E_INFO{
+		size_t index;
+		tstring format;
+		WORD ability;
+		std::vector<tstring> methods;
+		int default_method;
+
+		B2E_INFO():
+			index(0),
+			format(),
+			ability(0),
+			methods(),
+			default_method(0){}
+	};
+
 public:
 	ArcB2e();
 	~ArcB2e(){}
+
+private:
+	typedef std::pair<tstring,long long> size_info;
+	std::vector<B2E_INFO> m_compress_b2e_list;
+	size_t m_method_index;
 
 protected:
 	//圧縮対象ファイルのパスを整形してファイルに書き出す
@@ -39,13 +59,29 @@ protected:
 	//圧縮対象ファイルリストを整形してファイルに書き出す
 	bool writeFormatedList(const sslib::File& list_file,const tstring& full_path);
 public:
+	ARC_TYPE type(){
+		if(!isLoaded())load();
+
+		return (getAddress(_T("SetScriptDirectory"))!=NULL)?B2E:UNKNOWN;
+	}
+	//圧縮用b2eスクリプトで使用出来るformatとmethodの組み合わせを取得
+	tstring getCompressScriptInformation();
+	//対応している圧縮形式であるか
+	bool isSupportedFormat(const TCHAR* format,const TCHAR* method=NULL);
+	//b2eスクリプトの情報を取得
+	inline const B2E_INFO& getB2e()const{return m_compress_b2e_list[m_format_index];}
+	inline const B2E_INFO& getB2e(size_t index)const{return m_compress_b2e_list[index];}
+	inline const tstring getFormat()const{return m_compress_b2e_list[m_format_index].format;}
+	inline const tstring getFormat(size_t index)const{return m_compress_b2e_list[index].format;}
+	inline const tstring getMethod()const{return m_compress_b2e_list[m_format_index].methods[m_method_index];}
+	inline const tstring getMethod(size_t format_index,size_t method_index)const{return m_compress_b2e_list[format_index].methods[method_index];}
+
 	ARC_RESULT compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg=NULL);
 	ARC_RESULT extract(const TCHAR* arc_path,const TCHAR* output_dir,tstring* log_msg=NULL);
 	ARC_RESULT list(const TCHAR* arc_path);
 
 	//b2eスクリプトのあるディレクトリを指定
 	bool setScriptDirectory(const TCHAR* dir_path);
-#if 0
 	//B2Eスクリプトの数を取得
 	int getScriptCount();
 	//b2eスクリプト名を取得
@@ -62,6 +98,8 @@ public:
 	int getDefaultCompressMethod(const UINT index);
 	//指定したアーカイブファイルの解凍に使うB2Eのインデックスを取得
 	UINT getExtractorIndex(const TCHAR* file_path);
-#endif
+
+	//圧縮用b2eスクリプトの情報を列挙
+	bool enumCompressScript();
 };
 #endif //_ARCB2E_H_3F99C027_3723_46ab_8320_2B24426F74F6

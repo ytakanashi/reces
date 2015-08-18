@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r27 by x@rgs
+//              reces Ver.0.00r29 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -472,7 +472,7 @@ int ArcDllBase::setDefaultPassword(const TCHAR*password){
 
 //使用する文字コードをUTF-8に設定、及び解除を行います。(7-zip32)
 //ANSI 版 API を UTF-8 の文字コードで使用するかどうかを指定します。(UNLHA32.DLL)
-bool ArcDllBase::setUnicodeMode(bool unicode){
+bool ArcDllBase::setUnicodeMode(BOOL unicode){
 	typedef BOOL(WINAPI*SETUNICODEMODE_PTR)(BOOL);
 	SETUNICODEMODE_PTR p_setUnicodeMode;
 	bool result=false;

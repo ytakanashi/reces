@@ -20,6 +20,9 @@ private:
 	bool m_is_redirected;
 	int m_orig_colors;
 	const DWORD write_buffer_size;
+#ifdef UNICODE
+	bool m_ansi_mode;
+#endif
 
 public:
 	enum{
@@ -121,6 +124,12 @@ public:
 	inline bool resetColors(){
 		return setColors(m_orig_colors);
 	}
+
+#ifdef UNICODE
+	//ANSI(sjis)に変換して文字を出力するモード
+	inline void setAnsiMode(bool ansi_mode){m_ansi_mode=ansi_mode;}
+	inline bool isAnsiMode()const{return m_ansi_mode;}
+#endif
 };
 
 //namespace sslib

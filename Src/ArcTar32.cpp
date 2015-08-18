@@ -31,7 +31,7 @@ ArcTar32::ArcTar32():
 	m_file_size(0),
 	m_write_size(0),
 	m_last_write_size(0){
-		COMPRESSION_METHOD method[]={
+		COMPRESSION_FORMAT format[]={
 			//-Gはその圧縮単体(tarで固めない)
 			{_T("tar"),_T(".tar"),_T(""),_T(""),
 				0,
@@ -96,11 +96,11 @@ ArcTar32::ArcTar32():
 				6,0,9},
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
-		m_compression_methods.assign(method,method+ARRAY_SIZEOF(method));
+		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
 }
 
 //圧縮形式を取得(その形式に対応している場合のみ)
-tstring ArcTar32::getCompressionMethod(const TCHAR* arc_path_orig){
+tstring ArcTar32::getCompressionFormat(const TCHAR* arc_path_orig){
 	tstring arc_path(arc_path_orig);
 	replaceDelimiter(arc_path);
 
@@ -156,7 +156,7 @@ tstring ArcTar32::getCompressionMethod(const TCHAR* arc_path_orig){
 }
 
 ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>* file_list,tstring* log_msg){
-	if(getMethod().mhd==NULL)return ARC_FAILURE;
+	if(getFormat().mhd==NULL)return ARC_FAILURE;
 
 	tstring arc_path_str(arc_path);
 
@@ -249,18 +249,18 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 
 	if(CFG.compress.compression_level==minimum_compressionlevel){
 		//'/l'と指定された場合
-		CFG.compress.compression_level=getMethod().minimum_level;
+		CFG.compress.compression_level=getFormat().minimum_level;
 	}else if(CFG.compress.compression_level==maximum_compressionlevel){
 		//'/lx'と指定された場合
-		CFG.compress.compression_level=getMethod().maximum_level;
+		CFG.compress.compression_level=getFormat().maximum_level;
 	}
 
 	if(CFG.compress.compression_level!=default_compressionlevel){
 		//圧縮率を範囲内に収める
 		CFG.compress.compression_level=clamp(CFG.compress.compression_level,
-											   getMethod().minimum_level,
-											   getMethod().maximum_level);
-		level_str=getMethod().level;
+											   getFormat().minimum_level,
+											   getFormat().maximum_level);
+		level_str=getFormat().level;
 		level_str+=static_cast<TCHAR>(CFG.compress.compression_level+'0');
 	}
 
@@ -269,14 +269,14 @@ ArcTar32::ARC_RESULT ArcTar32::compress(const TCHAR* arc_path,std::list<tstring>
 							_T("--display-dialog=0"),
 							_T("--inverse-procresult=1"),
 							//--inverse-procresult=1   : ARCHIVERPROCの返し値を反転します。
-							(CFG.compress.compression_level!=default_compressionlevel&&!level_str.empty())?level_str.c_str():getMethod().cmd,
+							(CFG.compress.compression_level!=default_compressionlevel&&!level_str.empty())?level_str.c_str():getFormat().cmd,
 							CFG.general.custom_param.c_str(),
 
 							_T("--"),
 
-							quotePath(arc_path_str).c_str(),
+							path::quote(arc_path_str).c_str(),
 
-							quotePath(list_file_path).c_str()));
+							path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -365,13 +365,13 @@ ArcTar32::ARC_RESULT ArcTar32::extract(const TCHAR* arc_path,const TCHAR* output
 
 							_T("--"),
 
-							quotePath(arc_path_str).c_str(),
+							path::quote(arc_path_str).c_str(),
 
-							quotePath(output_dir_str).c_str()));
+							path::quote(output_dir_str).c_str()));
 
 	if(use_filter){
 		cmd_line.append(format(_T(" @%s"),
-							   quotePath(list_file_path).c_str()));
+							   path::quote(list_file_path).c_str()));
 	}
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -424,7 +424,7 @@ ArcTar32::ARC_RESULT ArcTar32::list(const TCHAR* arc_path){
 										  _T("-l"),
 										  _T("--display-dialog=0"),
 										  _T("--"),
-										  quotePath(arc_path_str).c_str()));
+										  path::quote(arc_path_str).c_str()));
 
 		dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -445,8 +445,8 @@ DWORD ArcTar32::writeFormatedPath(const File& list_file,const TCHAR* base_dir_or
 	file_path=path::removeTailSlash(file_path);
 
 	return list_file.writeEx(_T("%s %s\r\n"),
-							 quotePath(base_dir+m_delimiter).c_str(),
-							 quotePath(file_path).c_str());
+							 path::quote(base_dir+m_delimiter).c_str(),
+							 path::quote(file_path).c_str());
 }
 
 //圧縮対象ファイルリストを整形してファイルに書き出す
