@@ -26,7 +26,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HookArchiverDialog.cpp">
+    <ClCompile Include="HookArchiverDialog.c">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
