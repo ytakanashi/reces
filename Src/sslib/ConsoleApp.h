@@ -9,7 +9,7 @@ extern int main();
 
 namespace sslib{
 class ConsoleApp:public misc::CtrlCEvent{
-	friend ConsoleApp* app();
+//	friend ConsoleApp* app();
 	friend bool isTerminated();
 	friend void terminateApp(bool force);
 	friend int ::main();
@@ -20,7 +20,7 @@ protected:
 		m_wnd_handle(::GetConsoleWindow()),
 		m_exit_code(EXIT_SUCCESS),
 		m_show_usage(true){
-			this_ptr=this;
+//			this_ptr=this;
 	}
 
 	virtual ~ConsoleApp(){
@@ -33,7 +33,7 @@ public:
 	static bool m_terminated;
 
 private:
-	static ConsoleApp* this_ptr;
+//	static ConsoleApp* this_ptr;
 	HWND m_wnd_handle;
 	int m_exit_code;
 	bool m_show_usage;
@@ -52,9 +52,10 @@ public:
 	inline void setExitCode(int code){m_exit_code=code;}
 	inline bool getUsageFlag()const{return m_show_usage;}
 	inline void setUsageFlag(bool enable){m_show_usage=enable;}
+	inline void ctrlC(){misc::CtrlCEventManager::generateCtrlCEvent();}
 };
 
-ConsoleApp* app();
+//ConsoleApp* app();
 bool isTerminated();
 void terminateApp(bool force=false);
 
@@ -64,5 +65,7 @@ void terminateApp(bool force=false);
 
 //namespace sslib
 }
+
+extern sslib::ConsoleApp* app();
 
 #endif //_CONSOLEAPP_H_B13A77FD_E1E3_440f_A4EE_44A22D398E61

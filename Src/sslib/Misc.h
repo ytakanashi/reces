@@ -51,20 +51,26 @@ public:
 	}
 };
 
-class CtrlCEvent:NonCopyable<CtrlCEvent>{
+struct CtrlCEvent{
+	CtrlCEvent(){}
+	virtual ~CtrlCEvent(){}
+	virtual void ctrlCEvent()=0;
+};
+
+class CtrlCEventManager:NonCopyable<CtrlCEventManager>{
 public:
-	CtrlCEvent():m_ctrlc_event_list(){m_this_ptr=this;}
+	CtrlCEventManager():m_ctrlc_event_list(){m_this_ptr=this;}
+	virtual ~CtrlCEventManager(){::SetConsoleCtrlHandler(static_cast<PHANDLER_ROUTINE>(CtrlCEventManager::handlerRoutine),false);}
 private:
 	typedef std::list<CtrlCEvent*> ctrlc_event_list;
 	ctrlc_event_list m_ctrlc_event_list;
 private:
 	static BOOL WINAPI handlerRoutine(DWORD ctrl_type);
 public:
-	static CtrlCEvent* m_this_ptr;
+	static CtrlCEventManager* m_this_ptr;
 public:
-	virtual void ctrlCEvent()=0;
 	void addCtrlCEvent(CtrlCEvent* event);
-	void generateCtrlCEvent(){::GenerateConsoleCtrlEvent(CTRL_C_EVENT,0);}
+	static void generateCtrlCEvent(){::GenerateConsoleCtrlEvent(CTRL_C_EVENT,0);}
 };
 
 namespace thread{

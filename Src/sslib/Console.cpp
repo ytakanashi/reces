@@ -9,7 +9,7 @@
 namespace sslib{
 
 Console::Console(DWORD handle_type):
-	m_handle(INVALID_HANDLE_VALUE),
+	m_handle(::GetStdHandle(handle_type)),
 	m_is_redirected(false),
 	m_orig_colors(0),
 	write_buffer_size(2048)
@@ -17,15 +17,15 @@ Console::Console(DWORD handle_type):
 	,m_ansi_mode(false)
 #endif
 	{
-	m_handle=::GetStdHandle(handle_type);
-	_tsetlocale(LC_ALL,_tsetlocale(LC_CTYPE,_T("")));
+		//VS2015でビルドすると、環境によっては_tsetlocale()でハングアップしてしまう?
+//	_tsetlocale(LC_ALL,_tsetlocale(LC_CTYPE,_T("")));
 	{
 		//リダイレクトされているかどうか
 		DWORD mode=0;
 		CONSOLE_SCREEN_BUFFER_INFO screen_buffer_info;
 
 		m_is_redirected=(handle_type==STD_INPUT_HANDLE)?
-							!::GetConsoleMode(m_handle,&mode)
+							!getConsoleMode(&mode)
 							:!::GetConsoleScreenBufferInfo(m_handle,&screen_buffer_info);
 		m_orig_colors=getColors();
 	}

@@ -3,7 +3,6 @@
 #ifndef _CONSOLE_H_112DA473_5860_4F65_879F_E1C937920096
 #define _CONSOLE_H_112DA473_5860_4F65_879F_E1C937920096
 
-#include<map>
 
 
 namespace sslib{

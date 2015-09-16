@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.43
+//                  sslib ver.1.44
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -91,18 +91,40 @@ template<typename T>bool strvalid(T str){
 #ifndef SSLIB_GUI
 	#ifndef SSLIB_GUI_DIALOG
 		#include"ConsoleApp.h"
+/*
+#define MAIN_INSTANCE(class_name)\
+	inline ConsoleApp* app(){\
+		static class_name _main_app_;\
+		return &_main_app_;\
+	}\
+
+*/
+
+
+#define MAIN_INSTANCE(class_name)\
+	namespace{class_name _main_app_;}\
+	inline ConsoleApp* app(){\
+		return &_main_app_;\
+	}\
+
 	#else
 		#include"DialogApp.h"
+#define MAIN_INSTANCE(class_name)\
+	namespace{class_name _main_app_;}\
+	inline DialogApp* app(){\
+		return &_main_app_;\
+	}\
+
 	#endif
 #else
 	#include"WindowApp.h"
-#endif
-
-extern void createInstance();
 #define MAIN_INSTANCE(class_name)\
-	void createInstance(){\
-		new class_name;\
+	namespace{class_name _main_app_;}\
+	inline WindowApp* app(){\
+		return &_main_app_;\
 	}\
+
+#endif
 
 #if !defined(SSLIB_GUI)&&!defined(SSLIB_GUI_DIALOG)
 	#ifdef _MSC_VER
@@ -188,6 +210,9 @@ extern void createInstance();
 // __cplusplus
 #endif
 
+
+//Ver.1.44
+//reces Ver.0.00r30aで使用
 
 //Ver.1.43
 //reces Ver.0.00r29/gui4reces Ver.0.0.1.5で使用

@@ -23,6 +23,8 @@ namespace{
 
 		const TCHAR* args=cmd_line;
 
+		dprintf(_T("GetCommandLine(): '%s'\n"),args);
+
 		while(*args){
 			bool in_dquotes=false;
 
@@ -97,10 +99,10 @@ CommandArgument::CommandArgument(DWORD opt):
 			switch(*(args()[i].c_str())){
 				case '-':
 				case '/':
-					if(i+1!=size&&
-					   args()[i]==args()[i+1]&&
-					   (args()[i]==_T("-")||args()[i]==_T("/"))){
+					if(args()[i].find(_T("--"))==0||
+					   args()[i].find(_T("//"))==0){
 						//解析終了
+						dprintf(_T("end_switch_scan=true(//)\n"));
 						end_switch_scan=true;
 						continue;
 					}
@@ -111,6 +113,7 @@ CommandArgument::CommandArgument(DWORD opt):
 
 				default:
 					//オプション解析終了
+					dprintf(_T("end_switch_scan=true\n"));
 					end_switch_scan=true;
 					break;
 			}
@@ -120,10 +123,7 @@ CommandArgument::CommandArgument(DWORD opt):
 		   path::containsWildcard(args()[i].c_str())){
 			//ワイルドカードがあれば展開して追加
 			tstring dir;
-			TCHAR dlmtr[2]={};
-
-			*dlmtr=path::guessDelimiter(args()[i].c_str());
-			*(dlmtr+1)='\0';
+			TCHAR dlmtr[]={(TCHAR)path::guessDelimiter(args()[i].c_str()),'\0'};
 
 			if(args()[i].rfind(dlmtr)!=std::string::npos){
 				dir=args()[i].substr(0,args()[i].rfind(dlmtr));
@@ -161,6 +161,7 @@ CommandArgument::CommandArgument(DWORD opt):
 				if(TCHAR* p=_tcschr(&buffer[0],'\n'))*p='\0';
 				else while(getchar()!='\n');
 				stdinput().push_back(&buffer[0]);
+				dprintf(_T("stdinput:%s\n"),&buffer[0]);
 			}
 		}
 
