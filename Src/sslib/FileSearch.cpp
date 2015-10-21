@@ -39,6 +39,7 @@ WIN32_FIND_DATA* FileSearch::first(const TCHAR* search_dir,const TCHAR* wildcard
 	return (m_handle!=INVALID_HANDLE_VALUE)?&m_file_data:NULL;
 }
 
+
 //次のファイルの情報を取得
 WIN32_FIND_DATA* FileSearch::next(){
 	if(m_handle==INVALID_HANDLE_VALUE||

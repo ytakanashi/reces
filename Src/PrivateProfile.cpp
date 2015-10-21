@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -108,6 +108,8 @@ bool Config::save(){
 	write(_T("Compress"),_T("B2eMethod"),CFG_VALUE(compress.b2e.method));
 	//b2eスクリプトの自己解凍形式指定
 	write(_T("Compress"),_T("B2eSfx"),CFG_VALUE(compress.b2e.sfx));
+	//元ファイルの拡張子を保持
+	write(_T("Compress"),_T("KeepExtension"),CFG_VALUE(compress.keep_extension));
 
 
 	//解凍
@@ -314,6 +316,8 @@ bool Config::load(){
 	getStringDataEx(_T("Compress"),_T("B2eMethod"),&m_cfg.compress.b2e.method);
 	//b2eスクリプトの自己解凍形式指定
 	getDataEx(_T("Compress"),_T("B2eSfx"),&m_cfg.compress.b2e.sfx);
+	//元ファイルの拡張子を保持
+	getDataEx(_T("Compress"),_T("KeepExtension"),&m_cfg.compress.keep_extension);
 
 	//解凍
 	//ディレクトリを作成する

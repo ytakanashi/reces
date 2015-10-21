@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -189,6 +189,8 @@ struct COMPRESS{
 	bool recursive;
 	//圧縮用b2eスクリプト
 	B2E b2e;
+	//元ファイルの拡張子を保持
+	bool keep_extension;
 
 	COMPRESS():
 		compression_type(_T("zip")),
@@ -202,7 +204,8 @@ struct COMPRESS{
 		raw_file_name(false),
 		copy_timestamp(false),
 		recursive(false),
-		b2e(){}
+		b2e(),
+		keep_extension(false){}
 };
 
 struct EXTRACT{

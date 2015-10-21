@@ -8,12 +8,10 @@ extern int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_hand
 
 namespace sslib{
 class DialogApp{
-	friend DialogApp* app();
 	friend int WINAPI ::WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPSTR cmd_line,int cmd_show);
 
 protected:
 	DialogApp(){
-		this_ptr=this;
 	}
 
 	virtual ~DialogApp(){
@@ -30,5 +28,7 @@ protected:
 
 //namespace sslib
 }
+
+extern sslib::DialogApp* app();
 
 #endif //_DIALOGAPP_H_E833C322_83F7_44df_A7BF_D46134FB5C22

@@ -35,8 +35,8 @@ protected:
 	virtual INT_PTR onInitDialog(WPARAM wparam,LPARAM lparam);
 	virtual INT_PTR onClose();
 	virtual INT_PTR onDestroy();
-	virtual INT_PTR onOk();
-	virtual INT_PTR onCancel();
+	virtual INT_PTR onOk(WPARAM wparam,LPARAM lparam);
+	virtual INT_PTR onCancel(WPARAM wparam,LPARAM lparam);
 	virtual INT_PTR onCommand(WPARAM wparam,LPARAM lparam);
 	virtual INT_PTR onSysCommand(WPARAM wparam,LPARAM lparam);
 	virtual INT_PTR onNotify(WPARAM wparam,LPARAM lparam);

@@ -6,12 +6,6 @@
 
 namespace sslib{
 
-DialogApp* DialogApp::this_ptr=NULL;
-
-DialogApp* app(){
-	return DialogApp::this_ptr;
-}
-
 bool DialogApp::init(){
 	return true;
 }
@@ -26,7 +20,6 @@ using namespace sslib;
 
 //GUIなダイアログアプリのエントリポイント
 int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPSTR cmd_line,int cmd_show){
-	createInstance();
 	DialogApp* app_ptr=app();
 	CommandArgument cmd_arg(true);
 	int exit_code=0;
@@ -35,8 +28,6 @@ int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPST
 		exit_code=app_ptr->run(cmd_arg,cmd_show);
 		app_ptr->cleanup();
 	}
-
-	SAFE_DELETE(app_ptr);
 
 	return exit_code;
 }

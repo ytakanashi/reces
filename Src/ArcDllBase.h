@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -45,6 +45,7 @@
 	#define ISARC_GET_CURSOR_MODE			6
 	#define ISARC_SET_CURSOR_MODE			7
 	#define ISARC_GET_RUNNING				8
+	#define ISARC_EXISTS_7ZDLL				9
 
 	#define ISARC_CHECK_ARCHIVE				16
 	#define ISARC_CONFIG_DIALOG				17
@@ -445,6 +446,10 @@ public:
 	bool getAttribute(DWORD* p_attr,int* p_orig_attr=NULL);
 	//書庫の情報を得る際に使用する標準パスワードを設定します。
 	int setDefaultPassword(const TCHAR*password);
+	//書庫ヘッダ読み込み時のコードページを指定する
+	bool setCP(UINT codepage);
+	//書庫ヘッダ読み込み時のコードページを取得する
+	UINT getCP();
 	//使用する文字コードをUTF-8に設定、及び解除を行います(7-zip32)
 	//ANSI 版 API を UTF-8 の文字コードで使用するかどうかを指定します(UNLHA32.DLL)
 	bool setUnicodeMode(BOOL unicode);

@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.44
+//                  sslib ver.1.46
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -91,15 +91,6 @@ template<typename T>bool strvalid(T str){
 #ifndef SSLIB_GUI
 	#ifndef SSLIB_GUI_DIALOG
 		#include"ConsoleApp.h"
-/*
-#define MAIN_INSTANCE(class_name)\
-	inline ConsoleApp* app(){\
-		static class_name _main_app_;\
-		return &_main_app_;\
-	}\
-
-*/
-
 
 #define MAIN_INSTANCE(class_name)\
 	namespace{class_name _main_app_;}\
@@ -210,6 +201,12 @@ template<typename T>bool strvalid(T str){
 // __cplusplus
 #endif
 
+
+//Ver.1.46
+//reces Ver.0.00r30/gui4reces Ver.0.0.1.6で使用
+
+//Ver.1.45
+//TimeStamp Keeper Ver.1.01で使用
 
 //Ver.1.44
 //reces Ver.0.00r30aで使用

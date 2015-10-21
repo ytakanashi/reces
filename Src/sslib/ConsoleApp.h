@@ -9,7 +9,6 @@ extern int main();
 
 namespace sslib{
 class ConsoleApp:public misc::CtrlCEvent{
-//	friend ConsoleApp* app();
 	friend bool isTerminated();
 	friend void terminateApp(bool force);
 	friend int ::main();
@@ -20,7 +19,6 @@ protected:
 		m_wnd_handle(::GetConsoleWindow()),
 		m_exit_code(EXIT_SUCCESS),
 		m_show_usage(true){
-//			this_ptr=this;
 	}
 
 	virtual ~ConsoleApp(){
@@ -33,7 +31,6 @@ public:
 	static bool m_terminated;
 
 private:
-//	static ConsoleApp* this_ptr;
 	HWND m_wnd_handle;
 	int m_exit_code;
 	bool m_show_usage;
@@ -55,7 +52,6 @@ public:
 	inline void ctrlC(){misc::CtrlCEventManager::generateCtrlCEvent();}
 };
 
-//ConsoleApp* app();
 bool isTerminated();
 void terminateApp(bool force=false);
 

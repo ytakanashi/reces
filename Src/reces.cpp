@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -32,7 +32,7 @@ MAIN_INSTANCE(Reces);
 namespace{
 	//ウインドウは応答なしである
 	bool isWindowHung(HWND wnd){
-		return (!::SendMessageTimeout(wnd,WM_NULL,0,0,SMTO_ABORTIFHUNG,500,NULL))?true:false;
+		return !::SendMessageTimeout(wnd,WM_NULL,0,0,SMTO_ABORTIFHUNG,500,NULL);
 	}
 
 	//ウインドウをフォアグラウンドに持ってくる
@@ -232,7 +232,7 @@ void Reces::cleanup(){
 	//パスワードダイアログのフックを終了
 	if(m_pUninstallHook){
 		if(m_pUninstallHook()){
-			PostMessage(HWND_BROADCAST,WM_NULL,0,0);
+			PostMessage(HWND_BROADCAST,WM_SETTINGCHANGE,0,0);
 		}
 	}
 
@@ -404,9 +404,10 @@ void Reces::usage(){
 						  _T("\t/of<filename>\t #出力ファイル名 {mr/mc}\n")
 						  _T("\t/oF<filename>\t #出力ファイル名(拡張子をrecesで付加しない) {mr/mc}\n")
 						  _T("\n")
-						  _T("\t/oo<b|r>\t #出力オプション\n")
+						  _T("\t/oo<b|ke|r>\t #出力オプション\n")
 						  _T("\t/oob\t\t ;カレントディレクトリ基準で {mr/mc/me}\n")
 						  _T("\t\t\t  '/od','/of'の相対パスを処理\n")
+						  _T("\t/ooke\t\t ; 元ファイルの拡張子を保持 {mc}\n")
 						  _T("\t/oor\t\t ;出力ファイルが重複する場合リネーム {mr/mc}\n")
 						  _T("\t\t\t  'name.zip' -> 'name_1.zip'\n")
 						  _T("\n")
@@ -1026,7 +1027,10 @@ bool Reces::compress(std::list<tstring>& file_list){
 			if(path::isDirectory(file_list.begin()->c_str())){
 				m_cur_file.arc_path=path::removeTailSlash(*file_list.begin());
 			}else{
-				m_cur_file.arc_path=path::removeExtension(*file_list.begin());
+				m_cur_file.arc_path=(!CFG.compress.keep_extension)?
+									path::removeExtension(*file_list.begin()):
+									//元ファイルの拡張子を保持
+									*file_list.begin();
 			}
 		}
 

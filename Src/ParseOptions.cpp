@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -102,6 +102,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 		switch(options[i].c_str()[0]){
 			case '{':{
+				//'{'
 				//cfgファイルを読み込む
 				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())&&
 				   path::fileExists(&cfg_path[0])){
@@ -115,6 +116,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case '}':{
+				//'}'
 				//cfgファイルに書き出す[オプション解析後]
 				if(path::getFullPath(&cfg_path[0],cfg_path.size(),options[i].substr(1).c_str())){
 					cfg_file.setFileName(&cfg_path[0]);
@@ -136,11 +138,13 @@ bool parseOptions(CommandArgument& cmd_arg){
 			case 'm':{//動作モード
 				switch(options[i].c_str()[1]){
 					case 'R':
+						//'mR'
 						//ディレクトリ階層を無視して再圧縮
 						CFG.general.ignore_directory_structures=true;
 						dprintf(_T("CFG.general.ignore_directory_structures\n"));
 						//fall through
 					case 'r':{
+						//'mr'
 						//再圧縮
 						CFG.mode=MODE_RECOMPRESS;
 						dprintf(_T("mode : recompress\n"));
@@ -167,11 +171,13 @@ bool parseOptions(CommandArgument& cmd_arg){
 					}
 
 					case 'C':
+						//'mC'
 						//ディレクトリ階層を無視して圧縮
 						CFG.general.ignore_directory_structures=true;
 						dprintf(_T("CFG.general.ignore_directory_structures\n"));
 						//fall through
 					case 'c':{
+						//'mc'
 						//圧縮
 						CFG.mode=MODE_COMPRESS;
 						dprintf(_T("mode : compress\n"));
@@ -192,13 +198,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 						break;
 					}
 
-
 					case 'E':
+						//'mE'
 						//ディレクトリ階層を無視して解凍
 						CFG.general.ignore_directory_structures=true;
 						dprintf(_T("CFG.general.ignore_directory_structures\n"));
 						//fall through
 					case 'e':{
+						//'me'
 						//解凍
 						CFG.mode=MODE_EXTRACT;
 						dprintf(_T("Mode : extract\n"));
@@ -212,10 +219,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 					}
 
 					case 'L':
+						//'mL'
 						//FindFirst()/FindNext()/GetFileName()で出力しない
 						CFG.output_file_list.api_mode=false;
 						//fall through
 					case 'l':
+						//'ml'
 						//一覧出力
 						CFG.mode=MODE_LIST;
 						dprintf(_T("mode : output_file_list\n"));
@@ -228,6 +237,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 						break;
 
 					case 't':{
+						//'mt'
 						//テスト
 						CFG.mode=MODE_TEST;
 						dprintf(_T("mode : test\n"));
@@ -241,6 +251,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 					}
 
 					case 'd':{
+						//'md'
 						//削除
 						CFG.mode=MODE_DELETE;
 						dprintf(_T("mode : delete\n"));
@@ -256,10 +267,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 					case 's':
 					case 'S':{
 						if(options[i].c_str()[1]=='s'){
+							//'ms'
 							//ライブラリ直接操作
 							CFG.mode=MODE_SENDCOMMANDS;
 							dprintf(_T("mode : send_commands\n"));
 						}else{
+							//'mS'
 							//ライブラリの設定
 							CFG.mode=MODE_SETTINGS;
 							dprintf(_T("mode : settings\n"));
@@ -300,6 +313,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 					}
 
 					case 'v':{
+						//'mv'
 						//バージョン確認
 						CFG.mode=MODE_VERSION;
 						dprintf(_T("mode : version\n"));
@@ -315,30 +329,35 @@ bool parseOptions(CommandArgument& cmd_arg){
 				while(*p){
 					switch(*p){
 						case 'i':
+							//'ni'
 							//進捗状況
 							CFG.no_display.no_information=true;
 							dprintf(_T("CFG.no_display.no_information=true\n"));
 							break;
 
 						case 'l':
+							//'nl'
 							//ログ
 							CFG.no_display.no_log=true;
 							dprintf(_T("CFG.no_display.no_log=true\n"));
 							break;
 
 						case 'p':
+							//'np'
 							//パスワード
 							CFG.no_display.no_password=true;
 							dprintf(_T("CFG.no_display.no_password=true\n"));
 							break;
 
 						case 'e':
+							//'ne'
 							//エラーメッセージ
 							CFG.no_display.no_errmsg=true;
 							dprintf(_T("CFG.no_display.no_errmsg=true\n"));
 							break;
 
 						case 'a':
+							//'na'
 							//注意:エラーメッセージ非表示は別指定
 							CFG.no_display.no_information=true;
 							dprintf(_T("CFG.no_display.no_information=true\n"));
@@ -359,6 +378,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}//case 'n'
 
 			case 'c':{
+				//'c'
 				//ディレクトリを作成する
 				CFG.extract.create_dir=true;
 				dprintf(_T("CFG.extract.create_dir=true\n"));
@@ -368,16 +388,19 @@ bool parseOptions(CommandArgument& cmd_arg){
 					switch(*p){
 						//不要なディレクトリを作成しない
 						case '1':
+							//'c1'
 							//ファイル単体の場合作成しない
 							CFG.extract.create_dir_optimization.remove_redundant_dir.only_file=true;
 							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.only_file=true\n"));
 							break;
 						case '2':
+							//'c2'
 							//二重ディレクトリを作成しない
 							CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=true;
 							dprintf(_T("CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=true\n"));
 							break;
 						case '3':
+							//'c3'
 							//同名の二重ディレクトリを作成しない
 							CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir=true;
 							CFG.extract.create_dir_optimization.remove_redundant_dir.same_dir=true;
@@ -387,18 +410,21 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 						//ディレクトリ名末尾の数字や記号を削除
 						case 'n':
+							//'cn'
 							//ディレクトリ名末尾の数字を削除
 							CFG.extract.create_dir_optimization.omit_number_and_symbol.number=true;
 							dprintf(_T("CFG.extract.create_dir_optimization.omit_number_and_symbol.bNumber=true\n"));
 							break;
 
 						case 's':
+							//'cs'
 							//ディレクトリ名末尾の記号を削除
 							CFG.extract.create_dir_optimization.omit_number_and_symbol.symbol=true;
 							dprintf(_T("CFG.extract.create_dir_optimization.omit_number_and_symbol.bSymbol=true\n"));
 							break;
 
 						case 't':
+							//'ct'
 							//ディレクトリの更新日時を書庫と同じにする
 							CFG.extract.create_dir_optimization.copy_timestamp=true;
 							dprintf(_T("CFG.extract.create_dir_optimization.copy_timestamp=true\n"));
@@ -416,6 +442,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 				//ソースを削除
 				switch(options[i].c_str()[1]){
 					case '2':
+						//'d2'
 						CFG.general.remove_source=RMSRC_REMOVE;
 						dprintf(_T("CFG.general.remove_source=RMSRC_REMOVE\n"));
 						break;
@@ -423,6 +450,8 @@ bool parseOptions(CommandArgument& cmd_arg){
 					case '1':
 					case '\0':
 					default:
+						//'d1'
+						//'d'
 						CFG.general.remove_source=RMSRC_RECYCLEBIN;
 						dprintf(_T("CFG.general.remove_source=RMSRC_RECYCLEBIN\n"));
 						break;
@@ -434,15 +463,18 @@ bool parseOptions(CommandArgument& cmd_arg){
 				if(options[i].find(_T("eb"))==0){
 					switch(options[i].c_str()[2]){
 						case 'x':
+							//'ebx'
 							//[解凍]共通パスをすべて除く
 							CFG.compress.exclude_base_dir=-1;
 							break;
 
 						case '\0':
+							//'eb'
 							CFG.compress.exclude_base_dir=1;
 							break;
 
 						default:
+							//'eb'
 							//圧縮時は正負のみ確認
 							CFG.compress.exclude_base_dir=_ttoi(options[i].substr(2).c_str());
 							break;
@@ -450,6 +482,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 					if(CFG.compress.exclude_base_dir<-1)CFG.compress.exclude_base_dir=-1;
 					dprintf(_T("CFG.compress.exclude_base_dir=%d\n"),CFG.compress.exclude_base_dir);
 				}else{
+					//'e'
 					//個別圧縮
 					CFG.compress.each_file=true;
 					dprintf(_T("CFG.compress.each_file=%d\n"),CFG.compress.each_file);
@@ -462,24 +495,28 @@ bool parseOptions(CommandArgument& cmd_arg){
 				//特殊なディレクトリを指定
 				switch(options[i].c_str()[1]){
 					case 'b':
+						//'Db'
 						//b2eスクリプトのあるディレクトリを指定/
 						CFG.general.b2e_dir=removeTailCharacter(options[i].substr(2),'\"');
 						dprintf(_T("CFG.general.b2e_dir=%s\n"),CFG.general.b2e_dir.c_str());
 						break;
 
 					case 's':
+						//'Ds'
 						//spiのあるディレクトリを指定
 						CFG.general.spi_dir=removeTailCharacter(options[i].substr(2),'\"');
 						dprintf(_T("CFG.general.spi_dir=%s\n"),CFG.general.spi_dir.c_str());
 						break;
 
 					case 'w':
+						//'Dw'
 						//wcxのあるディレクトリを指定
 						CFG.general.wcx_dir=removeTailCharacter(options[i].substr(2),'\"');
 						dprintf(_T("CFG.general.wcx_dir=%s\n"),CFG.general.wcx_dir.c_str());
 						break;
 
 					case 'I':
+						//'DIRTS'
 						//ディレクトリのタイムスタンプを復元する
 						if(options[i].find(_T("DIRTS"))==0){
 							CFG.extract.directory_timestamp=true;
@@ -494,6 +531,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 				//新規作成
 				switch(options[i].c_str()[1]){
 					case 'F':
+					//'NF'
 					//書庫強制新規作成
 					CFG.compress.force_create_new=true;
 					dprintf(_T("CFG.compress.force_create_new=%d\n"),CFG.compress.force_create_new);
@@ -501,6 +539,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 					case '\0':
 					default:
+						//'N'
 						//書庫新規作成
 						CFG.compress.create_new=true;
 						dprintf(_T("CFG.compress.create_new=%d\n"),CFG.compress.create_new);
@@ -510,10 +549,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'I':
+				//'I'
 				CFG.general.filefilter.recursive=true;
 				dprintf(_T("CFG.general.filefilter.recursive\n"));
 				//fall through
 			case 'i':{
+				//'i'
 				//処理対象フィルタ
 				if(options[i].length()<2)break;
 
@@ -530,6 +571,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 						switch(*(p++)){
 							case 'r':{
+								//'i:r'
 								tstring str(p,pp-p);
 
 								CFG.general.filefilter.regex=true;
@@ -546,6 +588,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case 's':{
+								//'i:s'
 								tstring str(p,pp-p);
 
 								CFG.general.filefilter.min_size=strex::filesize2longlong(str.c_str());
@@ -554,6 +597,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case 'S':{
+								//'i:S'
 								tstring str(p,pp-p);
 
 								CFG.general.filefilter.max_size=strex::filesize2longlong(str.c_str());
@@ -563,6 +607,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 							case 'a':
 							case 'A':
+								//'i:a'
 								while(p!=pp){
 									if(*p=='e'||*p=='E'){
 										//「空ディレクトリのみ格納」は実装しない方向で
@@ -574,6 +619,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								break;
 
 							case 'd':{
+								//'i:d'
 								tstring str(p,pp-p);
 
 								CFG.general.filefilter.oldest_date=strex::datetime2longlong(str.c_str());
@@ -581,6 +627,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case 'D':{
+								//'i:D'
 								tstring str(p,pp-p);
 
 								CFG.general.filefilter.newest_date=strex::datetime2longlong(str.c_str(),true);
@@ -588,6 +635,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case '@':{
+								//'i:@'
 								tstring file(p,pp-p);
 								File list_file;
 
@@ -611,10 +659,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'X':
+				//'X'
 				CFG.general.file_ex_filter.recursive=true;
 				dprintf(_T("CFG.general.file_ex_filter.recursive\n"));
 				//fall through
 			case 'x':{
+				//'x'
 				//処理対象除外フィルタ
 				if(options[i].length()<2)break;
 
@@ -631,6 +681,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 						switch(*(p++)){
 							case 'r':{
+								//'x:r'
 								tstring str(p,pp-p);
 
 								CFG.general.file_ex_filter.regex=true;
@@ -643,6 +694,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case 's':{
+								//'x:s'
 								tstring str(p,pp-p);
 
 								CFG.general.file_ex_filter.min_size=strex::filesize2longlong(str.c_str());
@@ -651,6 +703,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case 'S':{
+								//x:S'
 								tstring str(p,pp-p);
 
 								CFG.general.file_ex_filter.max_size=strex::filesize2longlong(str.c_str());
@@ -660,6 +713,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 							case 'a':
 							case 'A':
+								//'x:a'
 								while(p!=pp){
 									if(*p=='e'||*p=='E'){
 										//include_empty_dirは除外フィルタの場合のみ操作
@@ -673,6 +727,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 								break;
 
 							case 'd':{
+								//'x:d'
 								tstring str(p,pp-p);
 
 								CFG.general.file_ex_filter.oldest_date=strex::datetime2longlong(str.c_str());
@@ -680,6 +735,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case 'D':{
+								//'x:D'
 								tstring str(p,pp-p);
 
 								CFG.general.file_ex_filter.newest_date=strex::datetime2longlong(str.c_str(),true);
@@ -687,6 +743,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							}
 
 							case '@':{
+								//'x:@'
 								tstring file(p,pp-p);
 								File list_file;
 
@@ -711,12 +768,15 @@ bool parseOptions(CommandArgument& cmd_arg){
 			case 'l':{
 				//圧縮率
 				if(options[i].c_str()[1]=='\0'){
+					//'l'
 					//'/l'と指定された場合、圧縮率を最小にする
 					CFG.compress.compression_level=Archiver::minimum_compressionlevel;
 				}else if(options[i].c_str()[1]=='x'){
+					//'lx'
 					//'/lx'と指定された場合、圧縮率を最大にする
 					CFG.compress.compression_level=Archiver::maximum_compressionlevel;
 				}else{
+					//'l'
 					CFG.compress.compression_level=options[i].c_str()[1]-'0';
 					//値が範囲内かどうかはcompress()にて判断
 				}
@@ -725,6 +785,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 's':{
+				//'s'
 				//分割圧縮
 				CFG.compress.split_value=options[i].substr(1);
 				dprintf(_T("CFG.compress.split_value=%s\n"),CFG.compress.split_value.c_str());
@@ -735,6 +796,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 				//出力先
 				switch(options[i].c_str()[1]){
 					case 'd':
+						//'od'
 						//ディレクトリ
 						if(options[i].c_str()[2]=='\0'){
 							//指定されなかった場合デスクトップに出力
@@ -749,10 +811,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 						break;
 
 					case 'F':
+						//'oF'
 						CFG.compress.raw_file_name=true;
 						dprintf(_T("CFG.compress.raw_file_name\n"));
 						//fall through
 					case 'f':
+						//'of'
 						//ファイル
 						CFG.compress.output_file=options[i].substr(2);
 						dprintf(_T("CFG.compress.output_file=%s\n"),CFG.compress.output_file.c_str());
@@ -761,10 +825,17 @@ bool parseOptions(CommandArgument& cmd_arg){
 					case 'o':
 						//設定
 						if(options[i].c_str()[2]=='b'){
+							//'oob'
 							//カレントディレクトリ基準で'/od','/of'の相対パスを処理
 							CFG.general.default_base_dir=true;
 							dprintf(_T("CFG.general.default_base_dir=true\n"));
+						}else if(options[i].substr(2)==_T("ke")){
+							//'ooke'
+							//元ファイルの拡張子を保持
+							CFG.compress.keep_extension=true;
+							dprintf(_T("CFG.compress.keep_extension=true\n"));
 						}else if(options[i].c_str()[2]=='r'){
+							//'oor'
 							//出力ファイルが重複する場合リネーム
 							CFG.general.auto_rename=true;
 							dprintf(_T("CFG.general.auto_rename=true\n"));
@@ -781,6 +852,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 				//パスワード
 				switch(options[i].c_str()[1]){
 					case 'w':{//'/mr'と'/me'で複数指定が可能(/pwfoo /pwbar)
+						//'pw'
 						//'/mc'の場合
 						if(CFG.general.password_list.empty()){
 							CFG.general.password=options[i].substr(2);
@@ -795,6 +867,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 					}
 
 					case 'n':
+						//'pn'
 						//再圧縮する書庫のパスワードを新しく設定
 						CFG.recompress.new_password=options[i].substr(2);
 						if(!options[i].substr(2).empty()){
@@ -804,6 +877,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 						break;
 
 					case 'f':{
+						//'pf'
 						CFG.extract.password_list_path=options[i].substr(2);
 						dprintf(_T("PasswordList: %s\n"),CFG.extract.password_list_path.c_str());
 
@@ -826,6 +900,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'P':{
+				//'P'
 				//ユーザ独自のパラメータ
 				CFG.general.custom_param=options[i].substr(1);
 				dprintf(_T("CFG.general.custom_param=%s\n"),CFG.general.custom_param.c_str());
@@ -833,6 +908,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 't':{
+				//'t'
 				//更新日時を元書庫と同じにする
 				CFG.compress.copy_timestamp=true;
 				dprintf(_T("CFG.compress.copy_timestamp=true\n"));
@@ -840,6 +916,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'r':{
+				//'r'
 				//コマンド実行
 				if(options[i].c_str()[1]=='\0'){
 					//対話形式で指定
@@ -852,6 +929,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'R':{
+				//'R'
 				//対象ディレクトリを再帰的検索
 				CFG.compress.recursive=true;
 				dprintf(_T("CFG.compress.recursive\n"));
@@ -859,6 +937,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'b':{
+				//'b'
 				//バックグラウンドで動作
 				CFG.general.background_mode=true;
 				dprintf(_T("CFG.general.background_mode=true\n"));
@@ -867,6 +946,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 
 			case 'C':{
 				if(options[i].find(_T("C:@"))==0){
+					//'C:@'
 					//パスワードリストファイル/ファイルリストの文字コード
 					tstring codepage_str(options[i].substr(lstrlen(_T("C:@"))).c_str());
 
@@ -885,9 +965,11 @@ bool parseOptions(CommandArgument& cmd_arg){
 						CFG.general.list_codepage=File::UTF16BE;
 					}
 				}else if(options[i].find(_T("C:oa"))==0){
+					//'C:oa'
 					CFG.general.ansi_stdout=true;
 					dprintf(_T("CFG.general.ansi_stdout=%d\n"),CFG.general.ansi_stdout);
 				}else if(options[i].c_str()[1]!='\0'){
+					//'C'
 					//アーカイバに送る文字コード(現在7-zip32.dllのみ対象)
 					if(isdigit(options[i].c_str()[1])){
 						CFG.general.arc_codepage=_ttoi(options[i].substr(1).c_str());
@@ -917,10 +999,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 				switch(options[i].c_str()[1]){
 					case '0':
 					case '-':
+						//'q0'
 						CFG.general.quit=false;
 						break;
 
 					default:
+						//'q'
 						CFG.general.quit=true;
 				}
 				dprintf(_T("CFG.general.quit=%d\n"),CFG.general.quit);
@@ -928,6 +1012,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}//case 'q'
 
 			case '@':{
+				//'@'
 				//リストファイル
 				File list_file;
 
@@ -944,10 +1029,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 			}
 
 			case 'w':{
+				//'w'
 				//wait指定
 				if(options[i].find(_T("wait:"))==0&&
-				   options[i][5]!='\0'){
+				   options[i][lstrlen(_T("wait:"))]!='\0'){
 					ARCCFG->m_wait=_ttoi(options[i].substr(5).c_str());
+					dprintf(_T("wait:%d\n"),ARCCFG->m_wait);
 				}
 			}
 

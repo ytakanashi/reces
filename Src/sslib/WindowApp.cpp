@@ -6,12 +6,6 @@
 
 namespace sslib{
 
-WindowApp* WindowApp::this_ptr=NULL;
-
-WindowApp* app(){
-	return WindowApp::this_ptr;
-}
-
 bool WindowApp::init(){
 	return true;
 }
@@ -26,7 +20,6 @@ using namespace sslib;
 
 //GUIなアプリのエントリポイント
 int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPSTR cmd_line,int cmd_show){
-	createInstance();
 	WindowApp* app_ptr=app();
 	app_ptr->m_main_wnd=new Window(instance_handle);
 	CommandArgument cmd_arg(true);
@@ -44,7 +37,6 @@ int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPST
 	int exit_code=app_ptr->getMainWnd()->getExitCode();
 
 	SAFE_DELETE(app_ptr->m_main_wnd);
-	SAFE_DELETE(app_ptr);
 
 	return exit_code;
 }

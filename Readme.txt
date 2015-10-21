@@ -1,6 +1,6 @@
 ﻿_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 【 ソフト名 】　reces
-【バージョン】　0.00r29
+【バージョン】　0.00r30
 【 製作者名 】　x@rgs
 【 動作環境 】　Windows XP以降
 【 製作言語 】　C++
@@ -35,6 +35,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
  [書庫処理]
  ・ファイル名の文字化けが起きにくい。
+ ・zipファイルのコードページを指定して解凍することが出来る。
  ・プログレスバーを自前で表示し、無駄なウインドウを表示させない。
  ・ディレクトリのタイムスタンプ復元が可能。 *2
  ・ファイルの分割/結合が出来る。
@@ -76,7 +77,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 ●インストール
- 1.「reces000r29.zip」を適当なディレクトリに解凍してください。
+ 1.「reces000r30.zip」を適当なディレクトリに解凍してください。
  2.以下の各書庫操作ライブラリをパスの通ったディレクトリへコピーしてください。
    *.spi、*.wcxについては、別途ディレクトリを用意することをお勧めします。
 
@@ -118,20 +119,23 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  ・rar書庫を取り扱うにあたり、必ず「unrar.dll」「unrar64.dll」を最新版にバージョンアップしてください。
    RARLAB( http://www.rarlab.com/ )の「RAR」->「Extras」->「UNRAR.dll」からダウンロードすることが出来ます。
 
- ・reces x64版ではUNLHA32.DLLやXacRett.dllが使用できないため、
-   Unicodeにも対応した、Total7zip.wcx64( http://www.totalcmd.net/plugring/Total7zip.html )の導入をお勧めします。
-   「Total7zip.wcx64」と「64」ディレクトリをパスの通ったディレクトリにコピーしてください。
+ ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://www16.atpages.jp/rayna/index.html )に対応しています。
+   reces x64版ではUNLHA32.DLLやXacRett.dllが使用できないため、導入をお勧めします。
+   1.「7-Zip x64版」( http://www.7-zip.org/ )をインストール。
+   2.「7-zip32.dll/7-zip64.dll/7z.dll文字化け対策版」( http://www16.atpages.jp/rayna/index.html )をダウンロード。
+   3.「x64\7z.dll」を7-Zipインストールディレクトリにコピー。
+   4.「7-zip32-full\7-zip64.dll」をパスの通ったディレクトリにコピー。
    以下の形式に対応しています。
-      7z,XZ,BZIP2,GZIP,TAR,ZIP,ARJ,CAB,CHM,CPIO,CramFS,DEB,
-      DMG,FAT,HFS,ISO,LZH,LZMA,MBR,MSI,NSIS,NTFS,RAR,RPM,
-      SquashFS,UDF,VHD,WIM,XAR,Z
+      7z, XZ, BZIP2, GZIP, TAR, ZIP
+      AR, ARJ, CAB, CHM, CPIO, CramFS, DMG, EXT, FAT, GPT, HFS, IHEX, ISO, LZH, LZMA, MBR, MSI, NSIS, NTFS,
+      QCOW2, RAR, RPM, SquashFS, UDF, UEFI, VDI, VHD, VMDK, WIM, XAR, Z
 
  ・ライブラリの優先順位は、
       UNLHA32.dll / UNLHA32.dll+UNBYPASS.DLL
       unrar32.dll / unrar64j.dll
       tar32.dll   / tar64.dll
-      UnIso32.dll
       7-zip32.dll / 7-zip64.dll
+      UnIso32.dll
       XacRett.dll
       Susie Plug-in(*.spi / *.sph, *.spi + ZBYPASSA.SPH)
       Total Commander Plugin(*.wcx / *.wcx64)
@@ -767,6 +771,10 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
           ・カレントディレクトリ基準で'/od','/of'の相対パスを処理します。
           ・デフォルトでは処理元ファイルがあるディレクトリ基準となります。
 
+        /ooke {mc}
+          ・元ファイルの拡張子を保持して圧縮します。
+          ・例えば、「xxx.txt」をzip圧縮すると「xxx.txt.zip」として出力されます。
+
         /oor {mr/mc}
           ・出力ファイル名の重複を避けるため自動的にリネームします。
           ・例えば、name.zipが既に存在する場合、name_1.zipとして出力します。
@@ -1026,7 +1034,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  例11.lz4書庫を作成する。
      ・「lz4.b2e」を用意する必要があります。
      ・今回はClaybird様( http://claybird.sakura.ne.jp/index.html )の「lz4.b2e」を使用します。
-     reces /mcb2e:lz4 file
+     reces /mcb2e:lz4 /ooke file
 
  例12.LAMEでmp3にエンコードする。
      ・「mp3.b2e」は同梱しています。
@@ -1064,16 +1072,14 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
      reces /me /c /ebx arc.zip
 
  例9.7z.dllを利用して解凍する。
-     ・Unicode文字に対応しているTotal7zip.wcx( http://www.totalcmd.net/plugring/Total7zip.html )を利用します。
-     ・x64版ではUNLHA32.DLLが使用できないため、7z.dll+Total7zip.wcx64の導入をお勧めします。
+     ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://www16.atpages.jp/rayna/index.html )を利用します。
+     ・x64版ではUNLHA32.DLLが直接利用できないため、「UNBYPASS.DLL」もしくは「7z.dll対応版7-zip64.dll」の導入をお勧めします。
      ・下記拡張子の解凍が出来ます。
-            7z,XZ,BZIP2,GZIP,TAR,ZIP,ARJ,CAB,CHM,CPIO,CramFS,DEB,
-            DMG,FAT,HFS,ISO,LZH,LZMA,MBR,MSI,NSIS,NTFS,RAR,RPM,
-            SquashFS,UDF,VHD,WIM,XAR,Z
+            7z, XZ, BZIP2, GZIP, TAR, ZIP
+            AR, ARJ, CAB, CHM, CPIO, CramFS, DMG, EXT, FAT, GPT, HFS, IHEX, ISO, LZH, LZMA, MBR, MSI, NSIS, NTFS,
+            QCOW2, RAR, RPM, SquashFS, UDF, UEFI, VDI, VHD, VMDK, WIM, XAR, Z
             (各種自己解凍形式含む)
-     ・ただし、処理を行うとTotal7zip.xmlが作成されてしまいます。
-       対処方法についてはSrc.7z/Src/Note.txtをご覧ください。
-     reces /meTotal7zip.wcx /c arc.zip
+     reces /me7-zip64 /c arc.lzh
 
  例10.arc書庫(FreeArc)を解凍する。
      ・「multiarc.wcx」( http://wcx.sourceforge.net/ )とFreeArc付属の「freearc.addon」を利用します。
@@ -1093,8 +1099,9 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
      ・「b2e」ディレクトリにUniversal Extractor( http://legroom.net/software/uniextract )の
        「UniExtract.exe」と「bin」をコピーしてください。
        reces /meb2e32 /c /Dbb2e setup.exe
+     ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://www16.atpages.jp/rayna/index.html )でも一部インストーラを解凍することができます。
 
- 例13.文字化けする書庫に対して正しい文字コード(ここではEUC-JP)を設定して解凍する。
+ 例13.文字化けするzipファイルに対して正しい文字コード(ここではEUC-JP)を設定して解凍する。
        reces /me /Ceuc-jp arc.zip
 
 
@@ -1239,7 +1246,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  CPU:Intel(R) Core(TM) i5 CPU M 460 @ 2.53GHz (4 CPUs), ~2.5GHz
  memory:4096MB RAM
  compiler/debugger:Microsoft Visual C++ 2015(Microsoft Visual Studio Community 2015)
-          Microsoft Visual C++ 2010 Express
+                   Microsoft Visual C++ 2010 Express
  editor:xyzzy version 0.2.2.235/ResEdit 1.6.6 Unicode build.
 
  [Sub]
@@ -1266,7 +1273,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
    Alexander Roshal氏(unrar.dll,unrar64.dll)
    亀井 哲弥氏(unrar32.dll)
    RuRuRu氏(unrar32.dll x64/ユニコード対応版)
-   Total7zip氏(Total7zip.wcx)
    TORO氏(UNBYPASS.DLL,ZBYPASSA.SPH)
    Nozomu Katô氏(SRELL)
  ...他多数!!!
@@ -1305,6 +1311,15 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 ●開発履歴
+ ○Ver.0.00r30 - 2015/10/21
+ ・一部環境でフリーズする不具合を修正。(Special Thanks!:kiyohiro様)
+ ・圧縮時拡張子を保持する「/ooke」を実装。
+ ・ライブラリの優先順位について、「7-zip32.dll」を「UnIso32.dll」より優先するように。
+ ・7-zip32.dll/7-zip64.dll文字化け対策版 Ver.15.09.00.01 betaに更新。
+ ・7z.dll対応版7-zip32.dll/7-zip64.dllに対応。
+ ・マルチスレッド(/MT)でビルドするように。
+
+
  ○Ver.0.00r29 - 2015/08/18
  ・一部書庫で二重ディレクトリ判定が正しく行われない不具合を修正。
  ・同名の二重ディレクトリを防ぐ「/c3」オプションを追加。

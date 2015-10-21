@@ -47,6 +47,10 @@ public:
 
 	tstring getItemText(int item=0,int sub_item=0)const;
 
+	inline void setItemText(const TCHAR* text,int item=0,int sub_item=0)const{
+		ListView_SetItemText(handle(),item,sub_item,(LPTSTR)text);
+	}
+
 	inline UINT getItemState(int item=0,UINT mask=LVIS_SELECTED)const{
 		return ListView_GetItemState(handle(),item,mask);
 	}

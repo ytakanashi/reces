@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -64,6 +64,70 @@ Arc7zip32::Arc7zip32():
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
 		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
+
+		typedef BOOL(WINAPI*EXISTS7ZDLL_PTR)();
+		EXISTS7ZDLL_PTR p_exists7zdll;
+
+		if(queryFunctionList(ISARC_EXISTS_7ZDLL)&&
+		   (p_exists7zdll=(EXISTS7ZDLL_PTR)getAddress(_T("Exists7zdll")))!=NULL&&
+		   p_exists7zdll()!=0){
+			//7z.dll対応版7-zip32.dll
+			m_supported_ext_list.clear();
+			str::splitString(&m_supported_ext_list,
+							 _T("ext.ext3.ext4.")
+								_T("arpm.")
+								_T("ar.a.deb.lib.")
+								_T("arj.")
+								_T("bz2.bzip2.tbz2.")
+								_T("msi.msp.doc.xls.ppt.")
+								_T("cpio.")
+								_T("cramfs.")
+								_T("dmg.")
+								_T("elf.")
+								_T("fat.")//"fat.img."
+								_T("flv.")
+								_T("gpt.mbr.")
+								_T("gz.gzip.tgz.tpz.")
+								_T("hfs.hfsx.")
+								_T("ihex.")
+								_T("lzh.lha.")
+								_T("lzma.")
+								_T("lzma86.")
+								_T("macho.")
+								_T("mbr.")
+								_T("mslz.")
+								_T("mub.")
+								_T("ntfs.")//"ntfs.img."
+								_T("exe.dll.sys.")
+								_T("te.")
+								_T("pmd.")
+								_T("qcow.qcow2.qcow2c.")
+								_T("rpm.")
+//								_T("001.")
+								_T("squashfs.")
+								_T("swf.")
+								_T("scap.")
+								_T("uefif.")
+								_T("vdi.")
+								_T("vhd.")
+								_T("vmdk.")
+								_T("xar.pkg.")
+								_T("xz.txz.")
+								_T("z.taz.")
+								_T("7z.")
+								_T("rar.r00.")
+								_T("cab.")
+								_T("chm.chi.chq.chw.")
+								_T("hxs.hxi.hxr.hxq.hxw.")
+								_T("iso.img.")
+								_T("nsis.")
+								_T("tar.ova.")
+								_T("zip.zipx.jar.xpi.odt.ods.docx.xlsx.epub.")
+								_T("wim.swm.esd.")
+								_T("udf.")//"udf.iso.img."
+							 ,
+							 '.');
+		}
 }
 
 //対応している書庫であるか
@@ -127,7 +191,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 	if(CFG.general.arc_codepage){
 		cmd_line.append(format(_T("-mcp=%d "),
 							   CFG.general.arc_codepage));
-		setUnicodeMode(CFG.general.arc_codepage);
+		setCP(CFG.general.arc_codepage);
 	}
 
 	cmd_line.append(format(_T("%s %s"),
@@ -383,7 +447,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 	bool use_filter=!CFG.general.filefilter.empty()||!CFG.general.file_ex_filter.empty();
 
 	//文字コードの設定
-	if(CFG.general.arc_codepage)setUnicodeMode(CFG.general.arc_codepage);
+	if(CFG.general.arc_codepage)setCP(CFG.general.arc_codepage);
 
 	if(use_filter){
 		//リストファイルを作成
@@ -519,7 +583,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	tstring arc_path(arc_path_orig);
 
 	//文字コードの設定
-	if(CFG.general.arc_codepage)setUnicodeMode(CFG.general.arc_codepage);
+	if(CFG.general.arc_codepage)setCP(CFG.general.arc_codepage);
 
 	tstring list_file_path;
 	File list_file;
@@ -608,7 +672,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::list(const TCHAR* arc_path){
 	replaceDelimiter(arc_path_str);
 
 	//文字コードの設定
-	if(CFG.general.arc_codepage)setUnicodeMode(CFG.general.arc_codepage);
+	if(CFG.general.arc_codepage)setCP(CFG.general.arc_codepage);
 
 	if(CFG.output_file_list.api_mode){
 //		setDefaultPassword(CFG.general.password.c_str());

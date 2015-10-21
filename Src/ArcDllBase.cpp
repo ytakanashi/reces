@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -466,6 +466,34 @@ int ArcDllBase::setDefaultPassword(const TCHAR*password){
 	if((p_setDefaultPassword=(SETDEFAULTPASSWORD_PTR)getAddress(_T("SetDefaultPassword")))!=NULL){
 		result=p_setDefaultPassword(handle(),
 									(password)?(isUnicodeMode()?str::utf162utf8(password):str::utf162sjis(password)).c_str():NULL);
+	}
+	return result;
+}
+
+//書庫ヘッダ読み込み時のコードページを指定する
+bool ArcDllBase::setCP(UINT codepage){
+	typedef BOOL(WINAPI*SETCP_PTR)(UINT);
+	SETCP_PTR p_setCP;
+	bool result=false;
+
+	if(queryFunctionList(ISARC_SET_CP)){
+		if((p_setCP=(SETCP_PTR)getAddress(_T("SetCP")))!=NULL){
+			result=p_setCP(codepage)!=0;
+		}
+	}
+	return result;
+}
+
+//書庫ヘッダ読み込み時のコードページを取得する
+UINT ArcDllBase::getCP(){
+	typedef UINT(WINAPI*GETCP_PTR)();
+	GETCP_PTR p_getCP;
+	UINT result=0;
+
+	if(queryFunctionList(ISARC_GET_CP)){
+		if((p_getCP=(GETCP_PTR)getAddress(_T("GetCP")))!=NULL){
+			result=p_getCP();
+		}
 	}
 	return result;
 }

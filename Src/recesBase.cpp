@@ -2,7 +2,7 @@
 //recesベース
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r29 by x@rgs
+//              reces Ver.0.00r30 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -248,11 +248,11 @@ void RecesBase::loadArcLib(){
 	m_arcdll_list.push_back(new ArcUnrar32());
 	m_arcdll_list.push_back(new ArcTar32());
 
+	m_arcdll_list.push_back(new Arc7zip32());
+
 #ifndef _WIN64
 	m_arcdll_list.push_back(new ArcUniso32());
 #endif
-
-	m_arcdll_list.push_back(new Arc7zip32());
 
 #ifndef _WIN64
 	m_arcdll_list.push_back(new ArcXacrett());

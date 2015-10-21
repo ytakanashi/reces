@@ -8,12 +8,10 @@ extern int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_hand
 
 namespace sslib{
 class WindowApp{
-	friend WindowApp* app();
 	friend int WINAPI ::WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPSTR cmd_line,int cmd_show);
 
 protected:
 	WindowApp():m_main_wnd(NULL){
-		this_ptr=this;
 	}
 
 	virtual ~WindowApp(){
@@ -21,7 +19,6 @@ protected:
 
 private:
 	Window* m_main_wnd;
-	static WindowApp* this_ptr;
 
 protected:
 	virtual bool init();
@@ -36,5 +33,7 @@ public:
 
 //namespace sslib
 }
+
+extern sslib::WindowApp* app();
 
 #endif //_WINDOWAPP_H_E3B52ED2_7A1B_46d7_83F6_0148C1B16FE2

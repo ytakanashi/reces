@@ -67,11 +67,13 @@ INT_PTR Dialog::onDestroy(){
 	return true;
 }
 
-INT_PTR Dialog::onOk(){
+INT_PTR Dialog::onOk(WPARAM wparam,LPARAM lparam){
+	endDialog(IDOK);
 	return true;
 }
 
-INT_PTR Dialog::onCancel(){
+INT_PTR Dialog::onCancel(WPARAM wparam,LPARAM lparam){
+	endDialog(IDCANCEL);
 	return true;
 }
 
@@ -144,16 +146,10 @@ INT_PTR Dialog::handleMessage(HWND dlg_handle,UINT message,WPARAM wparam,LPARAM 
 		case WM_COMMAND:{
 			switch(LOWORD(wparam)){
 				case IDOK:{
-					if(onOk()){
-						endDialog(IDOK);
-					}
-					return true;
+					return onOk(wparam,lparam);
 				}
 				case IDCANCEL:{
-					if(onCancel()){
-						endDialog(IDCANCEL);
-					}
-					return true;
+					return onCancel(wparam,lparam);
 				}
 			}
 			return onCommand(wparam,lparam);
