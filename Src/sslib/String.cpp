@@ -78,6 +78,14 @@ bool isEqualCharacterIgnoreCase(const int char1,const int char2){
 	return (::CharLower(reinterpret_cast<LPTSTR>(MAKELONG(char1,0)))==CharLower(reinterpret_cast<LPTSTR>(MAKELONG(char2,0))));
 }
 
+//文字列末尾の改行文字を削除
+bool chomp(tstring& str){
+	tstring::size_type begin=str.find_first_not_of(_T("\r\n"));
+	tstring::size_type end=str.find_last_not_of(_T("\r\n"));
+	if(begin>=++end)return false;
+	str=str.substr(begin,end-begin);
+	return true;
+}
 
 //文字列中の小文字を大文字に変換
 tstring toUpper(const tstring& str){
@@ -208,110 +216,92 @@ void splitString(std::list<tstring>* string_list,const TCHAR* sz,TCHAR delimiter
 	splitString(string_list,sz,dlmtr);
 }
 
-//SJISをUTF16に変換
-std::wstring sjis2utf16(const std::string& sjis){
-	int utf16_length=::MultiByteToWideChar(CP_ACP,0,sjis.c_str(),-1,NULL,0);
+//指定したコードページからUTF16に変換
+std::wstring toUtf16(UINT codepage,const std::string& ansi){
+	int utf16_length=::MultiByteToWideChar(codepage,0,ansi.c_str(),-1,NULL,0);
 
 	if(utf16_length>0){
 		std::vector<wchar_t> utf16_v(utf16_length);
-		if(::MultiByteToWideChar(CP_ACP,0,sjis.c_str(),-1,&utf16_v[0],utf16_length)){
+		if(::MultiByteToWideChar(codepage,0,ansi.c_str(),-1,&utf16_v[0],utf16_length)){
 			return &utf16_v[0];
 		}
 	}
-	return L"";
+	return std::wstring();
 }
 
-bool sjis2utf16(std::wstring* utf16,const std::string& sjis){
-	int utf16_length=::MultiByteToWideChar(CP_ACP,0,sjis.c_str(),-1,NULL,0);
+bool toUtf16(UINT codepage,std::wstring* utf16,const std::string& ansi){
+	int utf16_length=::MultiByteToWideChar(codepage,0,ansi.c_str(),-1,NULL,0);
 
 	if(utf16&&utf16_length>0){
 		std::vector<wchar_t> utf16_v(utf16_length);
-		if(::MultiByteToWideChar(CP_ACP,0,sjis.c_str(),-1,&utf16_v[0],utf16_length)){
+		if(::MultiByteToWideChar(codepage,0,ansi.c_str(),-1,&utf16_v[0],utf16_length)){
 			utf16->assign(&utf16_v[0]);
 			return true;
 		}
 	}
 	return false;
+}
+
+//UTF16から指定したコードページに変換
+std::string fromUtf16(UINT codepage,const std::wstring& utf16){
+	int ansi_length=::WideCharToMultiByte(codepage,0,utf16.c_str(),-1,NULL,0,NULL,NULL);
+
+	if(ansi_length>0){
+		std::vector<char> ansi_v(ansi_length);
+		if(::WideCharToMultiByte(codepage,0,utf16.c_str(),-1,&ansi_v[0],ansi_length,NULL,NULL)){
+			return &ansi_v[0];
+		}
+	}
+	return std::string();
+}
+
+bool fromUtf16(UINT codepage,std::string* ansi,const std::wstring& utf16){
+	int ansi_length=::WideCharToMultiByte(codepage,0,utf16.c_str(),-1,NULL,0,NULL,NULL);
+
+	if(ansi&&ansi_length>0){
+		std::vector<char> ansi_v(ansi_length);
+		if(::WideCharToMultiByte(codepage,0,utf16.c_str(),-1,&ansi_v[0],ansi_length,NULL,NULL)){
+			ansi->assign(&ansi_v[0]);
+			return true;
+		}
+	}
+	return false;
+}
+
+//SJISをUTF16に変換
+std::wstring sjis2utf16(const std::string& sjis){
+	return toUtf16(CP_ACP,sjis);
+}
+
+bool sjis2utf16(std::wstring* utf16,const std::string& sjis){
+	return toUtf16(CP_ACP,utf16,sjis);
 }
 
 //UTF16をSJISに変換
 std::string utf162sjis(const std::wstring& utf16){
-	int sjis_length=::WideCharToMultiByte(CP_ACP,0,utf16.c_str(),-1,NULL,0,NULL,NULL);
-
-	if(sjis_length>0){
-		std::vector<char> sjis_v(sjis_length);
-		if(::WideCharToMultiByte(CP_ACP,0,utf16.c_str(),-1,&sjis_v[0],sjis_length,NULL,NULL)){
-			return &sjis_v[0];
-		}
-	}
-	return "";
+	return fromUtf16(CP_ACP,utf16);
 }
 
 bool utf162sjis(std::string* sjis,const std::wstring& utf16){
-	int sjis_length=::WideCharToMultiByte(CP_ACP,0,utf16.c_str(),-1,NULL,0,NULL,NULL);
-
-	if(sjis&&sjis_length>0){
-		std::vector<char> sjis_v(sjis_length);
-		if(::WideCharToMultiByte(CP_ACP,0,utf16.c_str(),-1,&sjis_v[0],sjis_length,NULL,NULL)){
-			sjis->assign(&sjis_v[0]);
-			return true;
-		}
-	}
-	return false;
+	return fromUtf16(CP_ACP,sjis,utf16);
 }
 
 //UTF16をUTF8に変換
 std::string utf162utf8(const std::wstring& utf16){
-	int utf8_length=::WideCharToMultiByte(CP_UTF8,0,utf16.c_str(),-1,NULL,0,NULL,NULL);
-
-	if(utf8_length>0){
-		std::vector<char> utf8_v(utf8_length);
-		if(::WideCharToMultiByte(CP_UTF8,0,utf16.c_str(),-1,&utf8_v[0],utf8_length,NULL,NULL)){
-			return &utf8_v[0];
-		}
-	}
-	return "";
+	return fromUtf16(CP_UTF8,utf16);
 }
 
 bool utf162utf8(std::string* utf8,const std::wstring& utf16){
-	int utf8_length=::WideCharToMultiByte(CP_UTF8,0,utf16.c_str(),-1,NULL,0,NULL,NULL);
-
-	if(utf8&&utf8_length>0){
-		std::vector<char> utf8_v(utf8_length);
-		if(::WideCharToMultiByte(CP_UTF8,0,utf16.c_str(),-1,&utf8_v[0],utf8_length,NULL,NULL)){
-			utf8->assign(&utf8_v[0]);
-			return true;
-		}
-	}
-	return false;
+	return fromUtf16(CP_UTF8,utf8,utf16);
 }
 
 //UTF8をUTF16に変換
 std::wstring utf82utf16(const std::string& utf8){
-	int utf16_length=::MultiByteToWideChar(CP_UTF8,0,utf8.c_str(),-1,NULL,0);
-
-	if(utf16_length>0){
-		std::vector<wchar_t> utf16_v(utf16_length);
-
-		if(::MultiByteToWideChar(CP_UTF8,0,utf8.c_str(),-1,&utf16_v[0],utf16_length)){
-			return &utf16_v[0];
-		}
-	}
-	return L"";
+	return toUtf16(CP_UTF8,utf8);
 }
 
 bool utf82utf16(std::wstring* utf16,const std::string& utf8){
-	int utf16_length=::MultiByteToWideChar(CP_UTF8,0,utf8.c_str(),-1,NULL,0);
-
-	if(utf16&&utf16_length>0){
-		std::vector<wchar_t> utf16_v(utf16_length);
-
-		if(::MultiByteToWideChar(CP_UTF8,0,utf8.c_str(),-1,&utf16_v[0],utf16_length)){
-			utf16->assign(&utf16_v[0]);
-			return true;
-		}
-	}
-	return false;
+	return toUtf16(CP_UTF8,utf16,utf8);
 }
 
 //UTF8をSJISに変換
@@ -320,7 +310,7 @@ std::string utf82sjis(const std::string& utf8){
 	if(!utf16.empty()){
 		return utf162sjis(utf16);
 	}
-	return "";
+	return std::string();
 }
 
 bool utf82sjis(std::string* sjis,const std::string& utf8){

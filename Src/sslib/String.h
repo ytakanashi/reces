@@ -27,6 +27,9 @@ inline bool containsWhiteSpace(const tstring& str){
 	return str.find(_T(" "))!=tstring::npos;
 }
 
+//文字列末尾の改行文字を削除
+bool chomp(tstring& str);
+
 //文字列中の小文字を大文字に変換
 tstring toUpper(const tstring& str);
 //文字列中の大文字を小文字に変換
@@ -52,6 +55,12 @@ bool matchWildcards(const TCHAR* str,const TCHAR* pattern_string);
 void splitString(std::list<tstring>* string_list,const TCHAR* sz,const TCHAR* delimiter);
 void splitString(std::list<tstring>* string_list,const TCHAR* sz,TCHAR delimiter);
 
+//指定したコードページからUTF16に変換
+std::wstring toUtf16(UINT codepage,const std::string& ansi);
+bool toUtf16(UINT codepage,std::wstring* utf16,const std::string& ansi);
+//UTF16から指定したコードページに変換
+std::string fromUtf16(UINT codepage,const std::wstring& utf16);
+bool fromUtf16(UINT codepage,std::string* ansi,const std::wstring& utf16);
 //SJISをUTF16に変換
 std::wstring sjis2utf16(const std::string& sjis);
 bool sjis2utf16(std::wstring* utf16,const std::string& sjis);

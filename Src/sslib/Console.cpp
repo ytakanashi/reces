@@ -12,13 +12,15 @@ Console::Console(DWORD handle_type):
 	m_handle(::GetStdHandle(handle_type)),
 	m_is_redirected(false),
 	m_orig_colors(0),
-	write_buffer_size(2048)
+	io_buffer_size(2048)
 #ifdef UNICODE
 	,m_ansi_mode(false)
 #endif
 	{
+#ifdef _DEBUG
 		//VS2015でビルドすると、環境によっては_tsetlocale()でハングアップしてしまう?
-//	_tsetlocale(LC_ALL,_tsetlocale(LC_CTYPE,_T("")));
+	_tsetlocale(LC_ALL,_tsetlocale(LC_CTYPE,_T("")));
+#endif
 	{
 		//リダイレクトされているかどうか
 		DWORD mode=0;
@@ -160,8 +162,24 @@ bool Console::setConsoleMode(DWORD mode){
 	return ::SetConsoleMode(m_handle,mode)!=0;
 }
 
-//文字を出力
-bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
+//文字を読み込む
+bool Console::read(VOID* buffer,DWORD buffer_size,LPDWORD read_chars){
+	bool result=false;
+	DWORD read=0;
+
+	if(isRedirected()){
+		result=::ReadFile(m_handle,buffer,buffer_size,&read,NULL)!=0;
+		if(read_chars)*read_chars=read/sizeof(TCHAR);
+	}else{
+		//TODO:大きなバッファサイズの文字列の読み込み
+		result=::ReadConsole(m_handle,buffer,buffer_size,&read,NULL)!=0;
+		if(read_chars)*read_chars=read;
+	}
+	return result;
+}
+
+//文字を書き込む
+bool Console::write(const VOID* buffer,DWORD buffer_size,LPDWORD written_chars){
 	bool result=false;
 	DWORD written=0;
 
@@ -187,7 +205,7 @@ bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
 			const TCHAR* ptr=static_cast<const TCHAR*>(buffer);
 			const TCHAR* end=ptr+lstrlen(static_cast<const TCHAR*>(buffer));
 
-			for(DWORD write_size=write_buffer_size;ptr<end;ptr+=written){
+			for(DWORD write_size=io_buffer_size;ptr<end;ptr+=written){
 				if(write_size>static_cast<DWORD>(end-ptr))write_size=end-ptr;
 
 				result=::WriteConsole(m_handle,ptr,write_size,&written,NULL)!=0;
@@ -199,7 +217,7 @@ bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
 			const char* ptr=ansi.c_str();
 			const char* end=ptr+lstrlenA(ansi.c_str());
 
-			for(DWORD write_size=write_buffer_size;ptr<end;ptr+=written){
+			for(DWORD write_size=io_buffer_size;ptr<end;ptr+=written){
 				if(write_size>static_cast<DWORD>(end-ptr))write_size=end-ptr;
 
 				result=::WriteConsoleA(m_handle,ptr,write_size,&written,NULL)!=0;
@@ -211,7 +229,7 @@ bool Console::write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars){
 	return result;
 }
 
-//文字を出力
+//文字を書き込む
 bool Console::write(const TCHAR* fmt,const va_list argp,LPDWORD written_chars){
 	tstring buffer=format(fmt,argp);
 

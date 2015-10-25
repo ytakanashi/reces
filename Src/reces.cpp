@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -526,12 +526,12 @@ bool Reces::requirePassword(){
 
 		std::vector<TCHAR> buffer(1024,'\0');
 
-		_fgetts(&buffer[0],buffer.size(),stdin);
+		input_password.read((TCHAR*)&buffer[0],buffer.size());
 		CFG.general.password.assign(&buffer[0]);
-		if(CFG.general.password.c_str()[0]=='\n'){
-			CFG.general.password.clear();
+		if(CFG.recompress.run_command.command.find_first_of(_T("\r\n"))!=0){
+			str::chomp(CFG.general.password);
 		}else{
-			str::replaceCharacter(CFG.general.password,_T('\n'),_T('\0'));
+			CFG.general.password.clear();
 		}
 
 		//カーソル再非表示
@@ -553,7 +553,7 @@ bool Reces::requirePassword(){
 
 //入力されたコマンドを実行する
 bool Reces::runCommand(){
-	Console* input_command=new Console(STD_INPUT_HANDLE);
+	Console input_command(STD_INPUT_HANDLE);
 	bool result=false;
 
 	tstring current_dir(path::getCurrentDirectory());
@@ -561,17 +561,16 @@ bool Reces::runCommand(){
 	::SetCurrentDirectory(ARCCFG->m_recmp_temp_dir.c_str());
 	if(CFG.recompress.run_command.interactive){
 		STDOUT.outputString(_T("コマンド: \n"));
-		TCHAR* line=NULL;
 		std::vector<TCHAR> buffer(1024,'\0');
+		DWORD read=0;
 
 		do{
 			STDOUT.outputString(_T(">"));
 			buffer.assign(buffer.size(),'\0');
-			line=_fgetts(&buffer[0],buffer.size(),stdin);
+			input_command.read(&buffer[0],buffer.size(),&read);
 			CFG.recompress.run_command.command.assign(&buffer[0]);
-
-			if(CFG.recompress.run_command.command.c_str()[0]!='\n'){
-				str::replaceCharacter(CFG.recompress.run_command.command,_T('\n'),_T('\0'));
+			if(CFG.recompress.run_command.command.find_first_of(_T("\r\n"))!=0){
+				str::chomp(CFG.recompress.run_command.command);
 				if(strvalid(CFG.recompress.run_command.command.c_str())){
 					result=_tsystem(CFG.recompress.run_command.command.c_str())!=-1;
 				}
@@ -580,7 +579,7 @@ bool Reces::runCommand(){
 				break;
 			}
 		}while(!IS_TERMINATED&&
-			   line!=NULL);
+			   read);
 	}else{
 		if(!CFG.recompress.run_command.command.empty()){
 			STDOUT.outputString(_T("'%s'を実行しています...\n"),CFG.recompress.run_command.command.c_str());
@@ -588,8 +587,6 @@ bool Reces::runCommand(){
 		}
 	}
 	::SetCurrentDirectory(current_dir.c_str());
-
-	SAFE_DELETE(input_command);
 
 	return result;
 }

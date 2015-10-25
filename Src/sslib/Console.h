@@ -18,7 +18,7 @@ private:
 	HANDLE m_handle;
 	bool m_is_redirected;
 	int m_orig_colors;
-	const DWORD write_buffer_size;
+	const DWORD io_buffer_size;
 #ifdef UNICODE
 	bool m_ansi_mode;
 #endif
@@ -87,9 +87,12 @@ public:
 	//コンソール入力バッファの入力モード、またはコンソールスクリーンバッファの出力モードを設定
 	bool setConsoleMode(DWORD mode);
 
-	//文字を出力
-	bool write(const VOID *buffer,DWORD buffer_size,LPDWORD written_chars);
-	bool write(const TCHAR* fmt,const va_list argp,LPDWORD written_chars);
+	//文字を読み込む
+	bool read(VOID* buffer,DWORD buffer_size,LPDWORD read_chars=NULL);
+
+	//文字を書き込む
+	bool write(const VOID* buffer,DWORD buffer_size,LPDWORD written_chars=NULL);
+	bool write(const TCHAR* fmt,const va_list argp,LPDWORD written_chars=NULL);
 
 	//文字を出力
 	DWORD outputString(const TCHAR* fmt,...);
