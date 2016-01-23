@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -12,6 +12,7 @@
 #include"Arc7-zip32.h"
 #include"Hook/HookArchiverDialog.h"
 #include"ArcCfg.h"
+#include"third-party/SRELL/srell.hpp"
 
 using namespace sslib;
 
@@ -128,6 +129,65 @@ Arc7zip32::Arc7zip32():
 							 ,
 							 '.');
 		}
+}
+
+namespace{
+	void outputTargetFileList(const fileinfo::FILEINFO& fileinfo,bool regex,File* list_file){
+		tstring new_name(fileinfo.name);
+
+		for(std::list<RENAME::pattern>::const_iterator ite=CFG.rename.pattern_list.begin(),
+			end=CFG.rename.pattern_list.end();
+			ite!=end;++ite){
+			if(!CFG.rename.regex){
+				str::replaceString(new_name,ite->first,ite->second);
+			}else{
+				try{
+					srell::basic_regex<TCHAR> regex;
+					regex.assign(ite->first,srell::regex::ECMAScript|srell::regex_constants::icase);
+					new_name=srell::regex_replace(new_name,regex,ite->second);
+				}catch (const srell::regex_error& e){
+					switch(e.code()){
+#define REGEX_ERROR_MSG(type,what)\
+	case srell::regex_constants::type:\
+		msg::err(_T("正規表現: %s\n"),what);\
+		break;\
+
+						REGEX_ERROR_MSG(error_escape,
+										_T("無効なエスケープシーケンスが存在します。"));
+						REGEX_ERROR_MSG(error_brack,
+										_T("'[' と ']' の対応が正しくありません。"));
+						REGEX_ERROR_MSG(error_paren,
+										_T("'(' と ')' の対応が正しくありません。"));
+						REGEX_ERROR_MSG(error_brace,
+										_T("'{' と '}' の対応が正しくありません。"));
+						REGEX_ERROR_MSG(error_badbrace,
+										_T("{ } で指定されている範囲が無効です。"));
+						REGEX_ERROR_MSG(error_range,
+										_T("[ ] で指定されている範囲が無効です。"));
+						REGEX_ERROR_MSG(error_badrepeat,
+										_T("'*'、'?'、'+'、'{' の前に正しい式が存在しません。"));
+#undef REGEX_ERROR_MSG
+						default:
+							msg::err(_T("(%d) 無効な正規表現が指定されています。\n"),e.code());
+							break;
+					}
+					terminateApp(true);
+				}catch(const std::exception& e){
+					msg::err(_T("%s\n"),e.what());
+					terminateApp(true);
+				}
+			}
+		}
+
+		if(!new_name.empty()&&fileinfo.name!=new_name){
+			if(str::containsWhiteSpace(fileinfo.name.c_str())||
+			   str::containsWhiteSpace(new_name.c_str())){
+				list_file->writeEx(_T("\"%s\"\r\n\"%s\"\r\n"),fileinfo.name.c_str(),new_name.c_str());
+			}else{
+				list_file->writeEx(_T("%s\r\n%s\r\n"),fileinfo.name.c_str(),new_name.c_str());
+			}
+		}
+	}
 }
 
 //対応している書庫であるか
@@ -641,7 +701,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 							path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
-	msg::info(_T("'%s'を処理しています...\n\n"),arc_path_orig);
+	msg::info(_T("'%s'からファイルを削除しています...\n\n"),arc_path_orig);
 
 	//実行
 	int dll_ret=-1;
@@ -731,6 +791,102 @@ Arc7zip32::ARC_RESULT Arc7zip32::list(const TCHAR* arc_path){
 	STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 
 	return ARC_SUCCESS;
+}
+
+Arc7zip32::ARC_RESULT Arc7zip32::rename(const TCHAR* arc_path_orig,tstring* log_msg){
+	tstring arc_path(arc_path_orig);
+
+	//文字コードの設定
+	if(CFG.general.arc_codepage)setCP(CFG.general.arc_codepage);
+
+	tstring list_file_path;
+	File list_file;
+
+	if(CFG.rename.pattern_list.empty()){
+		return ARC_NO_FILTER;
+	}
+
+	//リストファイルを作成
+	list_file_path=tempfile::create(_T("7z"),ARCCFG->m_list_temp_dir.c_str());
+	if(!list_file.open(list_file_path.c_str(),OPEN_ALWAYS,GENERIC_WRITE,0,(isUnicodeMode())?File::UTF8:File::SJIS)){
+		return ARC_CANNOT_OPEN_LISTFILE;
+	}
+
+	//リストファイルにリネーム対象ファイル名とリネーム後のファイル名を出力
+	createFilesList(arc_path.c_str());
+	std::vector<fileinfo::FILEINFO> fileinfo_list=m_arc_info.file_list;
+
+	applyFilters(&fileinfo_list,CFG.general.filefilter,CFG.general.file_ex_filter,false);
+	//「foo\」「foo\foo.exe」が格納された書庫で「foo」->「bar」する場合に
+	//ディレクトリより先にファイルのリネームを行う必要あり
+	INNER_FUNC(rsortName,
+		bool operator()(fileinfo::FILEINFO& info1,fileinfo::FILEINFO& info2){
+			return str::countCharacter(path::removeTailSlash(info1.name).c_str(),'\\')>str::countCharacter(path::removeTailSlash(info2.name).c_str(),'\\');
+		}
+	);
+	std::sort(fileinfo_list.begin(),fileinfo_list.end(),rsortName);
+	for(std::vector<fileinfo::FILEINFO>::const_iterator ite=fileinfo_list.begin(),
+		end=fileinfo_list.end();
+		!IS_TERMINATED&&ite!=end;++ite){
+		outputTargetFileList(*ite,CFG.rename.regex,&list_file);
+	}
+
+	if(list_file.getSize()==0){
+		return ARC_NO_MATCHES_FOUND;
+	}
+
+	list_file.close();
+
+	//区切り文字置換
+	replaceDelimiter(arc_path);
+	replaceDelimiter(list_file_path);
+
+	tstring cmd_line(format(_T("%s %s %s -t%s "),
+							_T("rn"),
+							_T("-y"),
+							//-y     : 全ての質問に yes を仮定
+							_T("-hide"),
+
+							//書庫形式指定
+							//注意:7-zip32.dll 9.38.00.01以降だとgetArchiveType()に.を付加したファイル名を渡すとエラーとなる
+							getCompressionFormat(arc_path.c_str()).c_str()));
+
+	//文字コードの設定
+	if(CFG.general.arc_codepage){
+		cmd_line.append(format(_T("-mcp=%d "),
+							   CFG.general.arc_codepage));
+	}
+
+	cmd_line.append(format(_T("%s %s @%s"),
+							_T("--"),
+
+							//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
+							path::quote(arc_path+_T(".")).c_str(),
+							path::quote(list_file_path).c_str()));
+
+	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
+	msg::info(_T("'%s'のファイルをリネームしています...\n\n"),arc_path_orig);
+
+	//実行
+	int dll_ret=-1;
+	if(!CFG.no_display.no_information&&
+	   !STDOUT.isRedirected()){
+		m_processing_info.clear();
+	}
+
+	if(CFG.no_display.no_log||log_msg==NULL){
+		tstring dummy(1,'\0');
+
+		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+	}else{
+		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
+	}
+
+	msg::info(_T("\n   => return code %d[%#x]\n"),dll_ret,dll_ret);
+
+	unload();
+
+	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
 }
 
 //リストにフィルタを適用

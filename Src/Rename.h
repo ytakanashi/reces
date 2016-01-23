@@ -1,4 +1,4 @@
-﻿//Delete.h
+﻿//Rename.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 //              reces Ver.0.00r31 by x@rgs
@@ -7,18 +7,18 @@
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
 
-#ifndef _DELETE_H_7FA67ED9_665F_46f3_8D09_3146CF2E9A44
-#define _DELETE_H_7FA67ED9_665F_46f3_8D09_3146CF2E9A44
+#ifndef _RENAME_H_8E64FD99_AC88_48a1_B11A_3EA7235A35A8
+#define _RENAME_H_8E64FD99_AC88_48a1_B11A_3EA7235A35A8
 
 #include"recesBase.h"
 
 
 
-class Delete:public RecesBase{
+class Rename:public RecesBase{
 public:
-	Delete(){}
-	~Delete(){}
+	Rename(){}
+	~Rename(){}
 public:
 	RecesBase::ARC_RESULT operator()(const tstring& arc_path,tstring& err_msg);
 };
-#endif //_DELETE_H_7FA67ED9_665F_46f3_8D09_3146CF2E9A44
+#endif //_RENAME_H_8E64FD99_AC88_48a1_B11A_3EA7235A35A8

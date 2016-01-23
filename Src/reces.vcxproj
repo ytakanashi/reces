@@ -51,6 +51,7 @@
     <ClCompile Include="PrivateProfile.cpp" />
     <ClCompile Include="reces.cpp" />
     <ClCompile Include="recesBase.cpp" />
+    <ClCompile Include="Rename.cpp" />
     <ClCompile Include="SendCommands.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Spi.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="PrivateProfile.h" />
     <ClInclude Include="reces.h" />
     <ClInclude Include="recesBase.h" />
+    <ClInclude Include="Rename.h" />
     <ClInclude Include="resources\resource.h" />
     <ClInclude Include="SendCommands.h" />
     <ClInclude Include="Settings.h" />

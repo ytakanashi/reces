@@ -1,13 +1,40 @@
-20141101; Version 1.110:
-    Several fixes based on a bug report:
-      1. Added "this->" to compile() in basic_regex::assign().
-      2. Implemented operator=() functions explicitly instead of using 
-         default ones generated automatically.
-    unicode/ucfdataout.cpp revised and updated to version 1.001.
+20150618; version 1.141:
+    Updated srell_ucfdata.hpp to support Unicode 8.0.0.
 
-20140622; Version 1.101:
+20150517; version 1.140:
+  * Modified the method for regex_match() to determine whether the
+    regular expression is matched against the string.
+    (Issue raised at #2273 in C++ Standard Library Issues List.)
+  * Restricted the accepted range of X in the expression \cX to
+    [A-Za-z] in accordance with the ECMAScript specification.
+  * Fixed the problem that parens in look-around assertions did not
+    capture strings correctly under some circumstances because the bug
+    fix done in version 1.111 was imperfect.
+
+20150503; version 1.130:
+  * Improved case-folding functions.
+  * Updated unicode/ucfdataout.cpp to version 1.100.
+  * Fixed a typo in #if directives for u(16|32)[cs]match.
+
+20150425; version 1.120:
+  * Fixed the bug that characters ranged at U+010000-U+10FFFF in UTF-8
+    (i.e., four octet length characters) were not recognised.
+  * Updated misc/sample01.cpp to version 1.010.
+
+20150402; version 1.111:
+  * Fixed the problem that $2 of /aaa/ =~ /((.*)*)/ is empty instead of
+    "aaa" because of a bug in optimisation.
+
+20141101; version 1.110:
+  * Several fixes based on a bug report:
+      1. Added "this->" to compile() in basic_regex::assign().
+      2. Implemented operator=() functions explicitly instead of using
+         default ones generated automatically.
+  * unicode/ucfdataout.cpp revised and updated to version 1.001.
+
+20140622; version 1.101:
     Updated srell_ucfdata.hpp to support Unicode 7.0.0.
 
-20121118; Version 1.100:
-	The first released version.
+20121118; version 1.100:
+    The first released version.
 

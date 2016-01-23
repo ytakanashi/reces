@@ -1,5 +1,5 @@
-﻿//Test.cpp
-//テスト
+﻿//Rename.cpp
+//リネーム
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 //              reces Ver.0.00r31 by x@rgs
@@ -8,37 +8,14 @@
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
 #include"Stdafx.h"
-#include"Test.h"
+#include"Rename.h"
 
 
 using namespace sslib;
 
 
-Test::ARC_RESULT Test::operator()(const tstring& arc_path,tstring& err_msg){
+Rename::ARC_RESULT Rename::operator()(const tstring& arc_path,tstring& err_msg){
 	if(IS_TERMINATED)return ARC_USER_CANCEL;
-
-	bool split_file=false;
-	tstring join_file_name;
-
-	if(str::locateLastCharacter(arc_path.c_str(),'.')!=-1){
-		switch(splitfile::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
-			case splitfile::join::SUCCESS:{
-				split_file=true;
-				STDOUT.outputString(_T("ファイルを結合しました。\n"));
-				join_file_name=path::addTailSlash(m_split_temp_dir.c_str());
-				join_file_name+=removeExtensionEx(path::getFileName(arc_path));
-				break;
-			}
-			case splitfile::join::NOT_SPLIT:
-			default:
-				//分割された書庫ではない
-				break;
-			case splitfile::join::CANNOT_CREATE:
-			case splitfile::join::MALLOC_ERR:
-				err_msg=_T("ファイルの結合に失敗しました。\n");
-				return ARC_FAILURE;
-		}
-	}
 
 	m_arc_dll=NULL;
 
@@ -49,12 +26,16 @@ Test::ARC_RESULT Test::operator()(const tstring& arc_path,tstring& err_msg){
 	{
 		bool loaded_library=false;
 
+		tstring current_dir(path::getCurrentDirectory());
+
+		::SetCurrentDirectory(m_original_cur_dir.c_str());
+
 		if(!CFG.general.selected_library_name.empty()){
 			//ライブラリが指定されている場合
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 								   m_arcdll_list.end(),
-								   NULL,
-								   NULL,
+								   arc_path.c_str(),
+								   &loaded_library,
 								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
 								   CFG.general.selected_library_name.c_str());
@@ -75,20 +56,14 @@ Test::ARC_RESULT Test::operator()(const tstring& arc_path,tstring& err_msg){
 			}
 		}
 
-		if(!m_arc_dll){
-			if(!CFG.general.selected_library_name.empty()){
-				//ライブラリが指定されている場合
-				m_arc_dll=loadAndCheckPlugin(&m_wcx_list,
-											 arc_path.c_str(),
-											 &loaded_library,
-											 CFG.general.wcx_dir,
-											 CFG.general.selected_library_name.c_str(),
-											 Archiver::WCX);
-			}
-		}
+		::SetCurrentDirectory(current_dir.c_str());
 
 		if(!m_arc_dll){
-			if(!CFG.general.selected_library_name.empty()&&!loaded_library){
+			if(ARCCFG->m_password_input_cancelled){
+				STDOUT.outputString(_T("\n"));
+				err_msg=_T("パスワードの入力がキャンセルされました。\n");
+				return ARC_INPUT_PASSWORD_CANCEL;
+			}else if(!CFG.general.selected_library_name.empty()&&!loaded_library){
 				STDOUT.outputString(_T("\n"));
 				err_msg=format(_T("ライブラリ '%s' の読み込みに失敗しました。\n"),CFG.general.selected_library_name.c_str());
 				return ARC_CANNOT_LOAD_LIBRARY;
@@ -114,14 +89,42 @@ Test::ARC_RESULT Test::operator()(const tstring& arc_path,tstring& err_msg){
 			msg::info(_T("バックグラウンドモードに設定しました。\n"));
 		}
 
-		//リスト出力
-		switch(m_arc_dll->test((!split_file)?arc_path.c_str():join_file_name.c_str())){
+		if(IS_TERMINATED)return ARC_USER_CANCEL;
+
+		//リネーム
+		tstring log;
+		bool result=false;
+
+		switch(static_cast<ArcDll*>(m_arc_dll)->rename(arc_path.c_str(),&log)){
 			case Archiver::ARC_SUCCESS:
-				return ARC_SUCCESS;
+				result=true;
+				break;
+			case Archiver::ARC_CANNOT_OPEN_LISTFILE:
+				msg::err(_T("リストファイルを開くことが出来ませんでした。\n"));
+				break;
+			case Archiver::ARC_NO_MATCHES_FOUND:
+				msg::err(_T("フィルタに一致するファイルはありません。\n"));
+				break;
+			case Archiver::ARC_NOT_IMPLEMENTED:
+				msg::err(_T("実装されていない機能です。\n"));
+				break;
+			case Archiver::ARC_NO_FILTER:
+				msg::err(_T("フィルタが指定されていません。\n"));
+				break;
 			case Archiver::ARC_FAILURE:
 			default:
-				return ARC_FAILURE;
+				err_msg=_T("エラーが発生しました。\n");
+				break;
 		}
+
+		if(!result){
+			msg::lasterr();
+		}
+
+		if(!CFG.no_display.no_log){
+			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+		}
+		return (result)?ARC_SUCCESS:ARC_FAILURE;
 	}
 	return ARC_FAILURE;
 }

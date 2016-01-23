@@ -24,6 +24,8 @@ int WINAPI WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPST
 	CommandArgument cmd_arg(true);
 	int exit_code=0;
 
+	app_ptr->m_instance_handle=instance_handle;
+
 	if(app_ptr->init()){
 		exit_code=app_ptr->run(cmd_arg,cmd_show);
 		app_ptr->cleanup();

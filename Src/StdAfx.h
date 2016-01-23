@@ -29,10 +29,7 @@
 	#define _HAS_ITERATOR_DEBUGGING 0
 #endif
 
-#include<stdio.h>
-#include<stdlib.h>
 #include<stdarg.h>
-#include<assert.h>
 
 #include<process.h>
 
@@ -78,9 +75,9 @@ typedef std::basic_string<TCHAR>tstring;
 	}name;\
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r31a_Debug")
+	#define SOFTWARE_VERSION _T("0.00r31_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r31a")
+	#define SOFTWARE_VERSION _T("0.00r31")
 #endif
 
 //#define DISABLE_MISC

@@ -2,7 +2,7 @@
 //Unlha32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -344,7 +344,7 @@ ArcUnlha32::ARC_RESULT ArcUnlha32::del(const TCHAR* arc_path_orig,tstring* log_m
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
-	msg::info(_T("'%s'を処理しています...\n\n"),arc_path_orig);
+	msg::info(_T("'%s'からファイルを削除しています...\n\n"),arc_path_orig);
 
 	//実行
 	int dll_ret=-1;

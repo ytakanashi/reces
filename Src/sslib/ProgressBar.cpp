@@ -115,7 +115,7 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 		DWORD read_chars=0;
 
 		for(;m_begin_pos.Y;m_begin_pos.Y--){
-			::ReadConsoleOutputCharacter(m_stdout.getHandle(),
+			::ReadConsoleOutputCharacter(m_stdout.handle(),
 										 buffer,
 										 ARRAY_SIZEOF(header),
 										 m_begin_pos,

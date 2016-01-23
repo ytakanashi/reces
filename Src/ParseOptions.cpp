@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -18,76 +18,63 @@
 using namespace sslib;
 
 
-bool parseOptions(CommandArgument& cmd_arg){
-	INNER_FUNC(undupList,
-		bool operator()(std::list<tstring>* list){
-			if(!list)return false;
+namespace{
+	bool readFileList(std::list<tstring>* list,File* list_file){
+		if(!list||!list_file)return false;
+		std::vector<tstring> file_list;
 
-			//重複を削除
-			list->sort();
-			list->unique();
-			//末尾の区切り文字を削除
-			for(std::list<tstring>::iterator ite=list->begin(),
-				end=list->end();
-				ite!=end;
-				++ite){
-				*ite=path::removeTailSlash(*ite);
-			}
-			return true;
+		list_file->readList(&file_list,File::RL_SKIP_BOM|File::RL_REMOVE_QUOTES);
+		//取得したパスたちを処理対象リストに追加
+		list->insert(list->end(),file_list.begin(),file_list.end());
+		misc::undupList(list);
+
+		//末尾の区切り文字を削除
+		for(std::list<tstring>::iterator ite=list->begin(),
+			end=list->end();
+			ite!=end;
+			++ite){
+			*ite=path::removeTailSlash(*ite);
 		}
-	);
 
-	INNER_FUNC(readFileList,
-		bool operator()(std::list<tstring>* list,File* list_file){
-			if(!list||!list_file)return false;
-			std::vector<tstring> file_list;
+		return true;
+	}
 
-			list_file->readList(&file_list,File::RL_SKIP_BOM|File::RL_REMOVE_QUOTES);
-			//取得したパスたちを処理対象リストに追加
-			list->insert(list->end(),file_list.begin(),file_list.end());
-			undupList(list);
-			return true;
+	void removeDllExt(tstring* libname){
+		//dllなら拡張子を取り除く
+		if(str::toLower(path::getExtension(*libname))==_T("dll")){
+			*libname=path::removeExtension(*libname);
 		}
-	);
+	}
 
-	INNER_FUNC(removeDllExt,
-		void operator()(tstring* libname){
-			//dllなら拡張子を取り除く
-			if(str::toLower(path::getExtension(*libname))==_T("dll")){
-				*libname=path::removeExtension(*libname);
-			}
-		}
-	);
+	void parseB2eOptions(tstring& option){
+		//圧縮形式
+		CFG.compress.b2e.format=option.substr(lstrlen((option.find(_T("b2e:"))==2)?_T("b2e:"):_T("b2esfx:"))+2);
+		tstring::size_type pos=CFG.compress.b2e.format.rfind(_T(":"));
 
-	INNER_FUNC(parseB2eOptions,
-		void operator()(tstring& option){
+		if(pos!=tstring::npos){
+			//圧縮メソッド
+			CFG.compress.b2e.method=CFG.compress.b2e.format.substr(pos+1);
 			//圧縮形式
-			CFG.compress.b2e.format=option.substr(lstrlen((option.find(_T("b2e:"))==2)?_T("b2e:"):_T("b2esfx:"))+2);
-			tstring::size_type pos=CFG.compress.b2e.format.rfind(_T(":"));
-
-			if(pos!=tstring::npos){
-				//圧縮メソッド
-				CFG.compress.b2e.method=CFG.compress.b2e.format.substr(pos+1);
-				//圧縮形式
-				CFG.compress.b2e.format=CFG.compress.b2e.format.substr(0,pos);
-			}
-
-			if(option.find(_T("b2esfx:"))==2)CFG.compress.b2e.sfx=true;
-
-			if(CFG.compress.b2e.format.c_str()[0]=='@'){
-				//b2e:@指定
-				CFG.compress.compression_type=CFG.compress.b2e.format;
-				CFG.compress.b2e.format.clear();
-			}
-
-			dprintf(_T("b2e format: %s\n"),CFG.compress.b2e.format.c_str());
-			if(!CFG.compress.b2e.method.empty()){
-				dprintf(_T("b2e method: %s\n"),CFG.compress.b2e.method.c_str());
-			}
-			dprintf(_T("b2e sfx: %d\n"),CFG.compress.b2e.sfx);
+			CFG.compress.b2e.format=CFG.compress.b2e.format.substr(0,pos);
 		}
-	);
 
+		if(option.find(_T("b2esfx:"))==2)CFG.compress.b2e.sfx=true;
+
+		if(CFG.compress.b2e.format.c_str()[0]=='@'){
+			//b2e:@指定
+			CFG.compress.compression_type=CFG.compress.b2e.format;
+			CFG.compress.b2e.format.clear();
+		}
+
+		dprintf(_T("b2e format: %s\n"),CFG.compress.b2e.format.c_str());
+		if(!CFG.compress.b2e.method.empty()){
+			dprintf(_T("b2e method: %s\n"),CFG.compress.b2e.method.c_str());
+		}
+		dprintf(_T("b2e sfx: %d\n"),CFG.compress.b2e.sfx);
+	}
+}
+
+bool parseOptions(CommandArgument& cmd_arg){
 	std::vector<tstring>& options=cmd_arg.options();
 	Config cfg_file;
 	bool save_cfg=false;
@@ -260,6 +247,37 @@ bool parseOptions(CommandArgument& cmd_arg){
 							//ライブラリ名を直接指定した場合
 							CFG.general.selected_library_name=options[i].substr(2);
 							dprintf(_T("select library: %s\n"),CFG.general.selected_library_name.c_str());
+						}
+						break;
+					}
+
+					case 'N':
+						CFG.rename.regex=true;
+						dprintf(_T("CFG.rename.regex\n"));
+					case 'n':{
+						//'mn'
+						//リネーム
+						CFG.mode=MODE_RENAME;
+						dprintf(_T("mode : rename\n"));
+
+						if(options[i].c_str()[2]!='\0'){
+							std::list<tstring> pattern_list;
+
+							//';'で分割
+							str::splitString(&pattern_list,options[i].substr(2).c_str(),';');
+							//重複を削除
+							misc::undupList(&pattern_list);
+
+							for(std::list<tstring>::const_iterator ite=pattern_list.begin(),
+								end=pattern_list.end();
+								ite!=end;++ite){
+								std::list<tstring> pattern;
+
+								str::splitString(&pattern,ite->c_str(),':');
+								if(pattern.front().empty())continue;
+								if(pattern.size()<2)pattern.push_back(_T(""));
+								CFG.rename.pattern_list.push_back(RENAME::pattern(pattern.front(),pattern.back()));
+							}
 						}
 						break;
 					}
@@ -562,7 +580,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 					//';'で分割
 					str::splitString(&CFG.general.filefilter.pattern_list,options[i].substr(1).c_str(),';');
 					//重複を削除
-					undupList(&CFG.general.filefilter.pattern_list);
+					misc::undupList(&CFG.general.filefilter.pattern_list);
+					//末尾の区切り文字を削除
+					for(std::list<tstring>::iterator ite=CFG.general.filefilter.pattern_list.begin(),
+						end=CFG.general.filefilter.pattern_list.end();
+						ite!=end;
+						++ite){
+						*ite=path::removeTailSlash(*ite);
+					}
 				}else{
 					const TCHAR*p=options[i].c_str()+2,*pp;
 
@@ -579,7 +604,15 @@ bool parseOptions(CommandArgument& cmd_arg){
 								//';'で分割
 								str::splitString(&CFG.general.filefilter.pattern_list,str.c_str(),';');
 								//重複を削除
-								undupList(&CFG.general.filefilter.pattern_list);
+								misc::undupList(&CFG.general.filefilter.pattern_list);
+								//末尾の区切り文字を削除
+								for(std::list<tstring>::iterator ite=CFG.general.filefilter.pattern_list.begin(),
+									end=CFG.general.filefilter.pattern_list.end();
+									ite!=end;
+									++ite){
+									*ite=path::removeTailSlash(*ite);
+								}
+
 								for(std::list<tstring>::iterator ite=CFG.general.filefilter.pattern_list.begin(),
 									end=CFG.general.filefilter.pattern_list.end();
 									ite!=end;
@@ -672,7 +705,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 					//';'で分割
 					str::splitString(&CFG.general.file_ex_filter.pattern_list,options[i].substr(1).c_str(),';');
 					//重複を削除
-					undupList(&CFG.general.file_ex_filter.pattern_list);
+					misc::undupList(&CFG.general.file_ex_filter.pattern_list);
+					//末尾の区切り文字を削除
+					for(std::list<tstring>::iterator ite=CFG.general.file_ex_filter.pattern_list.begin(),
+						end=CFG.general.file_ex_filter.pattern_list.end();
+						ite!=end;
+						++ite){
+						*ite=path::removeTailSlash(*ite);
+					}
 				}else{
 					const TCHAR*p=options[i].c_str()+2,*pp;
 
@@ -689,7 +729,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 								//';'で分割
 								str::splitString(&CFG.general.file_ex_filter.pattern_list,str.c_str(),';');
 								//重複を削除
-								undupList(&CFG.general.file_ex_filter.pattern_list);
+								misc::undupList(&CFG.general.file_ex_filter.pattern_list);
+								//末尾の区切り文字を削除
+								for(std::list<tstring>::iterator ite=CFG.general.file_ex_filter.pattern_list.begin(),
+									end=CFG.general.file_ex_filter.pattern_list.end();
+									ite!=end;
+									++ite){
+									*ite=path::removeTailSlash(*ite);
+								}
 								break;
 							}
 

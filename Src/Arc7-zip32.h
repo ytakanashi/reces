@@ -1,7 +1,7 @@
 ﻿//Arc7zip32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -55,5 +55,6 @@ public:
 	ARC_RESULT del(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
 	ARC_RESULT list(const TCHAR* arc_path);
 	ARC_RESULT test(const TCHAR* arc_path);
+	ARC_RESULT rename(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
 };
 #endif //_ARC7ZIP32_H_522A5F4B_4030_4152_9D18_041AC82BE8B0

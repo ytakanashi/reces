@@ -141,6 +141,9 @@ private:
 	T& m_ref;
 };
 
+//std::listの重複削除(順序保持)
+bool undupList(std::list<tstring>* list);
+
 
 
 //namespace misc

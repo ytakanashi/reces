@@ -18,6 +18,7 @@
 #include"Test.h"
 #include"Settings.h"
 #include"Delete.h"
+#include"Rename.h"
 #include"Hook/HookArchiverDialog.h"
 #include"resources/resource.h"
 #include<mlang.h>
@@ -121,8 +122,9 @@ namespace{
 			::SetFocus(getDlgItem(IDC_EDIT_PASSWORD));
 			return true;
 		}
-		INT_PTR onOk(){
+		INT_PTR onOk(WPARAM wparam,LPARAM lparam){
 			std::vector<TCHAR> password(1024);
+
 			::GetWindowText(getDlgItem(IDC_EDIT_PASSWORD),&password[0],password.size());
 			m_password.assign(&password[0]);
 			return true;
@@ -266,7 +268,7 @@ void Reces::usage(){
 	STDOUT.outputString(_T("usage:\n"));
 	STDOUT.outputString(_T("\treces [/<options>...] [/@<listfiles>...] [<files>...]\n\n"));
 	STDOUT.outputString(_T("options:\n")
-						  _T("\t/m<r|R|c|C|e|E|l|L|t|d|s|S|v>    #動作モード\n")
+						  _T("\t/m<r|R|c|C|e|E|l|L|t|d|n|N|s|S|v>#動作モード\n")
 						  _T("\t/mr[type|@[option]][:library]\t #再圧縮\n")
 						  _T("\t/mR[type|@[option]][:library]\t #再圧縮 (ディレクトリ階層を無視)\n")
 						  _T("\t\t\t  ('@'を指定すると入力書庫と同じ形式で、\n")
@@ -283,6 +285,8 @@ void Reces::usage(){
 						  _T("\t/mL[library]\t #書庫内容一覧 (by ライブラリ)\n")
 						  _T("\t/mt[library]\t #テスト\n")
 						  _T("\t/md[library]\t #削除\n")
+						  _T("\t/mn<target>[:replacement]...\t\t #リネーム\n")
+						  _T("\t/mN<regex_pattern>[:replacement]...\t #リネーム (正規表現, $n使用可)\n")
 						  _T("\t/ms[lib][:prefix]#ライブラリ直接操作\n")
 						  _T("\t\t\t  prefixの指定で非対応のライブラリも使用可能\n")
 						  _T("\t/mS<lib>[:prefix]#設定ダイアログ表示\n")
@@ -341,7 +345,7 @@ void Reces::usage(){
 						  _T("\t/NF\t\t #書庫を強制的に新規作成 {mr/mc}\n")
 						  _T("\t\t\t (出力先が存在すれば予め削除)\n")
 						  _T("\n")
-						  _T("\t/I<pattern...>\t #処理対象フィルタ(文字列) {mr/mc/me/ml/md}\n")
+						  _T("\t/I<pattern...>\t #処理対象フィルタ(文字列) {mr/mc/me/ml/md/mn}\n")
 						  _T("\t\t\t  (ワイルドカード指定可能)\n")
 						  _T("\t\t\t ('/i'でサブディレクトリ検索をしない)\n")
 						  _T("\t\t\t  (';'で区切って複数指定可能)\n")
@@ -364,7 +368,7 @@ void Reces::usage(){
 						  _T("\t/i:@<filename>\t #処理対象フィルタリストファイル\n")
 						  _T("\t\t\t  (サブディレクトリ検索をしない)\n")
 						  _T("\n")
-						  _T("\t/X<pattern...>\t #処理対象除外フィルタ(文字列) {mr/mc/me/ml/md}\n")
+						  _T("\t/X<pattern...>\t #処理対象除外フィルタ(文字列) {mr/mc/me/ml/md/mn}\n")
 						  _T("\t\t\t  (ワイルドカード指定可能)\n")
 						  _T("\t\t\t  ('/x'でサブディレクトリ検索をしない)\n")
 						  _T("\t\t\t  (';'で区切って複数指定可能)\n")
@@ -417,7 +421,7 @@ void Reces::usage(){
 						  _T("\n")
 						  _T("\t/P<param>\t #ユーザ独自のパラメータ {mr/mc/me/ms}\n")
 						  _T("\n")
-						  _T("\t/t\t\t #更新日時を元ファイルと同じにする {mr/mc/md}\n")
+						  _T("\t/t\t\t #更新日時を元ファイルと同じにする {mr/mc/md/mn}\n")
 						  _T("\n")
 						  _T("\t/DIRTS\t\t #ディレクトリのタイムスタンプを復元する {mr/me}\n")
 						  _T("\n")
@@ -428,7 +432,7 @@ void Reces::usage(){
 						  _T("\n")
 						  _T("\t/b\t\t #バックグラウンドで処理\n")
 						  _T("\n")
-						  _T("\t/C<CodePage>\t #書庫ファイルの文字コードを指定 {mr/me/ml/mt/md}\n")
+						  _T("\t/C<CodePage>\t #書庫ファイルの文字コードを指定 {mr/me/ml/mt/md/mn}\n")
 						  _T("\t\t\t  (文字セット指定も可能)\n")
 						  _T("\t\t\t  (zip書庫のみ対応)\n")
 						  _T("\n")
@@ -480,7 +484,7 @@ void Reces::ctrlCEvent(){
 
 	if(!STDOUT.isRedirected()&&
 	   !CFG.no_display.no_information){
-		misc::thread::post(m_progressbar_thread.id,WM_DESTROY_PROGRESSBAR);
+		SAFE_DELETE(m_progressbar);
 	}
 
 	//コールバック関数の登録を解除
@@ -528,7 +532,7 @@ bool Reces::requirePassword(){
 
 		input_password.read((TCHAR*)&buffer[0],buffer.size());
 		CFG.general.password.assign(&buffer[0]);
-		if(CFG.recompress.run_command.command.find_first_of(_T("\r\n"))!=0){
+		if(CFG.general.password.find_first_of(_T("\r\n"))!=0){
 			str::chomp(CFG.general.password);
 		}else{
 			CFG.general.password.clear();
@@ -1090,7 +1094,8 @@ template<typename T>bool Reces::extract(std::list<tstring>& file_list){
 		++ite){
 		ArchiverThread thread(this,*ite);
 
-		if(CFG.mode==MODE_DELETE&&
+		if((CFG.mode==MODE_DELETE||
+			CFG.mode==MODE_RENAME)&&
 		   CFG.compress.copy_timestamp){
 			//元書庫のタイムスタンプを保存
 			File orig_arc(ite->c_str(),
@@ -1118,11 +1123,12 @@ template<typename T>bool Reces::extract(std::list<tstring>& file_list){
 						}
 					}
 				}
-				if(CFG.mode==MODE_DELETE&&
+				if((CFG.mode==MODE_DELETE||
+					CFG.mode==MODE_RENAME)&&
 				   CFG.compress.copy_timestamp){
 					//タイムスタンプを設定
 					copyArcTimestamp(ite->c_str(),&orig_arc_timestamp);
-					}
+				}
 				break;
 
 			default:
@@ -1323,7 +1329,8 @@ bool Reces::run(CommandArgument& cmd_arg){
 		case MODE_EXTRACT:
 		case MODE_LIST:
 		case MODE_TEST:
-		case MODE_DELETE:{
+		case MODE_DELETE:
+		case MODE_RENAME:{
 			//パスワードダイアログのフックを開始
 			if(m_pInstallHook){
 				if(!m_pInstallHook(::GetCurrentProcessId(),m_dialog_hook_thread.id,WM_HOOKDIALOG)){
@@ -1357,6 +1364,10 @@ bool Reces::run(CommandArgument& cmd_arg){
 					break;
 				case MODE_DELETE:
 					extract<Delete>(file_list);
+					break;
+				case MODE_RENAME:
+					extract<Rename>(file_list);
+					break;
 				default:
 					break;
 			}

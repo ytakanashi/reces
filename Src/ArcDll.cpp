@@ -2,7 +2,7 @@
 //統合アーカイバDll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -232,6 +232,10 @@ ArcDll::ARC_RESULT ArcDll::test(const TCHAR* arc_path){
 									 (result)?_T("正常な書庫です。"):_T("異常な書庫です。"));
 	}
 	return (result)?ARC_SUCCESS:ARC_FAILURE;
+}
+
+ArcDll::ARC_RESULT ArcDll::rename(const TCHAR* arc_path_orig,tstring* log_msg){
+	return ARC_NOT_IMPLEMENTED;
 }
 
 int ArcDll::sendCommands(const TCHAR* commands,tstring* log_msg){

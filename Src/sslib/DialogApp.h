@@ -11,19 +11,23 @@ class DialogApp{
 	friend int WINAPI ::WinMain(HINSTANCE instance_handle,HINSTANCE prev_instance_handle,LPSTR cmd_line,int cmd_show);
 
 protected:
-	DialogApp(){
+	DialogApp():
+		m_instance_handle(NULL){
 	}
 
 	virtual ~DialogApp(){
 	}
 
-private:
-	static DialogApp* this_ptr;
+protected:
+	HINSTANCE m_instance_handle;
 
 protected:
 	virtual bool init();
 	virtual bool run(CommandArgument& cmd_arg,int cmd_show)=0;
 	virtual void cleanup();
+
+public:
+	HINSTANCE inst()const{return m_instance_handle;}
 };
 
 //namespace sslib

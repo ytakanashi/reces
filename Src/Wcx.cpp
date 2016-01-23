@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -443,8 +443,6 @@ bool Wcx::getErrorMessage(tstring* msg,int code){
 
 //ヘッダーから情報を取得
 fileinfo::FILEINFO Wcx::data(){
-	assert(m_header_data!=NULL);
-
 	FILETIME ft={};
 	bool err_ts=true;
 

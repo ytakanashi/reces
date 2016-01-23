@@ -117,7 +117,7 @@ public:
 	bool clearCurrentLine();
 
 	//ハンドルを取得
-	inline HANDLE getHandle()const{return m_handle;}
+	inline HANDLE handle()const{return m_handle;}
 
 	//標準出力がリダイレクトされている
 	inline bool isRedirected()const{return m_is_redirected;}

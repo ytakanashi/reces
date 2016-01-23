@@ -6,7 +6,7 @@
 namespace sslib{
 class Menu{
 public:
-	Menu(HINSTANCE inst=NULL):
+	Menu(HINSTANCE inst=GetModuleHandle(NULL)):
 		m_inst(inst),
 		m_menu(NULL),
 		m_sub_menu(NULL){}
@@ -20,10 +20,12 @@ private:
 
 public:
 	bool load(UINT id,int sub_pos=0);
+	bool load(HWND wnd_handle,int sub_pos=0);
 	bool destory();
 	int popup(HWND handle,int x,int y,UINT flags=TPM_LEFTALIGN|TPM_LEFTBUTTON|TPM_VERTICAL|TPM_RETURNCMD);
 	int popup(HWND handle,HWND control_handle,UINT flags=TPM_LEFTALIGN|TPM_LEFTBUTTON|TPM_VERTICAL|TPM_RETURNCMD);
 	tstring string(UINT id,bool by_pos=false);
+	bool check(UINT id,bool checked);
 
 	HMENU handle()const{return m_menu;}
 	HMENU sub_handle()const{return m_sub_menu;}

@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -152,6 +152,7 @@ public:
 
 	virtual ARC_RESULT del(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
 	virtual ARC_RESULT test(const TCHAR* arc_path);
+	virtual ARC_RESULT rename(const TCHAR* arc_path_orig,tstring* log_msg=NULL);
 	virtual int sendCommands(const TCHAR* commands,tstring* log_msg=NULL);
 
 protected:

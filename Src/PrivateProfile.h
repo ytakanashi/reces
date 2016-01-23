@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -22,6 +22,7 @@ enum MODE{
 	MODE_VERSION=1<<6,
 	MODE_SETTINGS=1<<7,
 	MODE_DELETE=1<<8,
+	MODE_RENAME=1<<9,
 };
 
 struct NODISPLAY{
@@ -233,6 +234,16 @@ struct OUTPUTFILELIST{
 	OUTPUTFILELIST():api_mode(true){}
 };
 
+struct RENAME{
+	//置換パターン
+	typedef std::pair<tstring,tstring> pattern;
+	std::list<pattern> pattern_list;
+	//正規表現
+	bool regex;
+
+	RENAME():pattern_list(),regex(false){}
+};
+
 struct CONFIG{
 	MODE mode;
 	GENERAL general;
@@ -246,6 +257,8 @@ struct CONFIG{
 	EXTRACT extract;
 	//一覧出力
 	OUTPUTFILELIST output_file_list;
+	//リネーム
+	RENAME rename;
 
 	CONFIG():
 		mode(MODE_RECOMPRESS),
@@ -254,7 +267,8 @@ struct CONFIG{
 		recompress(),
 		compress(),
 		extract(),
-		output_file_list(){}
+		output_file_list(),
+		rename(){}
 };
 
 class Config:public sslib::CfgFile{

@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -138,8 +138,25 @@ bool Config::save(){
 	write(_T("OutputFileList"),_T("APIMode"),CFG_VALUE(output_file_list.api_mode));
 
 
-	tstring attr_str;
-	tstring pattern;
+	//リネーム
+	//正規表現
+	write(_T("Rename"),_T("Regex"),CFG_VALUE(rename.regex));
+	//置換パターン
+	if(!m_cfg.rename.pattern_list.empty()||
+	   keyExists(_T("Rename"),_T("Pattern"))){
+		tstring pattern;
+
+		for(std::list<RENAME::pattern>::const_iterator ite=m_cfg.rename.pattern_list.begin(),
+			end=m_cfg.rename.pattern_list.end();
+			ite!=end;
+			++ite){
+			if(ite!=m_cfg.rename.pattern_list.begin())pattern+=_T(";");
+			pattern+=ite->first;
+			if(!ite->second.empty())pattern+=_T(":")+ite->second;
+		}
+		write(_T("Rename"),_T("Pattern"),pattern.c_str(),!pattern.empty());
+	}
+
 
 	//処理対象フィルタ
 	if(!m_cfg.general.filefilter.empty()||
@@ -147,6 +164,7 @@ bool Config::save(){
 		write(_T("FileFilter"),_T("MinSize"),CFG_VALUE(general.filefilter.min_size));
 		write(_T("FileFilter"),_T("MaxSize"),CFG_VALUE(general.filefilter.max_size));
 
+		tstring attr_str;
 
 		if(m_cfg.general.filefilter.attr!=m_default_cfg.general.filefilter.attr||
 		   keyExists(_T("FileFilter"),_T("Attribute"))){
@@ -161,9 +179,11 @@ bool Config::save(){
 		write(_T("FileFilter"),_T("OldestDate"),strex::longlong2datetime(m_cfg.general.filefilter.oldest_date).c_str(),CFG_EQUAL(general.filefilter.oldest_date));
 		write(_T("FileFilter"),_T("NewestDate"),strex::longlong2datetime(m_cfg.general.filefilter.newest_date).c_str(),CFG_EQUAL(general.filefilter.newest_date));
 
+		tstring pattern;
+
 		if(!m_cfg.general.filefilter.pattern_list.empty()||
 		   keyExists(_T("FileFilter"),_T("Pattern"))){
-			for(std::list<tstring>::iterator ite=m_cfg.general.filefilter.pattern_list.begin(),
+			for(std::list<tstring>::const_iterator ite=m_cfg.general.filefilter.pattern_list.begin(),
 				end=m_cfg.general.filefilter.pattern_list.end();
 				ite!=end;
 				++ite){
@@ -187,7 +207,7 @@ bool Config::save(){
 
 		if(m_cfg.general.file_ex_filter.attr!=m_default_cfg.general.file_ex_filter.attr||
 		   keyExists(_T("FileExFilter"),_T("Attribute"))){
-			attr_str.clear();
+			tstring attr_str;
 
 			if(m_cfg.general.file_ex_filter.attr&FILE_ATTRIBUTE_DIRECTORY)attr_str+='d';
 			if(m_cfg.general.file_ex_filter.attr&FILE_ATTRIBUTE_HIDDEN)attr_str+='h';
@@ -205,9 +225,9 @@ bool Config::save(){
 
 		if(m_cfg.general.file_ex_filter.pattern_list!=m_default_cfg.general.file_ex_filter.pattern_list||
 		   keyExists(_T("FileExFilter"),_T("Pattern"))){
-			pattern.clear();
+			tstring pattern;
 
-			for(std::list<tstring>::iterator ite=m_cfg.general.file_ex_filter.pattern_list.begin(),
+			for(std::list<tstring>::const_iterator ite=m_cfg.general.file_ex_filter.pattern_list.begin(),
 				end=m_cfg.general.file_ex_filter.pattern_list.end();
 				ite!=end;
 				++ite){
@@ -345,9 +365,37 @@ bool Config::load(){
 	getDataEx(_T("OutputFileList"),_T("APIMode"),&m_cfg.output_file_list.api_mode,true);
 
 
-	//処理対象フィルタ
 	tstring temp_str;
+	tstring temp_pattern;
 
+	//リネーム
+	//置換パターン
+	getStringDataEx(_T("Rename"),_T("Pattern"),&temp_pattern);
+	if(!temp_pattern.empty()){
+		std::list<tstring> pattern_list;
+		//';'で分割
+		str::splitString(&pattern_list,temp_pattern.c_str(),';');
+		//重複を削除
+		misc::undupList(&m_cfg.general.filefilter.pattern_list);
+
+		for(std::list<tstring>::const_iterator ite=pattern_list.begin(),
+			end=pattern_list.end();
+			ite!=end;++ite){
+			std::list<tstring> pattern;
+
+			str::splitString(&pattern,ite->c_str(),':');
+			if(pattern.front().empty())continue;
+			if(pattern.size()<2)pattern.push_back(_T(""));
+			m_cfg.rename.pattern_list.push_back(RENAME::pattern(pattern.front(),pattern.back()));
+		}
+
+		//正規表現
+		getDataEx(_T("Rename"),_T("Regex"),&m_cfg.rename.regex);
+	}
+	temp_pattern.clear();
+
+
+	//処理対象フィルタ
 	getStringDataEx(_T("FileFilter"),_T("MinSize"),&temp_str);
 	m_cfg.general.filefilter.min_size=_tcstoll(temp_str.c_str(),NULL,10);
 	temp_str.clear();
@@ -386,16 +434,12 @@ bool Config::load(){
 	}
 	temp_str.clear();
 
-
-	tstring temp_pattern;
-
 	getStringDataEx(_T("FileFilter"),_T("Pattern"),&temp_pattern);
 	if(!temp_pattern.empty()){
 		//';'で分割
 		str::splitString(&m_cfg.general.filefilter.pattern_list,temp_pattern.c_str(),';');
 		//重複を削除
-		m_cfg.general.filefilter.pattern_list.sort();
-		m_cfg.general.filefilter.pattern_list.unique();
+		misc::undupList(&m_cfg.general.filefilter.pattern_list);
 		getDataEx(_T("FileFilter"),_T("Recursive"),&m_cfg.general.filefilter.recursive);
 		getDataEx(_T("FileFilter"),_T("Regex"),&m_cfg.general.filefilter.regex);
 	}
@@ -451,8 +495,7 @@ bool Config::load(){
 		//';'で分割
 		str::splitString(&m_cfg.general.file_ex_filter.pattern_list,temp_pattern.c_str(),';');
 		//重複を削除
-		m_cfg.general.file_ex_filter.pattern_list.sort();
-		m_cfg.general.file_ex_filter.pattern_list.unique();
+		misc::undupList(&m_cfg.general.file_ex_filter.pattern_list);
 		getDataEx(_T("FileExFilter"),_T("Recursive"),&m_cfg.general.file_ex_filter.recursive);
 		getDataEx(_T("FileExFilter"),_T("Regex"),&m_cfg.general.file_ex_filter.regex);
 	}

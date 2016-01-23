@@ -19,6 +19,15 @@
    http://www16.atpages.jp/rayna/diary/ に詳細あり。今すぐアクセス!
 
 
+ [Ver.0.00r31]
+     ・パスワード入力処理を_fgetts()で行っていたため、日本語が使用できない不具合修正。
+       ReadConsole()で処理するように。
+     ・入力処理を全てWINAPIで行うようになったので、freopen()をCloseFile()/CreateFile()/SetStdHandle()に置き換え。
+     ・Ctrl+Cで処理を強制終了すると、Reces::ctrlCEvent()内でプログレスバー破棄処理でフリーズしてしまう不具合を修正。
+       正常終了時はpost()しますが、Ctrl+Cであれば、その場でdelteするようにしました。
+     ・書庫内ファイルをリネームする「/mn」追加。
+     ・PasswordDialog::onOk()の引数にWPARAMとLPARAMを追加し忘れていたため、gui4recesでログウインドウを表示するとパスワード入力が処理されない不具合修正。
+
  [Ver.0.00r30]
      ・一部環境では、_tsetlocale(LC_ALL,_tsetlocale(LC_CTYPE,_T("")))でフリーズしてしまうらしい。
      ・lz4圧縮のため、「/ooke」オプションを追加。

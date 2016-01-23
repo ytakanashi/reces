@@ -67,6 +67,49 @@ namespace thread{
 	}
 }//namespace thread
 
+//std::listの重複削除(順序保持)
+bool undupList(std::list<tstring>* list){
+	typedef std::pair<int,tstring> list_info;
+
+	INNER_FUNC(sortNumber,
+		bool operator()(list_info& list1,list_info& list2){
+			return list1.first<list2.first;
+		}
+	);
+	INNER_FUNC(sortString,
+		bool operator()(list_info& list1,list_info& list2){
+			return list1.second<list2.second;
+		}
+	);
+	INNER_FUNC(sameString,
+		bool operator()(list_info& list1,list_info& list2){
+			return list1.second==list2.second;
+		}
+	);
+
+	if(!list)return false;
+
+	//順序保持用リスト
+	std::list<list_info> list_bak;
+
+	for(std::list<tstring>::const_iterator ite=list->begin(),
+		end=list->end();
+		ite!=end;++ite){
+		list_bak.push_back(list_info(list_bak.size(),*ite));
+	}
+	list_bak.sort(sortString);
+	list_bak.unique(sameString);
+	list_bak.sort(sortNumber);
+
+	list->clear();
+	for(std::list<list_info>::const_iterator ite=list_bak.begin(),
+		end=list_bak.end();
+		ite!=end;++ite){
+		list->push_back(ite->second);
+	}
+	return true;
+}
+
 //namespace misc
 }
 //namespace sslib

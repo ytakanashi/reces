@@ -2,7 +2,7 @@
 //パスワード入力ダイアログなどをフック
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r30 by x@rgs
+//              reces Ver.0.00r31 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -30,7 +30,7 @@ typedef struct{
 //ダイアログを画面外に追いやる
 void hideDialog(HWND wnd_handle){
 	SetWindowLongPtr(wnd_handle,GWL_EXSTYLE,GetWindowLongPtr(wnd_handle,GWL_EXSTYLE)|WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE);
-	SetWindowPos(wnd_handle,HWND_BOTTOM,-1000,0,0,0,SWP_NOSENDCHANGING);
+	SetWindowPos(wnd_handle,HWND_BOTTOM,0,0,0,0,SWP_NOSENDCHANGING|SWP_HIDEWINDOW);
 }
 
 BOOL CALLBACK EnumChildProc(HWND wnd_handle,LPARAM lparam){
