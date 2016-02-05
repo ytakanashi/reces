@@ -2,7 +2,7 @@
 //recesベース
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -158,7 +158,8 @@ RecesBase::ARC_RESULT RecesBase::updateArcFileName(CUR_FILE* new_cur_file,const 
 	if(!CFG.compress.raw_file_name){
 
 #define NEED_EXT(need_ext,arc_path)\
-	if(m_arc_dll->isSupportedExtension(path::getExtension(arc_path).c_str())){\
+	if(m_arc_dll->isSupportedExtension(path::getExtension(arc_path).c_str())&&\
+		!path::isDirectory(arc_path.c_str())){\
 		if(m_arc_dll->type()==Archiver::CAL){\
 			if(str::isEqualStringIgnoreCase(static_cast<ArcDll*>(m_arc_dll)->getFormat().ext,\
 											tstring(_T("."))+path::getExtension(arc_path))){\
