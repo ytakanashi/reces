@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -12,7 +12,6 @@
 #include"Arc7-zip32.h"
 #include"Hook/HookArchiverDialog.h"
 #include"ArcCfg.h"
-#include"third-party/SRELL/srell.hpp"
 
 using namespace sslib;
 
@@ -142,13 +141,13 @@ namespace{
 				str::replaceString(new_name,ite->first,ite->second);
 			}else{
 				try{
-					srell::basic_regex<TCHAR> regex;
-					regex.assign(ite->first,srell::regex::ECMAScript|srell::regex_constants::icase);
-					new_name=srell::regex_replace(new_name,regex,ite->second);
-				}catch (const srell::regex_error& e){
+					tregex regex(ite->first,std::regex_constants::icase);
+
+					new_name=std::regex_replace(new_name,regex,ite->second);
+				}catch (const std::regex_error& e){
 					switch(e.code()){
 #define REGEX_ERROR_MSG(type,what)\
-	case srell::regex_constants::type:\
+	case std::regex_constants::type:\
 		msg::err(_T("正規表現: %s\n"),what);\
 		break;\
 
@@ -283,9 +282,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 
 		if(CFG.no_display.no_log){
 			//実行
-			tstring dummy(1,'\0');
-
-			dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+			dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
 		}else{
 			dll_ret=execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
 		}
@@ -475,9 +472,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 	}
 
 	if(CFG.no_display.no_log||log_msg==NULL){
-		tstring dummy(1,'\0');
-
-		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
 	}else{
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
@@ -608,9 +603,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 
 		//実行
 		if(CFG.no_display.no_log||log_msg==NULL){
-			tstring dummy(1,'\0');
-
-			dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+			dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
 		}else{
 			dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 		}
@@ -711,9 +704,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	}
 
 	if(CFG.no_display.no_log||log_msg==NULL){
-		tstring dummy(1,'\0');
-
-		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
 	}else{
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
@@ -875,9 +866,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::rename(const TCHAR* arc_path_orig,tstring* log_
 	}
 
 	if(CFG.no_display.no_log||log_msg==NULL){
-		tstring dummy(1,'\0');
-
-		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
 	}else{
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}

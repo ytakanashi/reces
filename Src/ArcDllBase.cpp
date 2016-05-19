@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -77,8 +77,8 @@ int ArcDllBase::execute(const HWND wnd_handle,const TCHAR* cmdline,tstring* resu
 
 		result=p_execute(wnd_handle,
 						 ((isUnicodeMode())?str::utf162utf8(cmdline):str::utf162sjis(cmdline)).c_str(),
-						 &buffer_multibyte[0],
-						 buffer_size);
+						 (result_buffer&&buffer_size)?&buffer_multibyte[0]:NULL,
+						 (result_buffer)?buffer_size:0);
 
 		if(result_buffer){
 			if(isUnicodeMode()){

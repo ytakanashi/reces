@@ -2,7 +2,7 @@
 //ファイル情報の操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -12,7 +12,6 @@
 #include"FileInfo.h"
 #include"ArcCfg.h"
 #include"Msg.h"
-#include"third-party/SRELL/srell.hpp"
 
 
 using namespace sslib;
@@ -218,7 +217,6 @@ bool matchRegex(const FILEINFO& fileinfo,const FILEFILTER& filefilter){
 	   fileinfo.attr&FILE_ATTRIBUTE_DIRECTORY)return true;
 
 	bool matched=true;
-	srell::basic_regex<TCHAR> regex;
 	tstring file_name((filefilter.recursive)?
 					  fileinfo.name:
 					  path::getFileName(fileinfo.name));
@@ -241,13 +239,14 @@ bool matchRegex(const FILEINFO& fileinfo,const FILEFILTER& filefilter){
 			end=pattern_list.end();
 			!IS_TERMINATED&&ite!=end;
 			++ite){
-			regex.assign(*ite,srell::regex::ECMAScript|srell::regex_constants::icase);
-			if((matched=srell::regex_search<TCHAR>(file_name.c_str(),regex)))break;
+			tregex regex(*ite,std::regex_constants::icase);
+
+			if((matched=std::regex_search(file_name.c_str(),regex)))break;
 		}
-	}catch (const srell::regex_error& e){
+	}catch (const std::regex_error& e){
 		switch(e.code()){
 #define REGEX_ERROR_MSG(type,what)\
-	case srell::regex_constants::type:\
+	case std::regex_constants::type:\
 		msg::err(_T("正規表現: %s\n"),what);\
 		break;\
 

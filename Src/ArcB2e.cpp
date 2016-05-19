@@ -2,7 +2,7 @@
 //B2e.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -152,9 +152,7 @@ ArcB2e::ARC_RESULT ArcB2e::compress(const TCHAR* arc_path,std::list<tstring>* fi
 	int dll_ret=-1;
 
 	if(CFG.no_display.no_log||log_msg==NULL){
-		tstring dummy(1,'\0');
-
-		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
 	}else{
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}
@@ -207,9 +205,7 @@ ArcB2e::ARC_RESULT ArcB2e::extract(const TCHAR* arc_path,const TCHAR* output_dir
 	int dll_ret=-1;
 
 	if(CFG.no_display.no_log||log_msg==NULL){
-		tstring dummy(1,'\0');
-
-		dll_ret=execute(NULL,cmd_line.c_str(),&dummy,dummy.length());
+		dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
 	}else{
 		dll_ret=execute(NULL,cmd_line.c_str(),log_msg,log_buffer_size);
 	}

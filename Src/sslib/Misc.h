@@ -144,7 +144,21 @@ private:
 //std::listの重複削除(順序保持)
 bool undupList(std::list<tstring>* list);
 
-
+#ifdef _GDIPLUS_H
+//GDI+初期化&終了処理
+class InitGDIPlus{
+public:
+	InitGDIPlus(){
+		Gdiplus::GdiplusStartupInput input;
+		Gdiplus::GdiplusStartup(&token,&input,NULL);
+	}
+	virtual ~InitGDIPlus(){
+		Gdiplus::GdiplusShutdown(token);
+	}
+private:
+	ULONG_PTR token;
+};
+#endif
 
 //namespace misc
 }

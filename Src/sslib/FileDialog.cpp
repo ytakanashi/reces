@@ -85,7 +85,7 @@ bool FileDialog::doModalOpen(tstring* file_path,HWND wnd_handle,const TCHAR* fil
 }
 
 //「ファイルを保存」ダイアログ表示
-bool FileDialog::doModalSave(tstring* file_path,HWND wnd_handle,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name){
+bool FileDialog::doModalSave(tstring* file_path,HWND wnd_handle,const TCHAR* filter,const TCHAR* title,const TCHAR* init_dir,const TCHAR* init_name,const TCHAR* default_ext){
 	bool result=false;
 	std::vector<TCHAR> file_buffer(MAX_PATHW);
 
@@ -108,6 +108,7 @@ bool FileDialog::doModalSave(tstring* file_path,HWND wnd_handle,const TCHAR* fil
 	m_ofn_save.lpstrTitle=title;
 	m_ofn_save.lpstrFile=&file_buffer[0];
 	m_ofn_save.nMaxFile=file_buffer.size();
+	m_ofn_save.lpstrDefExt=default_ext;
 
 	if(!::GetSaveFileName(&m_ofn_save)){
 		DWORD dlg_err=::CommDlgExtendedError();

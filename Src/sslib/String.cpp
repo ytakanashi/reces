@@ -80,6 +80,7 @@ bool isEqualCharacterIgnoreCase(const int char1,const int char2){
 
 //文字列末尾の改行文字を削除
 bool chomp(tstring& str){
+	if(str==_T("\r\n")||str==_T("\r")||str==_T("\n"))str.clear();
 	tstring::size_type begin=str.find_first_not_of(_T("\r\n"));
 	tstring::size_type end=str.find_last_not_of(_T("\r\n"));
 	if(begin>=++end)return false;

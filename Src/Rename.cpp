@@ -2,7 +2,7 @@
 //リネーム
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -13,6 +13,44 @@
 
 using namespace sslib;
 
+
+bool Rename::addPattern(){
+	Console input_pattern(STD_INPUT_HANDLE);
+	bool result=false;
+
+	STDOUT.outputString(_T("リネーム条件入力"));
+	STDOUT.outputString((CFG.rename.regex)?_T("(正規表現): \n"):_T(": \n"));
+
+	std::vector<TCHAR> pattern_buffer(1024,'\0');
+	std::vector<TCHAR> replacement_buffer(1024,'\0');
+	tstring pattern;
+	tstring replacement;
+	DWORD read=0;
+
+	do{
+		pattern_buffer.assign(pattern_buffer.size(),'\0');
+		pattern.clear();
+		replacement_buffer.assign(replacement_buffer.size(),'\0');
+		replacement.clear();
+
+		STDOUT.outputString(_T("検索文字列: "));
+		input_pattern.read(&pattern_buffer[0],pattern_buffer.size(),&read);
+		pattern.assign(&pattern_buffer[0]);
+		//空文字Enter
+		if(pattern.find_first_of(_T("\r\n"))==0)break;
+		str::chomp(pattern);
+		if(strvalid(pattern.c_str())){
+			STDOUT.outputString(_T("置換後文字列: "));
+			input_pattern.read(&replacement_buffer[0],replacement_buffer.size(),&read);
+			replacement.assign(&replacement_buffer[0]);
+			str::chomp(replacement);
+			CFG.rename.pattern_list.push_back(RENAME::pattern(pattern,replacement));
+		}
+	}while(!IS_TERMINATED&&
+		   read);
+
+	return !CFG.rename.pattern_list.empty();
+}
 
 Rename::ARC_RESULT Rename::operator()(const tstring& arc_path,tstring& err_msg){
 	if(IS_TERMINATED)return ARC_USER_CANCEL;
@@ -87,6 +125,12 @@ Rename::ARC_RESULT Rename::operator()(const tstring& arc_path,tstring& err_msg){
 		if(CFG.general.background_mode&&
 		   m_arc_dll->setBackgroundMode(true)){
 			msg::info(_T("バックグラウンドモードに設定しました。\n"));
+		}
+
+		if(CFG.rename.pattern_list.empty()&&
+		   !addPattern()){
+			msg::err(_T("フィルタが指定されていません。\n"));
+			return ARC_FAILURE;
 		}
 
 		if(IS_TERMINATED)return ARC_USER_CANCEL;

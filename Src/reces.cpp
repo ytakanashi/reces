@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -285,8 +285,8 @@ void Reces::usage(){
 						  _T("\t/mL[library]\t #書庫内容一覧 (by ライブラリ)\n")
 						  _T("\t/mt[library]\t #テスト\n")
 						  _T("\t/md[library]\t #削除\n")
-						  _T("\t/mn<target>[:replacement]...\t\t #リネーム\n")
-						  _T("\t/mN<regex_pattern>[:replacement]...\t #リネーム (正規表現, $n使用可)\n")
+						  _T("\t/mn[target][:replacement]...\t\t #リネーム\n")
+						  _T("\t/mN[regex_pattern][:replacement]...\t #リネーム (正規表現)\n")
 						  _T("\t/ms[lib][:prefix]#ライブラリ直接操作\n")
 						  _T("\t\t\t  prefixの指定で非対応のライブラリも使用可能\n")
 						  _T("\t/mS<lib>[:prefix]#設定ダイアログ表示\n")
@@ -296,7 +296,7 @@ void Reces::usage(){
 
 	int item_count=0;
 
-	STDOUT.outputString(_T("compression type:\n\t   "));
+	STDOUT.outputString(_T("\tcompression type:\n\t   "));
 	for(size_t i=0;i<m_arcdll_list.size();++i){
 		for(size_t ii=0;m_arcdll_list[i]->getFormat(ii).mhd!=NULL;++ii){
 			STDOUT.outputString(_T(" [%8s]"),m_arcdll_list[i]->getFormat(ii).mhd);

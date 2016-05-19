@@ -21,7 +21,7 @@ public:
 	//「ファイルを開く」ダイアログ表示
 	bool doModalOpen(tstring* file_path,HWND wnd_handle=NULL,const TCHAR* filter=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL,const TCHAR* init_name=NULL);
 	//「ファイルを保存」ダイアログ表示
-	bool doModalSave(tstring* file_path,HWND wnd_handle=NULL,const TCHAR* filter=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL,const TCHAR* init_name=NULL);
+	bool doModalSave(tstring* file_path,HWND wnd_handle=NULL,const TCHAR* filter=NULL,const TCHAR* title=NULL,const TCHAR* init_dir=NULL,const TCHAR* init_name=NULL,const TCHAR* default_ext=NULL);
 };
 
 //namespace sslib

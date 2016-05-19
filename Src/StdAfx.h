@@ -41,9 +41,15 @@
 #include<list>
 #include<vector>
 #include<algorithm>
+#include<regex>
 
 typedef std::basic_string<TCHAR>tstring;
-#endif
+#ifdef UNICODE
+	typedef std::wregex tregex;
+#else
+	typedef std::regex tregex;
+#endif //UNICODE
+#endif //__cplusplus
 
 #ifndef _tcstold
 	#ifdef _UNICODE
@@ -75,9 +81,9 @@ typedef std::basic_string<TCHAR>tstring;
 	}name;\
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r32a_Debug")
+	#define SOFTWARE_VERSION _T("0.00r32_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r32a")
+	#define SOFTWARE_VERSION _T("0.00r32")
 #endif
 
 //#define DISABLE_MISC

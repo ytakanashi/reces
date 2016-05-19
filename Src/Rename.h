@@ -1,7 +1,7 @@
 ﻿//Rename.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -18,6 +18,8 @@ class Rename:public RecesBase{
 public:
 	Rename(){}
 	~Rename(){}
+private:
+	bool addPattern();
 public:
 	RecesBase::ARC_RESULT operator()(const tstring& arc_path,tstring& err_msg);
 };

@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r31 by x@rgs
+//              reces Ver.0.00r32 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -266,7 +266,7 @@ bool parseOptions(CommandArgument& cmd_arg){
 							//';'で分割
 							str::splitString(&pattern_list,options[i].substr(2).c_str(),';');
 							//重複を削除
-							misc::undupList(&pattern_list);
+//							misc::undupList(&pattern_list);
 
 							for(std::list<tstring>::const_iterator ite=pattern_list.begin(),
 								end=pattern_list.end();
