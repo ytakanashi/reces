@@ -2,7 +2,7 @@
 //共通ヘッダファイル
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -81,9 +81,9 @@ typedef std::basic_string<TCHAR>tstring;
 	}name;\
 
 #ifdef _DEBUG
-	#define SOFTWARE_VERSION _T("0.00r32_Debug")
+	#define SOFTWARE_VERSION _T("0.00r33a_Debug")
 #else
-	#define SOFTWARE_VERSION _T("0.00r32")
+	#define SOFTWARE_VERSION _T("0.00r33a")
 #endif
 
 //#define DISABLE_MISC

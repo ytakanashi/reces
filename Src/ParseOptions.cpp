@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -1048,6 +1048,12 @@ bool parseOptions(CommandArgument& cmd_arg){
 					case '-':
 						//'q0'
 						CFG.general.quit=false;
+						break;
+
+					case 'e':
+						//'qe'
+						//エラーが発生したら中断する
+						CFG.general.pause_error=true;
 						break;
 
 					default:

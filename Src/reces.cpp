@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -22,6 +22,7 @@
 #include"Hook/HookArchiverDialog.h"
 #include"resources/resource.h"
 #include<mlang.h>
+#include<conio.h>
 
 
 using namespace sslib;
@@ -451,6 +452,8 @@ void Reces::usage(){
 						  _T("\t/q<-|0>\t\t ;無効 (一時停止)\n")
 						  _T("\t/q[1]\t\t ;有効 <Default>\n")
 						  _T("\n")
+						  _T("\t/qe\t\t #エラーが発生したら中断\n")
+						  _T("\n")
 						  _T("\t//\t\t #オプション解析終了\n")
 						  );
 	STDOUT.outputString(_T("\n"));
@@ -819,7 +822,7 @@ bool Reces::recompress(std::list<tstring>& file_list){
 	for(std::list<tstring>::iterator ite_list=file_list.begin(),
 		list_begin=file_list.begin(),
 		list_end=file_list.end();
-		ite_list!=list_end;
+		ite_list!=list_end&&!IS_TERMINATED;
 		++ite_list){
 		ArchiverThread extract_thread(this,*ite_list);
 
@@ -972,7 +975,21 @@ bool Reces::recompress(std::list<tstring>& file_list){
 					}//ARC_SUCCESS(Compress)
 
 					default:
+						if(CFG.general.remove_source!=RMSRC_DISABLE){
+							remove_list.clear();
+						}
 						compress_thread.err();
+						if(CFG.general.pause_error){
+							if(done-1!=total){
+								STDOUT.outputString(_T("処理を続行しますか? (Y/N) [Y]: "));
+								char c=getch();
+								if(c=='n'||c=='N'){
+									terminateApp();
+								}
+							}else{
+								system("pause");
+							}
+						}
 						break;
 				}//switch
 				break;
@@ -980,6 +997,17 @@ bool Reces::recompress(std::list<tstring>& file_list){
 
 			default:
 				extract_thread.err();
+				if(CFG.general.pause_error){
+					if(done-1!=total){
+						STDOUT.outputString(_T("処理を続行しますか? (Y/N) [Y]: "));
+						char c=getch();
+						if(c=='n'||c=='N'){
+							terminateApp();
+						}
+					}else{
+						system("pause");
+					}
+				}
 				break;
 		}
 		if(CFG.compress.each_file){
@@ -1072,12 +1100,24 @@ bool Reces::compress(std::list<tstring>& file_list){
 				}
 				break;
 
-				default:
-					thread.err();
-					break;
+			default:
+				thread.err();
+				if(CFG.general.pause_error){
+					if(done-1!=total){
+						STDOUT.outputString(_T("処理を続行しますか? (Y/N) [Y]: "));
+						char c=getch();
+						if(c=='n'||c=='N'){
+							terminateApp();
+						}
+					}else{
+						system("pause");
+					}
+				}
+				break;
 		}
 		msg::info(_T("\n"));
 	}while(CFG.compress.each_file&&
+		   !IS_TERMINATED&&
 		   (++ite_list)!=list_end);
 	return true;
 }
@@ -1133,6 +1173,17 @@ template<typename T>bool Reces::extract(std::list<tstring>& file_list){
 
 			default:
 				thread.err();
+				if(CFG.general.pause_error){
+					if(done-1!=total){
+						STDOUT.outputString(_T("処理を続行しますか? (Y/N) [Y]: "));
+						char c=getch();
+						if(c=='n'||c=='N'){
+							terminateApp();
+						}
+					}else{
+						system("pause");
+					}
+				}
 				break;
 		}
 		msg::info(_T("\n"));

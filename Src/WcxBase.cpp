@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -20,6 +20,7 @@ HANDLE WcxBase::openArchiveA(tOpenArchiveData* arc_data){
 
 	if((OpenArchive=(WCX_OPENARCHIVE)getAddress(_T("OpenArchive")))!=NULL){
 		m_arc_handle=OpenArchive(arc_data);
+		setProcessDataProc();
 	}
 	return m_arc_handle;
 }
@@ -30,6 +31,7 @@ HANDLE WcxBase::openArchiveW(tOpenArchiveDataW* arc_data){
 
 	if((OpenArchiveW=(WCX_OPENARCHIVEW)getAddress(_T("OpenArchiveW")))!=NULL){
 		m_arc_handle=OpenArchiveW(arc_data);
+		setProcessDataProcW();
 	}
 	return m_arc_handle;
 }
@@ -146,7 +148,6 @@ bool WcxBase::configurePacker(HWND wnd_handle,HINSTANCE inst){
 	return false;
 }
 
-#if 0
 void WcxBase::setProcessDataProc(tProcessDataProc process_data_proc){
 	typedef	void(WINAPI*WCX_SETPROCESSDATAPROC)(HANDLE,tProcessDataProc);
 	WCX_SETPROCESSDATAPROC SetProcessDataProc;
@@ -166,7 +167,6 @@ void WcxBase::setProcessDataProcW(tProcessDataProcW process_data_proc){
 	}
 	return;
 }
-#endif
 
 bool WcxBase::isUnicodeMode(){
 	return getAddress(_T("OpenArchiveW"))!=NULL;

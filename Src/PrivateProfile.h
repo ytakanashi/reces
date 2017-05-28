@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -85,6 +85,8 @@ struct GENERAL{
 	bool background_mode;
 	//処理終了後ウインドウを閉じる
 	bool quit;
+	//エラーが発生したら中断する
+	bool pause_error;
 	//ディレクトリ階層を無視して圧縮/解凍
 	bool ignore_directory_structures;
 	//指定したライブラリ名
@@ -125,6 +127,7 @@ struct GENERAL{
 	GENERAL():
 		background_mode(false),
 		quit(true),
+		pause_error(false),
 		ignore_directory_structures(false),
 		selected_library_name(),
 		selected_library_prefix(),

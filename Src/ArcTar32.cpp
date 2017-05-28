@@ -2,7 +2,7 @@
 //Tar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -82,7 +82,7 @@ ArcTar32::ArcTar32():
 				0,
 				6,0,9},
 
-			{_T("lzma"),_T(".lzma"),_T("-G--lzma"),_T("-G--lzma="),
+			{_T("lzma"),_T(".lzma"),_T("-G --lzma"),_T("-G --lzma="),
 				0,
 				6,0,9},
 			{_T("tarlzma"),_T(".tar.lzma"),_T("--lzma"),_T("--lzma="),

@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -29,6 +29,8 @@ bool Config::save(){
 	write(_T("General"),_T("Background"),CFG_VALUE(general.background_mode));
 	//処理終了後ウインドウを閉じる
 	write(_T("General"),_T("Quit"),CFG_VALUE(general.quit));
+	//エラーが発生したら中断する
+	write(_T("General"),_T("PauseError"),CFG_VALUE(general.pause_error));
 	//ディレクトリ階層を無視して圧縮/解凍
 	write(_T("General"),_T("IgnoreDirectoryStructures"),CFG_VALUE(general.ignore_directory_structures));
 	//指定したライブラリ名
@@ -258,6 +260,8 @@ bool Config::load(){
 	getDataEx(_T("General"),_T("Background"),&m_cfg.general.background_mode);
 	//処理終了後ウインドウを閉じる
 	getDataEx(_T("General"),_T("Quit"),&m_cfg.general.quit,true);
+	//エラーが発生したら中断する
+	getDataEx(_T("General"),_T("PauseError"),&m_cfg.general.pause_error,false);
 	//ディレクトリ階層を無視して圧縮/解凍
 	getDataEx(_T("General"),_T("IgnoreDirectoryStructures"),&m_cfg.general.ignore_directory_structures);
 	//指定したライブラリ名

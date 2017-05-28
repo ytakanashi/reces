@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -457,8 +457,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 							   path::quote(exclude_list_file_path).c_str()));
 	}
 
-	cmd_line.append(format(_T("%s %s @%s"),
-						   _T("--"),
+	cmd_line.append(format(_T("%s @%s"),
 						   path::quote(arc_path_str).c_str(),
 						   path::quote(list_file_path).c_str()));
 
@@ -565,13 +564,10 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 #if 1
 	//-oで指定するディレクトリにスペースが2つ以上含まれると1つに削られてしまうので予めSetCurrentDirectory()で移動しておく
 	fileoperation::temporaryCurrentDirectory temp_dir(output_dir_str.c_str());
-	cmd_line.append(format(_T("%s %s"),
-						   _T("--"),
-						   path::quote(arc_path_str).c_str()));
+	cmd_line.append(path::quote(arc_path_str).c_str());
 #else
-	cmd_line.append(format(_T("-o%s %s %s"),
+	cmd_line.append(format(_T("-o%s %s"),
 						   path::quote(output_dir_str).c_str(),
-						   _T("--"),
 						   path::quote(arc_path_str).c_str()));
 #endif
 
@@ -686,9 +682,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 							   CFG.general.arc_codepage));
 	}
 
-	cmd_line.append(format(_T("%s %s @%s"),
-							_T("--"),
-
+	cmd_line.append(format(_T("%s @%s"),
 							//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
 							path::quote(arc_path+_T(".")).c_str(),
 							path::quote(list_file_path).c_str()));
@@ -848,9 +842,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::rename(const TCHAR* arc_path_orig,tstring* log_
 							   CFG.general.arc_codepage));
 	}
 
-	cmd_line.append(format(_T("%s %s @%s"),
-							_T("--"),
-
+	cmd_line.append(format(_T("%s @%s"),
 							//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
 							path::quote(arc_path+_T(".")).c_str(),
 							path::quote(list_file_path).c_str()));

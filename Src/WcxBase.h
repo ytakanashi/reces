@@ -1,7 +1,7 @@
 ﻿//WcxBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r32 by x@rgs
+//              reces Ver.0.00r33 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -328,6 +328,8 @@ protected:
 	inline HANDLE handle()const{return m_arc_handle;}
 	OPEN_ARC_DATA* m_open_arc_data;
 	HEADER_DATA* m_header_data;
+	static int __stdcall pProcessDataProc(char* FileName,int Size){return 1;}
+	static int __stdcall pProcessDataProcW(WCHAR* FileName,int Size){return 1;}
 
 public:
 	HANDLE openArchiveA(tOpenArchiveData* arc_data);
@@ -342,10 +344,8 @@ public:
 	int processFile(int operation,const TCHAR*dest_path=NULL,const TCHAR*dest_name=NULL);
 	bool closeArchive();
 	bool configurePacker(HWND wnd_handle,HINSTANCE inst);
-#if 0
-	void setProcessDataProc(tProcessDataProc process_data_proc);
-	void setProcessDataProcW(tProcessDataProcW process_data_proc);
-#endif
+	void setProcessDataProc(tProcessDataProc process_data_proc=pProcessDataProc);
+	void setProcessDataProcW(tProcessDataProcW process_data_proc=pProcessDataProcW);
 	bool isUnicodeMode();
 	int getHeaderDataMode();
 	//既に書庫を開いているかどうか
