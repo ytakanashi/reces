@@ -179,11 +179,15 @@ namespace{
 		}
 
 		if(!new_name.empty()&&fileinfo.name!=new_name){
-			if(str::containsWhiteSpace(fileinfo.name.c_str())||
-			   str::containsWhiteSpace(new_name.c_str())){
-				list_file->writeEx(_T("\"%s\"\r\n\"%s\"\r\n"),fileinfo.name.c_str(),new_name.c_str());
+			if(!CFG.general.test){
+				if(str::containsWhiteSpace(fileinfo.name.c_str())||
+				   str::containsWhiteSpace(new_name.c_str())){
+					list_file->writeEx(_T("\"%s\"\r\n\"%s\"\r\n"),fileinfo.name.c_str(),new_name.c_str());
+				}else{
+					list_file->writeEx(_T("%s\r\n%s\r\n"),fileinfo.name.c_str(),new_name.c_str());
+				}
 			}else{
-				list_file->writeEx(_T("%s\r\n%s\r\n"),fileinfo.name.c_str(),new_name.c_str());
+				msg::info(_T("%s\n=> %s\n"),fileinfo.name.c_str(),new_name.c_str());
 			}
 		}
 	}
@@ -253,8 +257,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 		setCP(CFG.general.arc_codepage);
 	}
 
-	cmd_line.append(format(_T("%s %s"),
-							_T("--"),
+	cmd_line.append(format(_T("-- %s"),
 							path::quote(arc_path_str).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -291,7 +294,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::test(const TCHAR* arc_path){
 		   dll_ret==ERROR_PASSWORD_FILE);
 
 	if(!CFG.no_display.no_log){
-		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+		STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 
 	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
@@ -458,7 +461,8 @@ Arc7zip32::ARC_RESULT Arc7zip32::compress(const TCHAR* arc_path,std::list<tstrin
 	}
 
 	cmd_line.append(format(_T("%s @%s"),
-						   path::quote(arc_path_str).c_str(),
+						   //'--'を使用しないかわりに'"'で囲む
+						   path::quote(arc_path_str,true).c_str(),
 						   path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
@@ -564,11 +568,14 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 #if 1
 	//-oで指定するディレクトリにスペースが2つ以上含まれると1つに削られてしまうので予めSetCurrentDirectory()で移動しておく
 	fileoperation::temporaryCurrentDirectory temp_dir(output_dir_str.c_str());
-	cmd_line.append(path::quote(arc_path_str).c_str());
+	cmd_line.append(format(_T("%s"),
+						   //'--'を使用しないかわりに'"'で囲む
+						   path::quote(arc_path_str,true).c_str()));
 #else
 	cmd_line.append(format(_T("-o%s %s"),
 						   path::quote(output_dir_str).c_str(),
-						   path::quote(arc_path_str).c_str()));
+						   //'--'を使用しないかわりに'"'で囲む
+						   path::quote(arc_path_str,true).c_str()));
 #endif
 
 	if(use_filter&&
@@ -576,6 +583,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 		cmd_line.append(format(_T(" @%s"),
 							   path::quote(list_file_path).c_str()));
 	}
+
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 
@@ -683,9 +691,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::del(const TCHAR* arc_path_orig,tstring* log_msg
 	}
 
 	cmd_line.append(format(_T("%s @%s"),
-							//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
-							path::quote(arc_path+_T(".")).c_str(),
-							path::quote(list_file_path).c_str()));
+						   //'--'を使用しないかわりに'"'で囲む
+						   path::quote(arc_path,true).c_str(),
+						   path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 	msg::info(_T("'%s'からファイルを削除しています...\n\n"),arc_path_orig);
@@ -773,7 +781,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::list(const TCHAR* arc_path){
 	tstring log_msg;
 
 	execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
-	STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+	STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 
 	return ARC_SUCCESS;
 }
@@ -817,7 +825,7 @@ Arc7zip32::ARC_RESULT Arc7zip32::rename(const TCHAR* arc_path_orig,tstring* log_
 	}
 
 	if(list_file.getSize()==0){
-		return ARC_NO_MATCHES_FOUND;
+		return (!CFG.general.test)?ARC_NO_MATCHES_FOUND:ARC_SUCCESS;
 	}
 
 	list_file.close();
@@ -843,9 +851,9 @@ Arc7zip32::ARC_RESULT Arc7zip32::rename(const TCHAR* arc_path_orig,tstring* log_
 	}
 
 	cmd_line.append(format(_T("%s @%s"),
-							//勝手に拡張子が付加されないように'.'をファイル名末尾に追加
-							path::quote(arc_path+_T(".")).c_str(),
-							path::quote(list_file_path).c_str()));
+						   //'--'を使用しないかわりに'"'で囲む
+						   path::quote(arc_path,true).c_str(),
+						   path::quote(list_file_path).c_str()));
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 	msg::info(_T("'%s'のファイルをリネームしています...\n\n"),arc_path_orig);

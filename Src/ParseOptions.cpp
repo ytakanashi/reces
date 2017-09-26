@@ -962,6 +962,14 @@ bool parseOptions(CommandArgument& cmd_arg){
 				break;
 			}
 
+			case 'T':{
+				//'T'
+				//テスト
+				CFG.general.test=true;
+				dprintf(_T("CFG.general.test=true\n"));
+				break;
+			}
+
 			case 'r':{
 				//'r'
 				//コマンド実行

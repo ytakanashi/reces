@@ -454,23 +454,23 @@ Spi::ARC_RESULT Spi::list(const TCHAR* arc_path){
 					continue;
 				}
 
-				STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%04u/%02u/%02u %02u:%02u:%02u "),
+				STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%04u/%02u/%02u %02u:%02u:%02u "),
 											 st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond);
 			}else{
 				//タイムスタンプが存在しない
 				STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("                    "));
 			}
 
-			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%10d %s\n"),
+			STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%10d %s\n"),
 										 arc_info->filesize,
 										 full_path.c_str());
 		}else{
 			if(file_name.find_last_of(_T("\\/"))==file_name.length()-1){
 				//ディレクトリ
-				STDOUT.outputString(Console::LOW_YELLOW,Console::NONE,_T("%s\n"),
+				STDOUT.outputStringF(Console::LOW_YELLOW,Console::NONE,_T("%s\n"),
 									  full_path.c_str());
 			}else{
-				STDOUT.outputString(_T("%s\n"),
+				STDOUT.outputStringF(_T("%s\n"),
 									  full_path.c_str());
 			}
 		}

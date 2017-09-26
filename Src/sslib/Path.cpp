@@ -26,8 +26,8 @@ namespace{
 }
 
 //スペースが含まれていれば'"'で囲む
-tstring quote(const tstring& file_path){
-	return (str::containsWhiteSpace(file_path))?
+tstring quote(const tstring& file_path,bool required){
+	return (str::containsWhiteSpace(file_path)||required)?
 		_T("\"")+file_path+_T("\""):
 		file_path;
 }

@@ -128,10 +128,10 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 		}
 
 		if(!CFG.no_display.no_information){
-			STDOUT.outputString(_T("\n   => return code %d[%#x]\n"),result,result);
+			STDOUT.outputStringF(_T("\n   => return code %d[%#x]\n"),result,result);
 		}
 
-		if(!log.empty())STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+		if(!log.empty())STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 
 		if(!STDOUT.isRedirected()&&
 		   !CFG.no_display.no_information){

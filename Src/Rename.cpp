@@ -49,6 +49,8 @@ bool Rename::addPattern(){
 	}while(!IS_TERMINATED&&
 		   read);
 
+	if(IS_TERMINATED)return false;
+
 	return !CFG.rename.pattern_list.empty();
 }
 
@@ -166,7 +168,7 @@ Rename::ARC_RESULT Rename::operator()(const tstring& arc_path,tstring& err_msg){
 		}
 
 		if(!CFG.no_display.no_log){
-			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+			STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 		}
 		return (result)?ARC_SUCCESS:ARC_FAILURE;
 	}

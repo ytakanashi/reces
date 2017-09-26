@@ -160,7 +160,7 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 		}
 
 		if(!CFG.no_display.no_log){
-			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+			STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 		}
 
 		if(split_file){

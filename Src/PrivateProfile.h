@@ -81,6 +81,8 @@ struct RUNCOMMAND{
 };
 
 struct GENERAL{
+	//テスト
+	bool test;
 	//バックグラウンドで動作
 	bool background_mode;
 	//処理終了後ウインドウを閉じる

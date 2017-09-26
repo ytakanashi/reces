@@ -237,7 +237,20 @@ bool Console::write(const TCHAR* fmt,const va_list argp,LPDWORD written_chars){
 }
 
 //文字を出力
-DWORD Console::outputString(const TCHAR* fmt,...){
+DWORD Console::outputString(const TCHAR* buffer){
+	DWORD written_chars=0;
+
+	if(buffer==NULL)return written_chars;
+
+	tstring buffer_str(buffer);
+
+	write(buffer_str.c_str(),buffer_str.size(),&written_chars);
+
+	return written_chars;
+}
+
+//書式付き文字を出力
+DWORD Console::outputStringF(const TCHAR* fmt,...){
 	DWORD written_chars=0;
 
 	if(fmt==NULL)return written_chars;
@@ -253,7 +266,32 @@ DWORD Console::outputString(const TCHAR* fmt,...){
 }
 
 //色付文字を出力
-DWORD Console::outputString(int foreground,int background,const TCHAR* fmt,...){
+DWORD Console::outputString(int foreground,int background,const TCHAR* buffer){
+	DWORD written_chars=0;
+
+	if(buffer==NULL)return written_chars;
+
+	int orig_colors=getColors();
+
+	if(!isRedirected()){
+		//色設定を変更する
+		if(foreground!=NONE)setFGColor(foreground);
+		if(background!=NONE)setBGColor(background);
+	}
+
+	tstring buffer_str(buffer);
+
+	write(buffer_str.c_str(),buffer_str.size(),&written_chars);
+
+	if(!isRedirected()){
+		//色設定を元に戻す
+		setColors(orig_colors);
+	}
+	return written_chars;
+}
+
+//色・書式付文字を出力
+DWORD Console::outputStringF(int foreground,int background,const TCHAR* fmt,...){
 	DWORD written_chars=0;
 
 	if(fmt==NULL)return written_chars;

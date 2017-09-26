@@ -282,7 +282,7 @@ ArcXacrett::ARC_RESULT ArcXacrett::list(const TCHAR* arc_path){
 
 			strex::longlong2SYSTEMTIME(&st,fileinfo->date_time);
 
-			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%04u/%02u/%02u %02u:%02u:%02u %s%s%s%s %12I64d %s\n"),
+			STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%04u/%02u/%02u %02u:%02u:%02u %s%s%s%s %12I64d %s\n"),
 										 st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond,
 										 (fileinfo->attr&FILE_ATTRIBUTE_DIRECTORY)?_T("D"):_T("."),
 										 (fileinfo->attr&FILE_ATTRIBUTE_READONLY)?_T("R"):_T("."),

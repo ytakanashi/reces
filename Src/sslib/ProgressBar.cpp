@@ -61,7 +61,7 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 		m_stdout.setPosition(new_pos);
 	}else{
 		//プログレスバー表示
-		int per_pos_x=m_stdout.outputString(_T("%3d%% ["),fraction_done);
+		int per_pos_x=m_stdout.outputStringF(_T("%3d%% ["),fraction_done);
 		if(m_first_time){
 			//']'のy座標を保存
 			m_progress_right_end_pos_x=per_pos_x+m_progress_length;
@@ -69,16 +69,16 @@ bool ProgressBar::update(long long done,long long total,const TCHAR* msg){
 
 
 		if(m_last_dots==0){
-			m_stdout.outputString(_T("%s"),
+			m_stdout.outputStringF(_T("%s"),
 								  &m_progress[m_progress_length-dots]);
 		}else if(m_last_dots<dots){
 			//一文字前から出力
 			m_stdout.setPosition(per_pos_x+m_last_dots-1,m_begin_pos.Y);
-			m_stdout.outputString(_T("%s"),
+			m_stdout.outputStringF(_T("%s"),
 								  &m_progress[m_progress_length-(dots-m_last_dots+1)]);
 		}else{
 			m_stdout.setPosition(per_pos_x+dots,m_begin_pos.Y);
-			m_stdout.outputString(_T("%s%s"),
+			m_stdout.outputStringF(_T("%s%s"),
 								  &m_progress[m_progress_length-1],
 								  &m_background[m_progress_length-(m_last_dots-dots)]);
 		}

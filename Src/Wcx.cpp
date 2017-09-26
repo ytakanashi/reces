@@ -306,13 +306,13 @@ Wcx::ARC_RESULT Wcx::list(const TCHAR* arc_path){
 
 				if(!::FileTimeToSystemTime(&ft,&st))continue;
 
-				STDOUT.outputString(_T("%04u/%02u/%02u %02u:%02u:%02u "),
+				STDOUT.outputStringF(_T("%04u/%02u/%02u %02u:%02u:%02u "),
 									  st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond);
 			}
 
 			tstring file_path(m_header_data->filename());
 
-			STDOUT.outputString(_T("%19I64d %s\n"),
+			STDOUT.outputStringF(_T("%19I64d %s\n"),
 								  m_header_data->filesize(),
 								  file_path.c_str());
 		}else{
@@ -320,10 +320,10 @@ Wcx::ARC_RESULT Wcx::list(const TCHAR* arc_path){
 
 			if(m_header_data->attr()&FILE_ATTRIBUTE_DIRECTORY){
 				//ディレクトリ
-				STDOUT.outputString(Console::LOW_YELLOW,Console::NONE,_T("%s\n"),
+				STDOUT.outputStringF(Console::LOW_YELLOW,Console::NONE,_T("%s\n"),
 									  file_path.c_str());
 			}else{
-				STDOUT.outputString(_T("%s\n"),
+				STDOUT.outputStringF(_T("%s\n"),
 									  file_path.c_str());
 			}
 		}
@@ -367,7 +367,7 @@ Wcx::ARC_RESULT Wcx::test(const TCHAR* arc_path){
 				tstring err_msg;
 
 				if(getErrorMessage(&err_msg,ret_code)){
-					STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s   %s\n"),err_msg.c_str(),path::getFileName(m_header_data->filename()).c_str());
+					STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s   %s\n"),err_msg.c_str(),path::getFileName(m_header_data->filename()).c_str());
 				}
 			}
 			if(!(result==ARC_SUCCESS&&E_SUCCESS==ret_code))result=ARC_FAILURE;

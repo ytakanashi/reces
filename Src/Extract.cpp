@@ -417,7 +417,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 		}
 
 		if(!CFG.no_display.no_log){
-			STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
+			STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log.c_str());
 		}
 		return (result)?ARC_SUCCESS:ARC_FAILURE;
 	}

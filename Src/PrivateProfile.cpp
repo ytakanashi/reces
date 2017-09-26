@@ -25,6 +25,8 @@ bool Config::save(){
 	write(_T("Mode"),_T("Mode"),CFG_VALUE(mode));
 
 	//一般
+	//テスト
+	write(_T("General"),_T("Test"),CFG_VALUE(general.test));
 	//バックグラウンドで動作
 	write(_T("General"),_T("Background"),CFG_VALUE(general.background_mode));
 	//処理終了後ウインドウを閉じる
@@ -256,6 +258,8 @@ bool Config::load(){
 
 
 	//一般
+	//テスト
+	getDataEx(_T("General"),_T("Test"),&m_cfg.general.test);
 	//バックグラウンドで動作
 	getDataEx(_T("General"),_T("Background"),&m_cfg.general.background_mode);
 	//処理終了後ウインドウを閉じる

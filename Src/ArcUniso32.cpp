@@ -57,7 +57,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::test(const TCHAR* arc_path){
 		tstring log_msg;
 
 		dll_ret=execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
-		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+		STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 	}
 
 	return (dll_ret==0)?ARC_SUCCESS:ARC_FAILURE;
@@ -245,7 +245,7 @@ ArcUniso32::ARC_RESULT ArcUniso32::list(const TCHAR* arc_path){
 	tstring log_msg;
 
 	execute(NULL,cmd_line.c_str(),&log_msg,log_buffer_size);
-	STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
+	STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),log_msg.c_str());
 
 	return ARC_SUCCESS;
 }

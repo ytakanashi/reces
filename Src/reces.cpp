@@ -261,7 +261,7 @@ void Reces::cleanup(){
 }
 
 void Reces::usage(){
-	STDOUT.outputString(_T("`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n")
+	STDOUT.outputStringF(_T("`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n")
 						  _T("              reces Ver.%s by x@rgs\n")
 						  _T("              under NYSL Version 0.9982\n")
 						  _T("\n`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`\n\n"),SOFTWARE_VERSION);
@@ -300,7 +300,7 @@ void Reces::usage(){
 	STDOUT.outputString(_T("\tcompression type:\n\t   "));
 	for(size_t i=0;i<m_arcdll_list.size();++i){
 		for(size_t ii=0;m_arcdll_list[i]->getFormat(ii).mhd!=NULL;++ii){
-			STDOUT.outputString(_T(" [%8s]"),m_arcdll_list[i]->getFormat(ii).mhd);
+			STDOUT.outputStringF(_T(" [%8s]"),m_arcdll_list[i]->getFormat(ii).mhd);
 			if((item_count+1)%4==0)STDOUT.outputString(_T("\n\t   "));
 			item_count++;
 		}
@@ -423,6 +423,8 @@ void Reces::usage(){
 						  _T("\t/P<param>\t #ユーザ独自のパラメータ {mr/mc/me/ms}\n")
 						  _T("\n")
 						  _T("\t/t\t\t #更新日時を元ファイルと同じにする {mr/mc/md/mn}\n")
+						  _T("\n")
+						  _T("\t/T\t\t #テスト実行する {mn}\n")
 						  _T("\n")
 						  _T("\t/DIRTS\t\t #ディレクトリのタイムスタンプを復元する {mr/me}\n")
 						  _T("\n")
@@ -589,7 +591,7 @@ bool Reces::runCommand(){
 			   read);
 	}else{
 		if(!CFG.recompress.run_command.command.empty()){
-			STDOUT.outputString(_T("'%s'を実行しています...\n"),CFG.recompress.run_command.command.c_str());
+			STDOUT.outputStringF(_T("'%s'を実行しています...\n"),CFG.recompress.run_command.command.c_str());
 			result=_tsystem(CFG.recompress.run_command.command.c_str())!=-1;
 		}
 	}
@@ -1220,28 +1222,28 @@ bool Reces::version(std::vector<tstring>& filepaths){
 		//対応するライブラリ全てのバージョンを表示
 		for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 			if(m_arcdll_list[i]!=NULL){
-				STDOUT.outputString(_T("%-12s %s\n"),
+				STDOUT.outputStringF(_T("%-12s %s\n"),
 									m_arcdll_list[i]->name().c_str(),
 									m_arcdll_list[i]->getVersionStr().c_str());
 			}
 		}
 
 		if(m_b2e_dll){
-			STDOUT.outputString(_T("%-12s %s\n"),
+			STDOUT.outputStringF(_T("%-12s %s\n"),
 								m_b2e_dll->name().c_str(),
 								m_b2e_dll->getVersionStr().c_str());
 		}
 
 		for(size_t i=0,list_size=m_spi_list.size();i<list_size;i++){
 			if(m_spi_list[i]!=NULL){
-				STDOUT.outputString(_T("%s\n"),
+				STDOUT.outputStringF(_T("%s\n"),
 									m_spi_list[i]->getInformation().c_str());
 			}
 		}
 
 		for(size_t i=0,list_size=m_wcx_list.size();i<list_size;i++){
 			if(m_wcx_list[i]!=NULL){
-				STDOUT.outputString(_T("%-12s %s\n"),
+				STDOUT.outputStringF(_T("%-12s %s\n"),
 									m_wcx_list[i]->name().c_str(),
 									getVersion(m_wcx_list[i]->name().c_str()).c_str());
 			}
@@ -1255,7 +1257,7 @@ bool Reces::version(std::vector<tstring>& filepaths){
 						m_b2e_dll->setScriptDirectory(m_b2e_dir.c_str());
 					}
 					//圧縮用b2eスクリプトで使用出来るformatとmethodの組み合わせを表示
-					STDOUT.outputString(_T("%s\n"),
+					STDOUT.outputStringF(_T("%s\n"),
 										m_b2e_dll->getCompressScriptInformation().c_str());
 				}
 				continue;
@@ -1273,7 +1275,7 @@ bool Reces::version(std::vector<tstring>& filepaths){
 					ULONG ccpInfo;
 					while(SUCCEEDED(cp->Next(1,&cpInfo,&ccpInfo))&&ccpInfo&&!IS_TERMINATED){
 //						if(!IsValidCodePage(cpInfo.uiCodePage))continue;
-						STDOUT.outputString(_T("%d:%s:%s\n"),cpInfo.uiCodePage,
+						STDOUT.outputStringF(_T("%d:%s:%s\n"),cpInfo.uiCodePage,
 											cpInfo.wszDescription,
 											cpInfo.wszWebCharset);
 					}
@@ -1286,7 +1288,7 @@ bool Reces::version(std::vector<tstring>& filepaths){
 				continue;
 			}
 
-			STDOUT.outputString(_T("%-12s %s\n"),
+			STDOUT.outputStringF(_T("%-12s %s\n"),
 								filepaths[i].c_str(),
 								getVersion(filepaths[i].c_str()).c_str());
 		}

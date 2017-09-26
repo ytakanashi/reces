@@ -228,7 +228,7 @@ ArcDll::ARC_RESULT ArcDll::test(const TCHAR* arc_path){
 	bool result=checkArchive(arc_path,CHECKARCHIVE_FULLCRC);
 
 	if(!CFG.no_display.no_log){
-		STDOUT.outputString(Console::LOW_GREEN,Console::NONE,_T("%s\n"),
+		STDOUT.outputStringF(Console::LOW_GREEN,Console::NONE,_T("%s\n"),
 									 (result)?_T("正常な書庫です。"):_T("異常な書庫です。"));
 	}
 	return (result)?ARC_SUCCESS:ARC_FAILURE;
@@ -427,7 +427,7 @@ bool ArcDll::outputFileListToConsole(const fileinfo::FILEINFO& fileinfo,int opt)
 		foreground=Console::LOW_YELLOW;
 	}
 
-	STDOUT.outputString(foreground,Console::NONE,_T("%s\n"),fileinfo.name.c_str());
+	STDOUT.outputStringF(foreground,Console::NONE,_T("%s\n"),fileinfo.name.c_str());
 	return true;
 }
 
