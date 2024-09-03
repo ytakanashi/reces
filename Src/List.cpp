@@ -2,7 +2,7 @@
 //リスト
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -17,28 +17,8 @@ using namespace sslib;
 List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
-	bool split_file=false;
-	tstring join_file_name;
-
-	if(str::locateLastCharacter(arc_path.c_str(),'.')!=-1){
-		switch(splitfile::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
-			case splitfile::join::SUCCESS:{
-				split_file=true;
-				STDOUT.outputString(_T("ファイルを結合しました。\n"));
-				join_file_name=path::addTailSlash(m_split_temp_dir.c_str());
-				join_file_name+=removeExtensionEx(path::getFileName(arc_path));
-				break;
-			}
-			case splitfile::join::NOT_SPLIT:
-			default:
-				//分割された書庫ではない
-				break;
-			case splitfile::join::CANNOT_CREATE:
-			case splitfile::join::MALLOC_ERR:
-				err_msg=_T("ファイルの結合に失敗しました。\n");
-				return ARC_FAILURE;
-		}
-	}
+	bool joined_file=false;
+	tstring joined_file_name;
 
 	m_arc_dll=NULL;
 
@@ -57,21 +37,84 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 								   &loaded_library,
 								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
-								   CFG.general.selected_library_name.c_str());
+								   CFG.general.selected_library_name.c_str(),
+								   CFG.general.dll_dir);
 		}else{
 			//拡張子からの推測
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 								   m_arcdll_list.end(),
 								   arc_path.c_str(),
 								   &loaded_library,
-								   path::getExtension(arc_path).c_str());
+								   path::getExtension(arc_path).c_str(),
+								   NULL,NULL,
+								   CFG.general.dll_dir);
 
 			//総当たり
 			if(!m_arc_dll){
 				m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 									   m_arcdll_list.end(),
 									   arc_path.c_str(),
-									   &loaded_library);
+									   &loaded_library,
+									   NULL,NULL,NULL,
+									   CFG.general.dll_dir);
+			}
+		}
+
+		if(m_arc_dll&&str::isEqualStringIgnoreCase(m_arc_dll->name(),_T("tar32"))||
+		   !m_arc_dll){
+			//tar系は分割書庫であっても判定可能
+			if(str::locateLastCharacter(arc_path.c_str(),'.')!=-1){
+				switch(splitfile::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
+					case splitfile::join::SUCCESS:{
+						dprintf(_T("splitfile::join::SUCCESS\n"));
+						joined_file=true;
+						joined_file_name=path::addTailSlash(m_split_temp_dir.c_str());
+						joined_file_name+=removeExtensionEx(path::getFileName(arc_path));
+						break;
+					}
+					case splitfile::join::NOT_SPLIT:
+					default:
+					//分割された書庫ではない
+					break;
+					case splitfile::join::CANNOT_CREATE:
+					case splitfile::join::MALLOC_ERR:
+					err_msg=_T("ファイルの結合に失敗しました。\n");
+					return ARC_FAILURE;
+				}
+			}
+
+			if(!m_arc_dll){
+				//結合ファイルで再確認
+				if(!CFG.general.selected_library_name.empty()){
+					//ライブラリが指定されている場合
+					m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
+										   m_arcdll_list.end(),
+										   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
+										   &loaded_library,
+										   NULL,
+										   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
+										   CFG.general.selected_library_name.c_str(),
+										   CFG.general.dll_dir);
+				}else{
+					//拡張子からの推測
+					m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
+										   m_arcdll_list.end(),
+										   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
+										   &loaded_library,
+										   path::getExtension(arc_path).c_str(),
+										   NULL,NULL,
+										   CFG.general.dll_dir);
+
+					//総当たり
+					if(!m_arc_dll){
+						m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
+											   m_arcdll_list.end(),
+											   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
+											   &loaded_library,
+											   NULL,NULL,NULL,
+											   CFG.general.dll_dir);
+					}
+				}
 			}
 		}
 
@@ -79,7 +122,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 			if(!CFG.general.selected_library_name.empty()){
 				//ライブラリが指定されている場合
 				m_arc_dll=loadAndCheckPlugin(&m_spi_list,
-											 arc_path.c_str(),
+											 (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 											 &loaded_library,
 											 CFG.general.spi_dir,
 											 CFG.general.selected_library_name.c_str(),
@@ -87,7 +130,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 			}else{
 				m_arc_dll=loadAndCheck(m_spi_list.begin(),
 									   m_spi_list.end(),
-									   arc_path.c_str(),
+									   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 									   &loaded_library);
 			}
 		}
@@ -96,7 +139,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 			if(!CFG.general.selected_library_name.empty()){
 				//ライブラリが指定されている場合
 				m_arc_dll=loadAndCheckPlugin(&m_wcx_list,
-											 arc_path.c_str(),
+											 (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 											 &loaded_library,
 											 CFG.general.wcx_dir,
 											 CFG.general.selected_library_name.c_str(),
@@ -104,7 +147,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 			}else{
 				m_arc_dll=loadAndCheck(m_wcx_list.begin(),
 									   m_wcx_list.end(),
-									   arc_path.c_str(),
+									   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 									   &loaded_library);
 			}
 		}
@@ -126,7 +169,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 
 				m_arc_dll=loadAndCheck(v.begin(),
 									   v.end(),
-									   arc_path.c_str(),
+									   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 									   &loaded_library);
 			}
 		}
@@ -163,7 +206,7 @@ List::ARC_RESULT List::operator()(const tstring& arc_path,tstring& err_msg){
 		}
 
 		//リスト出力
-		switch(m_arc_dll->list((!split_file)?arc_path.c_str():join_file_name.c_str())){
+		switch(m_arc_dll->list((!joined_file)?arc_path.c_str():joined_file_name.c_str())){
 			case Archiver::ARC_SUCCESS:
 				return ARC_SUCCESS;
 			case Archiver::ARC_FAILURE:

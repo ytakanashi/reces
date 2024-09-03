@@ -77,6 +77,9 @@ bool utf82utf16(std::wstring* utf16,const std::string& utf8);
 std::string utf82sjis(const std::string& utf8);
 bool utf82sjis(std::string* sjis,const std::string& utf8);
 
+//strはtargetで終わる文字列である
+bool ends_with(const tstring& str,const tstring& target);
+
 //namespace str
 }
 //namespace sslib

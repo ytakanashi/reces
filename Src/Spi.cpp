@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -29,15 +29,15 @@ namespace{
 };
 
 //ライブラリを読み込む
-bool Spi::load(){
+bool Spi::load(DWORD flags){
 	m_supported_ext_list.clear();
-	return Archiver::load();
+	return Archiver::load(flags);
 }
 
 //ライブラリを読み込む
-bool Spi::load(const TCHAR* library_name,const TCHAR* library_prefix){
+bool Spi::load(const TCHAR* library_name,const TCHAR* library_prefix,DWORD flags){
 	m_supported_ext_list.clear();
-	return Archiver::load(library_name,library_prefix);
+	return Archiver::load(library_name,library_prefix,flags);
 }
 
 //spiである[戻り値はプラグインのタイプ]
@@ -91,7 +91,20 @@ bool Spi::isSupportedExtension(const TCHAR* ext){
 
 //対応している書庫か
 bool Spi::isSupportedArchive(const TCHAR* arc_path,int mode){
-	return isSupportedExtension((tstring(_T("*."))+=str::toLower(path::getExtension(arc_path))).c_str());
+	File arc(arc_path,
+			 OPEN_EXISTING,
+			 GENERIC_READ,
+			 FILE_SHARE_READ);
+
+	if(!arc.isOpened())return false;
+
+	std::vector<BYTE> header_data(2048);
+	DWORD read_size=arc.read(&header_data[0],2048);
+
+	if(!read_size)return false;
+
+	return isSupported(arc_path,(void*)(&header_data[0]))&&
+		isSupportedExtension((tstring(_T("*."))+=str::toLower(path::getExtension(arc_path))).c_str());
 }
 
 //プラグインについての情報を取得
@@ -302,6 +315,12 @@ Spi::ARC_RESULT Spi::extract(const TCHAR* arc_path,const TCHAR* output_dir_orig,
 
 		const void* data=::LocalLock(file);
 
+		//filesizeがLocalSize()と異なる場合、LocalSize()の結果を使用する
+		//プラグインによっては、異なるサイズや、filesizeが0であるため
+		if(arc_info->filesize!=::LocalSize(file)){
+			arc_info->filesize=::LocalSize(file);
+		}
+
 		dest.write(data,arc_info->filesize);
 
 		if(arc_info->timestamp){
@@ -412,6 +431,30 @@ Spi::ARC_RESULT Spi::list(const TCHAR* arc_path){
 	ARC_RESULT result=ARC_FAILURE;
 
 	HLOCAL h_info=NULL;
+
+/*
+	{
+		File arc(arc_path,
+				 OPEN_EXISTING,
+				 GENERIC_READ,
+				 FILE_SHARE_READ);
+
+		if(!arc.isOpened())return result;
+
+		std::vector<BYTE> header_data(2048);
+		DWORD read_size=arc.read(&header_data[0],2048);
+
+		if(!read_size)return result;
+
+		if(!isSupported(arc_path,(void*)(&header_data[0]))){
+			err_msg->assign(_T("対応していない圧縮形式かファイルが壊れています。"));
+			return result;
+		}
+		dprintf(_T("b=%d\n"),b);
+//TODOvoid*?DWORD?
+//TODOエラーメッセージ
+	}
+*/
 
 	if(getArchiveInfo(arc_path,0,SPI_INPUT_FILE,&h_info)!=SPI_ERROR_SUCCESS){
 		return result;

@@ -3,7 +3,7 @@
 //一部の関数のみに対応
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -30,11 +30,11 @@ ArcDllBase::~ArcDllBase(){
 }
 
 //ライブラリを読み込む
-bool ArcDllBase::load(){
+bool ArcDllBase::load(DWORD flags){
 	m_unicode_mode=false;
 	m_arc_handle=NULL;
 
-	if(Archiver::load()){
+	if(Archiver::load(flags)){
 #ifdef UNICODE
 		setUnicodeMode(true);
 #endif
@@ -44,11 +44,11 @@ bool ArcDllBase::load(){
 }
 
 //ライブラリを読み込む
-bool ArcDllBase::load(const TCHAR* library_name,const TCHAR* library_prefix){
+bool ArcDllBase::load(const TCHAR* library_name,const TCHAR* library_prefix,DWORD flags){
 	m_unicode_mode=false;
 	m_arc_handle=NULL;
 
-	if(Archiver::load(library_name,library_prefix)){
+	if(Archiver::load(library_name,library_prefix,flags)){
 #ifdef UNICODE
 		setUnicodeMode(true);
 #endif

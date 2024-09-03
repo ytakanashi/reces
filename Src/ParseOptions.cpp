@@ -2,7 +2,7 @@
 //オプション解析
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -514,9 +514,16 @@ bool parseOptions(CommandArgument& cmd_arg){
 				switch(options[i].c_str()[1]){
 					case 'b':
 						//'Db'
-						//b2eスクリプトのあるディレクトリを指定/
+						//b2eスクリプトのあるディレクトリを指定
 						CFG.general.b2e_dir=removeTailCharacter(options[i].substr(2),'\"');
 						dprintf(_T("CFG.general.b2e_dir=%s\n"),CFG.general.b2e_dir.c_str());
+						break;
+
+					case 'd':
+						//'Dd'
+						//dllのあるディレクトリを指定
+						CFG.general.dll_dir=removeTailCharacter(options[i].substr(2),'\"');
+						dprintf(_T("CFG.general.dll_dir=%s\n"),CFG.general.dll_dir.c_str());
 						break;
 
 					case 's':

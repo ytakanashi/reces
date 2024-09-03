@@ -29,20 +29,20 @@ Library::~Library(){
 }
 
 //ライブラリを読み込む
-bool Library::load(){
+bool Library::load(DWORD flags){
 	unload();
 
-	if(!m_library_name.empty())return load(m_library_name.c_str(),m_library_prefix.c_str());
+	if(!m_library_name.empty())return load(m_library_name.c_str(),m_library_prefix.c_str(),flags);
 	else return false;
 }
 
 //ライブラリを読み込む
-bool Library::load(const TCHAR* library_name,const TCHAR* library_prefix){
+bool Library::load(const TCHAR* library_name,const TCHAR* library_prefix,DWORD flags){
 	unload();
 
-	if(library_name==NULL)return load();
+	if(library_name==NULL)return load(flags);
 
-	if((m_module=::LoadLibrary(library_name))!=NULL){
+	if((m_module=::LoadLibraryEx(library_name,NULL,flags))!=NULL){
 		m_library_name=library_name;
 		setPrefix(library_prefix);
 		return true;

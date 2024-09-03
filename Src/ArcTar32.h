@@ -1,7 +1,7 @@
 ﻿//ArcTar32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -29,6 +29,7 @@ enum{
 	ARCHIVETYPE_TARXZ=9,
 	ARCHIVETYPE_LZMA=10,
 	ARCHIVETYPE_XZ=11,
+	ARCHIVETYPE_TARZST=12,
 
 	ARCHIVETYPE_CPIO=32,
 	ARCHIVETYPE_CPIOGZ=32+4,

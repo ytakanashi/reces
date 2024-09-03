@@ -3,6 +3,16 @@
 #ifndef _PROGRESSBAR_H_B4B65DF9_7CCF_40d5_A539_C01575084085
 #define _PROGRESSBAR_H_B4B65DF9_7CCF_40d5_A539_C01575084085
 
+#ifndef LOAD_LIBRARY_SEARCH_SYSTEM32
+#define LOAD_LIBRARY_SEARCH_SYSTEM32 0x00000800
+#endif
+#ifndef LOAD_LIBRARY_SEARCH_USER_DIRS
+#define LOAD_LIBRARY_SEARCH_USER_DIRS 0x00000400
+#endif
+#ifndef LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR
+#define LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR 0x00000100
+#endif
+
 
 
 namespace sslib{
@@ -20,8 +30,8 @@ protected:
 
 public:
 	//ライブラリを読み込む
-	virtual bool load();
-	virtual bool load(const TCHAR* library_name,const TCHAR* library_prefix=_T(""));
+	virtual bool load(DWORD flags=0);
+	virtual bool load(const TCHAR* library_name,const TCHAR* library_prefix=_T(""),DWORD flags=0);
 	//ライブラリを解放する
 	virtual bool unload();
 	//プレフィックスを設定

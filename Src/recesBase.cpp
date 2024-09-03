@@ -2,7 +2,7 @@
 //recesベース
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -56,7 +56,7 @@ tstring removeTailCharacter(const tstring& str,TCHAR c){
 }
 
 //拡張子を取得(tar系考慮)、含まれなければ""を返す
-tstring getExtensionEx(const tstring& file_path){
+tstring getExtensionEx(const tstring& file_path,const tstring& ext){
 	if(file_path.empty())return file_path;
 
 	tstring modified_path(path::removeExtension(file_path));
@@ -64,20 +64,20 @@ tstring getExtensionEx(const tstring& file_path){
 	if(modified_path==file_path)return _T("");
 
 	//拡張子が'.tar.xz'等の場合、二度removeExtension()する
-	if(path::getExtension(modified_path)==_T("tar")){
+	if(path::getExtension(modified_path)==ext){
 		modified_path=path::removeExtension(modified_path);
 	}
 	return file_path.substr(modified_path.length()+1);
 }
 
 //拡張子を削除(tar系考慮)
-tstring removeExtensionEx(const tstring& file_path){
+tstring removeExtensionEx(const tstring& file_path,const tstring& ext){
 	if(file_path.empty())return file_path;
 
 	tstring modified_path(path::removeExtension(file_path));
 
 	//拡張子が'.tar.xz'等の場合、二度removeExtension()する
-	if(path::getExtension(modified_path)==_T("tar")){
+	if(path::getExtension(modified_path)==ext){
 		return path::removeExtension(modified_path);
 	}
 	return modified_path;

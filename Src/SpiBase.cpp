@@ -3,7 +3,7 @@
 //一部の関数のみに対応(書庫関連)
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -29,10 +29,9 @@ int SpiBase::getPluginInfo(int info_no,tstring* result_buffer,int buffer_length)
 	return result;
 }
 
-#if 0
 //展開可能な(対応している)ファイル形式か調べる。
-int SpiBase::isSupported(const TCHAR* file_path,DWORD param){
-	typedef int(WINAPI*SPI_ISSUPPORTED)(LPCSTR,DWORD);
+int SpiBase::isSupported(const TCHAR* file_path,void* param){
+	typedef int(WINAPI*SPI_ISSUPPORTED)(LPCSTR,void*);
 	SPI_ISSUPPORTED IsSupported;
 	int result=0;
 
@@ -41,7 +40,6 @@ int SpiBase::isSupported(const TCHAR* file_path,DWORD param){
 	}
 	return result;
 }
-#endif
 
 //アーカイブ内のすべてのファイルの情報を取得する(ファイル入力)
 SpiBase::SPI_ERROR SpiBase::getArchiveInfo(const TCHAR* file_path,long buffer_length,unsigned int flag,HLOCAL* info){

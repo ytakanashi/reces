@@ -1,7 +1,7 @@
 ﻿//sslib.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//                  sslib ver.1.51
+//                  sslib ver.1.52
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
 
@@ -201,6 +201,9 @@ template<typename T>bool strvalid(T str){
 // __cplusplus
 #endif
 
+
+//Ver.1.52
+//reces Ver.0.00r34で使用
 
 //Ver.1.51
 //reces Ver.0.00r33/gui4reces Ver.0.0.1.8で使用

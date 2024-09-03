@@ -2,7 +2,7 @@
 //圧縮
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -27,7 +27,29 @@ Compress::ARC_RESULT Compress::operator()(std::list<tstring>& compress_file_list
 			if(m_arcdll_list[i]->isSupportedFormat((CFG.compress.compression_type.c_str()[0]!='@')?
 												   CFG.compress.compression_type.c_str():
 												   m_cur_file.recompress_mhd.c_str())){
-				if(m_arcdll_list[i]->load())m_arc_dll=m_arcdll_list[i];
+				if(!CFG.general.dll_dir.empty()){
+					std::vector<TCHAR> buffer(MAX_PATH);
+					tstring full_path;
+
+					if(sslib::path::getFullPath(&buffer[0],buffer.size(),(tstring(m_arcdll_list[i]->name())+_T(".dll")).c_str(),CFG.general.dll_dir.c_str())&&
+					   path::fileExists(&buffer[0])){
+						//dllのあるディレクトリが指定されており、そのとおりにdllが存在する場合
+						//loadArcLib()でSystemディレクトリ等に存在するライブラリを一度読み込んでいるので、unload()する
+						m_arcdll_list[i]->unload();
+						//ArcDllは拡張子なしで処理するため削除
+						full_path.assign(&buffer[0]);
+						full_path=path::removeExtension(full_path);
+						if(m_arcdll_list[i]->load(full_path.c_str(),NULL)){
+							m_arc_dll=m_arcdll_list[i];
+						}
+						break;
+					}else{
+						break;
+					}
+				}
+				if(m_arcdll_list[i]->load()){
+					m_arc_dll=m_arcdll_list[i];
+				}
 				break;
 			}
 		}

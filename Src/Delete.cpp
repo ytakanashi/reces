@@ -2,7 +2,7 @@
 //削除
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -38,21 +38,26 @@ Delete::ARC_RESULT Delete::operator()(const tstring& arc_path,tstring& err_msg){
 								   &loaded_library,
 								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
-								   CFG.general.selected_library_name.c_str());
+								   CFG.general.selected_library_name.c_str(),
+								   CFG.general.dll_dir);
 		}else{
 			//拡張子からの推測
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 								   m_arcdll_list.end(),
 								   arc_path.c_str(),
 								   &loaded_library,
-								   path::getExtension(arc_path).c_str());
+								   path::getExtension(arc_path).c_str(),
+								   NULL,NULL,
+								   CFG.general.dll_dir);
 
 			//総当たり
 			if(!m_arc_dll){
 				m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 									   m_arcdll_list.end(),
 									   arc_path.c_str(),
-									   &loaded_library);
+									   &loaded_library,
+									   NULL,NULL,NULL,
+									   CFG.general.dll_dir);
 			}
 		}
 

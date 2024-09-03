@@ -1,13 +1,13 @@
 ﻿_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 【 ソフト名 】　reces
-【バージョン】　0.00r33
+【バージョン】　0.00r34
 【 製作者名 】　x@rgs
 【 動作環境 】　Windows XP以降
 【 製作言語 】　C++
 【ｿﾌﾄｳｪｱ種別】　フリーソフトウェア
 【 配布条件 】　NYSL Version 0.9982
 【  連絡先  】	Y.R.Takanashi@gmail.com
-【  サイト  】	http://www16.atpages.jp/rayna/index.html
+【  サイト  】	http://frostmoon.sakura.ne.jp/
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 ●はじめに
  この度は、「reces」(以下、本ソフトとも)をダウンロードしていただき、ありがとうございます。
@@ -79,7 +79,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 ●インストール
- 1.「reces000r33.zip」を適当なディレクトリに解凍してください。
+ 1.「reces000r34.zip」を適当なディレクトリに解凍してください。
  2.以下の各書庫操作ライブラリをパスの通ったディレクトリへコピーしてください。
    *.spi、*.wcxについては、別途ディレクトリを用意することをお勧めします。
 
@@ -89,43 +89,41 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
    ||    7-zip32.dll    |     7-zip64.dll      ||  再圧縮、圧縮、解凍、削除  ||       同梱       ||
    ||    tar32.dll      |     tar64.dll        ||  再圧縮、圧縮、解凍        ||  *1 64bit版は *2 ||
    ||    UNLHA32.DLL    |     ------------     ||  再圧縮、圧縮、解凍、削除  ||        *1        ||
-   ||    unrar32.dll    |     unrar64j.dll     ||  解凍                      ||  *1 64bit版は *6 ||
+   ||    unrar32.dll    |     unrar64j.dll     ||  解凍                      ||  *1 64bit版は *5 ||
    ||    UnIso32.dll    |     ------------     ||  解凍                      ||        *1        ||
    ||    XacRett.dll    |     ------------     ||  解凍                      ||        *3        ||
    ||  *.b2e+b2e32.dll  |   *.b2e+b2e64.dll    ||  再圧縮、圧縮、解凍        || *1 64bit版は同梱 ||
    ||       *.spi       |        *.sph         ||  解凍                      ||                  ||
-   ||                   |  *.spi+ZBYPASSA.SPH  ||                            ||        *5        ||
+   ||                   |  *.spi+ZBYPASSA.SPH  ||                            ||        *4        ||
    ||       *.wcx       |    *.wcx,*.wcx64     ||  解凍                      ||                  ||
-   ||      -------      |     UNBYPASS.DLL     ||  再圧縮、圧縮、解凍        ||        *5        ||
+   ||      -------      |     UNBYPASS.DLL     ||  再圧縮、圧縮、解凍        ||        *4        ||
     ==============================================================================================
 
    *1
       統合アーカイバプロジェクト( http://www.csdinc.co.jp/archiver/ )
    *2
-      綾川的趣味之接続集( http://homepage1.nifty.com/Ayakawa/index.html )
+      綾川的趣味之接続集( https://ayakawa.x0.com/ )
+      GitHub - Claybird/tar32( https://github.com/Claybird/tar32 )
    *3
       Bonty's HomePage( http://hp.vector.co.jp/authors/VA030681/index.htm )
    *4
-      Yanagi's Home Page( http://homepage2.nifty.com/NYanagi/index.html )
+      TORO's Library( http://toro.d.dooo.jp/ )
    *5
-      TORO's Library( http://homepage1.nifty.com/toro/index.html )
-   *6
-      Ru^3 Honpo( http://www.vesta.dti.ne.jp/~tsato/index.html )
-
+      Ru^3 Honpo( https://rururutan.github.io/ )
 
  ・7-zip32.dllについて、現在統合アーカイバプロジェクトで配布されている9.22.00.02は、
    一部ファイル名が文字化けしてしまいます。
    また、書庫内ファイルのリネーム処理を行うことができません。
    そこでrecesでは、「7-zip32.dll/7-zip64.dll文字化け対策版」を同梱しています。
-   最新版はFrost Moon Project( http://www16.atpages.jp/rayna/index.html )にて入手することが出来ます。
+   最新版はFrost Moon Project( http://frostmoon.sakura.ne.jp/ )にて入手することが出来ます。
 
  ・rar書庫を取り扱うにあたり、必ず「unrar.dll」「unrar64.dll」を最新版にバージョンアップしてください。
    RARLAB( http://www.rarlab.com/ )の「RAR」->「Extras」->「UNRAR.dll」からダウンロードすることが出来ます。
 
- ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://www16.atpages.jp/rayna/index.html )に対応しています。
+ ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://frostmoon.sakura.ne.jp/ )に対応しています。
    reces x64版ではUNLHA32.DLLやXacRett.dllが使用できないため、導入をお勧めします。
    1.「7-Zip x64版」( http://www.7-zip.org/ )をインストール。
-   2.「7-zip32.dll/7-zip64.dll/7z.dll文字化け対策版」( http://www16.atpages.jp/rayna/index.html )をダウンロード。
+   2.「7-zip32.dll/7-zip64.dll/7z.dll文字化け対策版」( http://frostmoon.sakura.ne.jp/ )をダウンロード。
    3.「x64\7z.dll」を7-Zipインストールディレクトリにコピー。
      (以下の3,4はインストーラ版であれば不要です)
    4.「7-zip32-full\7-zip64.dll」をパスの通ったディレクトリにコピー。
@@ -161,7 +159,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
       lzh,lha,lzs
       rar
       zip,7z,jar
-      tar,tgz,gz,tar.gz,bz2,tbz,tbz2,tar.bz2,xz,txz,tar.xz,lzma,tlz,tlzma,tar.lzma
+      tar,tgz,gz,tar.gz,bz2,tbz,tbz2,tar.bz2,xz,txz,tar.xz,lzma,tlz,tlzma,tar.lzma,zst,tar.zst,tzst,tzs,tzstd
       Z,taz,tz,tar.Z,cpio,cpgz,a,lib,rpm,deb
       iso
       ace,arc,arg,arj,asd,b2a,b64,bel,bin,boo,bza,gza,C,cab,cpt,dmg,dz,F,xF,gca,hqx,imp,ish,jak,ntx,pit,pak,wad,pff,rez,sp,spl,uue,xxe,zac,zoo
@@ -392,7 +390,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
           ・指定したファイルのバージョンを表示することも出来ます。
                例: /mv 7-zip32.dll
                    (7-zip32.dllのバージョンを表示)
-          ・「/mv b2e」とすると使用できるb2eスクリプトの「<format>:<method>」の組み合わせを表示します。
+          ・「/mv b2e」とすると圧縮で使用できるb2eスクリプトの「<format>:<method>」の組み合わせを表示します。
           ・「/mv cp」とすると「/C」で指定できる文字コードの一覧を表示します。
 
 
@@ -434,6 +432,11 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
           || tlz        |  tar+lzma書庫                    ||   .tlz       ||
           || tlzma      |  tar+lzma書庫                    ||   .tlzma     ||
           || tarlzma    |  tar+lzma書庫                    ||   .tar.lzma  ||
+          || zst        |  zstd書庫                        ||   .zst       ||
+          || tzs        |  tar+zstd書庫                    ||   .tzs       ||
+          || tzst       |  tar+zsdt書庫                    ||   .tzst      ||
+          || tzstd      |  tar+zstd書庫                    ||   .tzstd     ||
+          || tarzst     |  tar+zstd書庫                    ||   .tar.zst   ||
            =================================================================
 
 
@@ -561,8 +564,15 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
      が解凍されます。
 
 
- /D<b|s|w><directory>
+ /D<d|b|s|w><directory>
    ・特殊なディレクトリを指定します。
+        /Dd<directory>
+          ・統合アーカイバライブラリ(*.dll)のあるディレクトリを指定します。 {mr/mc/me/ml/mt/ms/mv}
+          ・システムディレクトリに*.dllがあれば不要ですが、カレントディレクトリにある7-zip32.dllを利用する場合、
+　　　　　　7-zip32.dll側(19.00以降)でSetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_SYSTEM32|LOAD_LIBRARY_SEARCH_USER_DIRS)が呼び出されるため、
+　　　　　　再圧縮や連続解凍に失敗してしまいます。
+　　　　　　このオプションを活用し、「/Dd.」とすることで、カレントディレクトリにある7-zip32.dllで処理することができます。
+
         /Db<directory>
           ・b2eスクリプト(*.b2e)のあるディレクトリを指定します。 {mr/mc/me/ml/ms/mv}
           ・指定しなければ、「(b2e32.dllのあるディレクトリ)\b2e」から読み込みます。
@@ -574,7 +584,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
           ・Susie Plug-inを読み込みたくなければ、「/Ds:」など無効なディレクトリ名を指定してください。
 
         /Dw<directory>
-          ・Total Commander Plugin(*.wcx)のあるディレクトリを指定します。 {mr/me/ml/mv}
+          ・Total Commander Plugin(*.wcx)のあるディレクトリを指定します。 {mr/me/ml/mt/mv}
           ・指定しなければ、reces.exeのあるディレクトリから読み込みます。
           ・Total Commander Pluginを読み込みたくなければ、「/Dw:」など無効なディレクトリ名を指定してください。
 
@@ -1028,7 +1038,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
  例14.zip書庫をarc書庫に再圧縮する。
      ・「arc.b2e」を用意する必要があります。
-     ・今回はめもめも様( http://www.geocities.jp/home_page22/index.html )の「arc.b2e」を使用します。
+     ・今回はめもめも様( https://web.archive.org/web/20181105083100/http://www.geocities.jp/home_page22/b2e/FreeArc.html )の「arc.b2e」を使用します。
      ・b2eスクリプトの既定ディレクトリは「b2e32.dllのあるディレクトリ\b2e」です。
           例: C:\WINDOWS\System32\b2e32.dll
                 なら
@@ -1123,7 +1133,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
      reces /me /c /ebx arc.zip
 
  例9.7z.dllを利用して解凍する。
-     ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://www16.atpages.jp/rayna/index.html )を利用します。
+     ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://frostmoon.sakura.ne.jp/ )を利用します。
      ・x64版ではUNLHA32.DLLが直接利用できないため、「UNBYPASS.DLL」もしくは「7z.dll対応版7-zip64.dll」の導入をお勧めします。
      ・下記拡張子の解凍が出来ます。
             7z, XZ, BZIP2, GZIP, TAR, ZIP
@@ -1138,7 +1148,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
           「Import Addon」->「Addons/TotalCommander MultiArc plugin/freearc.addon」を選択。
           reces /memultiarc.wcx /c arc.arc
      ・b2e32.dllとb2eファイルの組み合わせでも解凍可能です。
-     ・めもめも様( http://www.geocities.jp/home_page22/index.html )の「arc.b2e」がおすすめです。
+     ・めもめも様( https://web.archive.org/web/20181105083100/http://www.geocities.jp/home_page22/b2e/FreeArc.html )の「arc.b2e」がおすすめです。
 
  例11.解凍対象ファイルを正規表現を用いて指定する。
      ・「img_1_s.jpg」...「img_23_s.jpg」...「img_123_s.jpg」...「img_1234_s.jpg」とあるうち、
@@ -1147,10 +1157,10 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
  例12.インストーラを解凍する。
      ・「exe.msi.b2e」は同梱しています。
-     ・「b2e」ディレクトリにUniversal Extractor( http://legroom.net/software/uniextract )の
+     ・「b2e」ディレクトリにUniversal Extractor( http://legroom.net/software/uniextract もしくは https://github.com/Bioruebe/UniExtract2 )の
        「UniExtract.exe」と「bin」をコピーしてください。
           reces /meb2e32 /c /Dbb2e setup.exe
-     ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://www16.atpages.jp/rayna/index.html )でも一部インストーラを解凍することができます。
+     ・「7z.dll対応版7-zip32.dll/7-zip64.dll」( http://frostmoon.sakura.ne.jp/ )でも一部インストーラを解凍することができます。
 
  例13.文字化けするzipファイルに対して正しい文字コード(ここではEUC-JP)を設定して解凍する。
        reces /me /Ceuc-jp arc.zip
@@ -1318,8 +1328,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  OS:Microsoft Windows 10 Home Premium 64-bit
  CPU:Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz 3.41GHz
  memory:16.0GB RAM
- compiler/debugger:Microsoft Visual C++ 2015(Microsoft Visual Studio Community 2015)
-                   Microsoft Visual C++ 2010 Express
+ compiler/debugger:Microsoft Visual Studio Community 2022 (64 ビット) - Current Version 17.3.1
  editor:xyzzy version 0.2.2.235
 
 
@@ -1328,7 +1337,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  本ソフト開発にあたり参考/使用させて頂いたソフトウェアや、
  各書庫操作ライブラリの作者様方...
    k.inaba氏(Noah,UnDller)
-   Claybird氏(LhaForge,b2e32.dll,tar32.dll,unrar32.dll)
+   Claybird氏(LhaForge,b2e32.dll,tar32.dll,tar64.dll,unrar32.dll)
    鬼束 裕之氏(Explzh)
    Bonty氏(Archon2,XacRett.dll)
    高田 謙氏(undll.exe,UnIso32.dll)
@@ -1350,7 +1359,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 ●ライセンス
  ・本ソフトはNYSL Version 0.9982に準拠して配布されています。
    ライセンスの詳細は同梱の「NYSL_withfaq.TXT」をご覧ください。
- ・「7-zip32.dll/7-zip64.dll文字化け対策版」( http://www16.atpages.jp/rayna/index.html )は
+ ・「7-zip32.dll/7-zip64.dll文字化け対策版」( http://frostmoon.sakura.ne.jp/ )は
    GNU Lesser General Public License (LGPL)の下で配布されています。
    ライセンスの詳細は下記URLをご覧ください。
       http://www.gnu.org/copyleft/lesser.ja.html
@@ -1366,12 +1375,23 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
  もしくは
  BBS(以下URLよりアクセス可能)からお願いします。
  最新版は
- http://www16.atpages.jp/rayna/index.html
+ http://frostmoon.sakura.ne.jp/
  から入手することができます。
 
 
 
 ●開発履歴
+ ○Ver.0.00r34 - 2024/09/03
+ ・7-zip32.dll及びunrar32.dllで処理する書庫ファイルの結合処理をreces側で行なわないように。
+ ・lzh等一部分割ファイルの処理が行えない不具合を修正。
+ ・「～.part1.rar」及び「～.rar」「～.r00」に関する処理を追加。処理後削除等が正しく処理できるように。(Special Thanks!:通りすがりの人様)
+ ・一部Susie Plug-inでサイズ0のファイルが出力される不具合を修正。(Special Thanks!:kiyohiro様)
+ ・「ZBYPASSA.SPH」が動作しない不具合を修正。(Special Thanks!:kiyohiro様)
+ ・統合アーカイバライブラリ(*.dll)のあるディレクトリを指定する「/Dd」を追加。(Special Thanks!:通りすがりの人様、kiyohiro様)
+ ・tar32/tar64.dllによるZSTD書庫の処理に対応。(Special Thanks!:kiyohiro様)
+ ・7-zip32.dll/7-zip64.dll文字化け対策版 Ver.24.08.00.01に更新。
+
+
  ○Ver.0.00r33 - 2017/09/26
  ・7-Zipの仕様変更('--'以降のリストファイル指定を処理しない)に対応。
  ・複数の再圧縮処理時にエラー書庫も削除してしまう不具合を修正。(Special Thanks!:通りすがりの人様)

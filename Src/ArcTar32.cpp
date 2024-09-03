@@ -2,7 +2,7 @@
 //Tar32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -26,7 +26,7 @@ ArcTar32::ArcTar32():
 			_T("Tar64"),
 #endif
 			_T("Tar"),
-			_T("tar.tgz.gz.bz2.tbz.tbz2.xz.txz.lzma.tlz.tlzma.Z.taz.tz.cpio.cpgz.a.lib.rpm.deb"),
+			_T("tar.tgz.gz.bz2.tbz.tbz2.xz.txz.lzma.tlz.tlzma.zstd.zst.tzs.tzst.tzstd.Z.taz.tz.cpio.cpgz.a.lib.rpm.deb"),
 			_T("\\")),
 	m_file_size(0),
 	m_write_size(0),
@@ -94,6 +94,22 @@ ArcTar32::ArcTar32():
 			{_T("tlzma"),_T(".tlzma"),_T("--lzma"),_T("--lzma="),
 				0,
 				6,0,9},
+
+			{_T("zst"),_T(".zst"),_T("-G --zstd"),_T("-G --zstd="),
+				0,
+				3,1,19},
+			{_T("tarzst"),_T(".tar.zst"),_T("--zstd"),_T("--zstd="),
+				0,
+				3,1,19},
+			{_T("tzst"),_T(".tzst"),_T("--zstd"),_T("--zstd="),
+				0,
+				3,1,19},
+			{_T("tzs"),_T(".tzs"),_T("--zstd"),_T("--zstd="),
+				0,
+				3,1,19},
+			{_T("tzstd"),_T(".tzstd"),_T("--zstd"),_T("--zstd="),
+				0,
+				3,1,19},
 			{NULL,NULL,NULL,NULL,0,-1,-1,-1}
 		};
 		m_compression_formats.assign(format,format+ARRAY_SIZEOF(format));
@@ -135,6 +151,9 @@ tstring ArcTar32::getCompressionFormat(const TCHAR* arc_path_orig){
 			break;
 		case ARCHIVETYPE_XZ:
 			return _T("xz");
+			break;
+		case ARCHIVETYPE_TARZST:
+			return _T("tarzst");
 			break;
 		default:
 		case ARCHIVETYPE_NORMAL:

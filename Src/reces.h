@@ -1,7 +1,7 @@
 ﻿//reces.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -114,6 +114,8 @@ private:
 	bool runCommand();
 	//ファイルを削除(設定依存)
 	bool removeFile(const TCHAR* file_path);
+	//分割ファイルを削除(設定依存)
+	bool removeSplitFile(const TCHAR* file_path,bool recycle_bin);
 
 	//*.spiを検索、リストに追加
 	bool searchSpi(const TCHAR* search_dir);

@@ -2,7 +2,7 @@
 //直接操作
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -45,7 +45,8 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 								   NULL,
 								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
-								   CFG.general.selected_library_name.c_str());
+								   CFG.general.selected_library_name.c_str(),
+								   CFG.general.dll_dir);
 		}
 
 		if(!m_arc_dll&&m_b2e_dll){
@@ -64,7 +65,8 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 								   NULL,
 								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
-								   CFG.general.selected_library_name.c_str());
+								   CFG.general.selected_library_name.c_str(),
+								   CFG.general.dll_dir);
 		}
 
 		if(!m_arc_dll){
@@ -120,6 +122,8 @@ SendCommands::ARC_RESULT SendCommands::operator()(std::list<tstring>& commands_l
 		//ライブラリにコマンドを直接渡す
 		int result=-1;
 		tstring log;
+
+		dprintf(_T("sendCommands(%s)"),cmd.c_str());
 
 		if(!CFG.no_display.no_log){
 			result=static_cast<ArcDll*>(m_arc_dll)->sendCommands(cmd.c_str(),&log);

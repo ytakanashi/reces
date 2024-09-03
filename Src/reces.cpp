@@ -2,7 +2,7 @@
 //recesメイン
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -56,6 +56,7 @@ namespace{
 		   hung){
 			result=::SetForegroundWindow(wnd)!=0;
 		}else{
+//TODO
 			::AttachThreadInput(target_thread_id,foreground_thread_id,true);
 			::SetWindowPos(wnd,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
 			result=::SetForegroundWindow(wnd)!=0;
@@ -337,10 +338,11 @@ void Reces::usage(){
 						  _T("\t/eb[level]\t ;共通パスを指定の数だけ除外して解凍\n")
 						  _T("\t/ebx\t\t ;共通パスを全て除外して解凍\n")
 						  _T("\n")
-						  _T("\t/D<b|s|w><dir>\t #特殊なディレクトリを指定\n")
+						  _T("\t/D<d|b|s|w><dir>\t #特殊なディレクトリを指定\n")
+						  _T("\t/Dd<directory>\t ;dllのあるディレクトリを指定 {mr/mc/me/ml/mt/ms/mv}\n")
 						  _T("\t/Db<directory>\t ;b2eのあるディレクトリを指定 {mr/mc/me/ml/ms/mv}\n")
 						  _T("\t/Ds<directory>\t ;spiのあるディレクトリを指定 {mr/me/ml/mv}\n")
-						  _T("\t/Dw<directory>\t ;wcxのあるディレクトリを指定 {mr/me/ml/mv}\n")
+						  _T("\t/Dw<directory>\t ;wcxのあるディレクトリを指定 {mr/me/ml/mt/mv}\n")
 						  _T("\n")
 						  _T("\t/N\t\t #書庫を新規作成 {mr/mc}\n")
 						  _T("\t/NF\t\t #書庫を強制的に新規作成 {mr/mc}\n")
@@ -620,6 +622,48 @@ bool Reces::removeFile(const TCHAR* file_path){
 	return false;
 }
 
+//分割ファイルを削除(設定依存)
+bool Reces::removeSplitFile(const TCHAR* file_path,bool recycle_bin){
+	bool result=false;
+
+	if(str::ends_with(file_path,_T(".part1.rar"))){
+		tstring base_path(file_path);
+
+		base_path=base_path.substr(0,base_path.rfind(_T(".part1.rar")));
+		for(long i=1;;i++){
+			tstring split_file_path(format(_T("%s.part%d.rar"),base_path.c_str(),i));
+
+			if(!path::fileExists(split_file_path.c_str()))break;
+			result=removeFile(split_file_path.c_str());
+		}
+		return result;
+	}else if(str::isEqualStringIgnoreCase(path::getExtension(file_path),_T("rar"))){
+		tstring base_path(path::removeExtension(file_path));
+
+		for(long i=0;;i++){
+			tstring split_file_path(format(_T("%s.r%02d"),base_path.c_str(),i));
+
+			if(!path::fileExists(split_file_path.c_str()))break;
+			result=removeFile(split_file_path.c_str());
+		}
+		if(result)removeFile(file_path);
+		return result;
+	}else{
+		std::list<tstring> file_list;
+
+		if(!splitfile::makeSplitFileList(&file_list,file_path)||
+		   file_list.empty())return false;
+
+		for(std::list<tstring>::iterator ite=file_list.begin(),
+			end=file_list.end();
+			ite!=end;
+			++ite){
+			result=removeFile(ite->c_str());
+		}
+		return true;
+	}
+}
+
 //*.spiを検索、リストに追加
 bool Reces::searchSpi(const TCHAR* search_dir){
 	FileSearch fs;
@@ -739,7 +783,7 @@ unsigned __stdcall Reces::dialogHookProc(void* param){
 				HWND console_handle=this_ptr->wnd();
 				ARCCFG->m_extracting_wnd_handle=reinterpret_cast<HWND>(msg.wParam);
 				ARCCFG->m_hook_dialog_type=static_cast<int>(msg.lParam);
-
+//TODO
 				if(ARCCFG->m_hook_dialog_type!=HOOK_XACRETT_EXTRACT){
 					for(size_t i=0;i<5&&console_handle!=::GetForegroundWindow();i++){
 						//recesをフォアグラウンドに
@@ -882,8 +926,12 @@ bool Reces::recompress(std::list<tstring>& file_list){
 						if(is_supported_ext||
 						   str::isEqualStringIgnoreCase(path::getExtension(m_cur_file.arc_path),_T("exe"))){
 							//元書庫の拡張子が対応している書庫のものかexeであれば
-							//tar系を考慮しつつ拡張子削除
-							m_cur_file.arc_path=removeExtensionEx(m_cur_file.arc_path);
+							//tar系やrar分割ファイルを考慮しつつ拡張子削除
+							if(str::ends_with(m_cur_file.arc_path,_T(".part1.rar"))){
+								m_cur_file.arc_path=removeExtensionEx(m_cur_file.arc_path,_T("part1"));
+							}else{
+								m_cur_file.arc_path=removeExtensionEx(m_cur_file.arc_path);
+							}
 						}
 					}
 				}
@@ -932,8 +980,15 @@ bool Reces::recompress(std::list<tstring>& file_list){
 
 				if(IS_TERMINATED)break;
 
-				if(!m_cur_file.auto_renamed&&
-				   CFG.general.remove_source!=RMSRC_DISABLE){
+				if(CFG.general.remove_source!=RMSRC_DISABLE){
+					if(CFG.compress.each_file){
+						dprintf(_T("%s/%s\n"),m_cur_file.arc_path.c_str(),ite_list->c_str());
+					}else{
+						dprintf(_T("%s/%s\n"),m_cur_file.arc_path,list_begin->c_str());
+					}
+				}
+
+				if(CFG.general.remove_source!=RMSRC_DISABLE){
 					if(CFG.compress.each_file){
 						remove_list.push_back(std::make_pair(m_cur_file.arc_path,*ite_list));
 					}else{
@@ -965,7 +1020,7 @@ bool Reces::recompress(std::list<tstring>& file_list){
 									ite!=end;
 									++ite){
 									if(!str::isEqualStringIgnoreCase(ite->first,ite->second)&&
-									   !splitfile::removeSplitFile(ite->second.c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
+									   !removeSplitFile(ite->second.c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
 										dprintf(_T("removeFile(%s)\n"),ite->second.c_str());
 										removeFile(ite->second.c_str());
 									}
@@ -1159,7 +1214,7 @@ template<typename T>bool Reces::extract(std::list<tstring>& file_list){
 				if(CFG.mode==MODE_EXTRACT&&
 				   !IS_TERMINATED){
 					if(CFG.general.remove_source!=RMSRC_DISABLE){
-						if(!splitfile::removeSplitFile(ite->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
+						if(!removeSplitFile(ite->c_str(),CFG.general.remove_source==RMSRC_RECYCLEBIN)){
 							dprintf(_T("removeFile(%s)\n"),ite->c_str());
 							removeFile(ite->c_str());
 						}
@@ -1222,9 +1277,25 @@ bool Reces::version(std::vector<tstring>& filepaths){
 		//対応するライブラリ全てのバージョンを表示
 		for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 			if(m_arcdll_list[i]!=NULL){
-				STDOUT.outputStringF(_T("%-12s %s\n"),
-									m_arcdll_list[i]->name().c_str(),
-									m_arcdll_list[i]->getVersionStr().c_str());
+				if(!CFG.general.dll_dir.empty()){
+					std::vector<TCHAR> buffer(MAX_PATH);
+
+					if(sslib::path::getFullPath(&buffer[0],buffer.size(),(tstring(m_arcdll_list[i]->name())+_T(".dll")).c_str(),CFG.general.dll_dir.c_str())&&
+					   path::fileExists(&buffer[0])){
+						//dllのあるディレクトリが指定されており、そのとおりにdllが存在する場合
+						//loadArcLib()でSystemディレクトリ等に存在するライブラリを一度読み込んでいるので、unload()する
+						m_arcdll_list[i]->unload();
+						if(m_arcdll_list[i]->load(&buffer[0],NULL)){
+							STDOUT.outputStringF(_T("%-12s %s\n"),
+												 m_arcdll_list[i]->name().c_str(),
+												 m_arcdll_list[i]->getVersionStr().c_str());
+						}
+					}
+				}else{
+					STDOUT.outputStringF(_T("%-12s %s\n"),
+										 m_arcdll_list[i]->name().c_str(),
+										 m_arcdll_list[i]->getVersionStr().c_str());
+				}
 			}
 		}
 
@@ -1340,6 +1411,22 @@ bool Reces::run(CommandArgument& cmd_arg){
 		msg::err(_T("オプションの組み合わせが正しくありません。(/mr@+/N+/oF+/e)\n"));
 		return false;
 	}
+
+#if 0
+	//dll読み込み先ディレクトリ指定
+	if(!CFG.general.dll_dir.empty()){
+		std::vector<TCHAR> full_path(MAX_PATH);
+
+		if(path::getFullPath(&full_path[0],full_path.size(),CFG.general.dll_dir.c_str())&&
+		   path::fileExists(&full_path[0])){
+			void*(WINAPI*p_addDllDirectory)(const TCHAR*)=(void*(WINAPI*)(const TCHAR*))::GetProcAddress(::GetModuleHandle(_T("kernel32.dll")),"AddDllDirectory");
+			if(p_addDllDirectory!=NULL){
+				p_addDllDirectory((&full_path[0]));
+				dprintf(_T("AddDllDirectory(%s)\n"),&full_path[0]);
+			}
+		}
+	}
+#endif
 
 	//spi読み込み
 	searchSpi((!CFG.general.spi_dir.empty())?

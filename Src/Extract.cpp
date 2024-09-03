@@ -2,7 +2,7 @@
 //解凍
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -17,27 +17,14 @@ using namespace sslib;
 Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg){
 	if(IS_TERMINATED)return ARC_USER_CANCEL;
 
-	bool split_file=false;
-	tstring join_file_name;
+	bool multivolume_rar=false;
+	bool joined_file=false;
+	tstring joined_file_name;
 
-	if(str::locateLastCharacter(arc_path.c_str(),'.')!=-1){
-		switch(splitfile::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
-			case splitfile::join::SUCCESS:{
-				split_file=true;
-				msg::info(_T("ファイルを結合しました。\n"));
-				join_file_name=path::addTailSlash(m_split_temp_dir);
-				join_file_name+=path::removeExtension(path::getFileName(arc_path));
-				break;
-			}
-			case splitfile::join::NOT_SPLIT:
-			default:
-				//分割された書庫ではない
-				break;
-			case splitfile::join::CANNOT_CREATE:
-			case splitfile::join::MALLOC_ERR:
-				err_msg=_T("ファイルの結合に失敗しました。\n");
-			return ARC_FAILURE;
-		}
+
+	if(str::ends_with(arc_path,_T(".part1.rar"))){
+		//RAR分割ファイル(～.part1.rar)である
+		multivolume_rar=true;
 	}
 
 	m_arc_dll=NULL;
@@ -95,21 +82,79 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 								   &loaded_library,
 								   NULL,
 								   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
-								   CFG.general.selected_library_name.c_str());
+								   CFG.general.selected_library_name.c_str(),
+								   CFG.general.dll_dir);
 		}else{
 			//拡張子からの推測
 			m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 								   m_arcdll_list.end(),
 								   arc_path.c_str(),
 								   &loaded_library,
-								   path::getExtension(arc_path).c_str());
+								   path::getExtension(arc_path).c_str(),
+								   NULL,NULL,
+								   CFG.general.dll_dir);
 
 			//総当たり
 			if(!m_arc_dll){
 				m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
 									   m_arcdll_list.end(),
 									   arc_path.c_str(),
-									   &loaded_library);
+									   &loaded_library,
+									   NULL,NULL,NULL,
+									   CFG.general.dll_dir);
+			}
+		}
+
+		if(m_arc_dll&&str::isEqualStringIgnoreCase(m_arc_dll->name(),_T("tar32"))||
+		   !m_arc_dll){
+			//tar系は分割書庫であっても判定可能
+			if(str::locateLastCharacter(arc_path.c_str(),'.')!=-1){
+				switch(splitfile::joinFile(arc_path.c_str(),m_split_temp_dir.c_str())){
+					case splitfile::join::SUCCESS:{
+						dprintf(_T("splitfile::join::SUCCESS\n"));
+						joined_file=true;
+						joined_file_name=path::addTailSlash(m_split_temp_dir.c_str());
+						joined_file_name+=removeExtensionEx(path::getFileName(arc_path));
+						break;
+					}
+					case splitfile::join::NOT_SPLIT:
+					default:
+					//分割された書庫ではない
+					break;
+					case splitfile::join::CANNOT_CREATE:
+					case splitfile::join::MALLOC_ERR:
+					err_msg=_T("ファイルの結合に失敗しました。\n");
+					return ARC_FAILURE;
+				}
+			}
+
+			if(!m_arc_dll){
+				//結合ファイルで再確認
+				if(!CFG.general.selected_library_name.empty()){
+					//ライブラリが指定されている場合
+					m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
+										   m_arcdll_list.end(),
+										   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
+										   &loaded_library,
+										   NULL,
+										   path::removeExtension(path::getFileName(CFG.general.selected_library_name)).c_str(),
+										   CFG.general.selected_library_name.c_str());
+				}else{
+					//拡張子からの推測
+					m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
+										   m_arcdll_list.end(),
+										   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
+										   &loaded_library,
+										   path::getExtension(arc_path).c_str());
+
+					//総当たり
+					if(!m_arc_dll){
+						m_arc_dll=loadAndCheck(m_arcdll_list.begin(),
+											   m_arcdll_list.end(),
+											   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
+											   &loaded_library);
+					}
+				}
 			}
 		}
 
@@ -117,7 +162,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			if(!CFG.general.selected_library_name.empty()){
 				//ライブラリが指定されている場合
 				m_arc_dll=loadAndCheckPlugin(&m_spi_list,
-											 arc_path.c_str(),
+											 (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 											 &loaded_library,
 											 CFG.general.spi_dir,
 											 CFG.general.selected_library_name.c_str(),
@@ -125,7 +170,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			}else{
 				m_arc_dll=loadAndCheck(m_spi_list.begin(),
 									   m_spi_list.end(),
-									   arc_path.c_str(),
+									   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 									   &loaded_library);
 			}
 		}
@@ -134,7 +179,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			if(!CFG.general.selected_library_name.empty()){
 				//ライブラリが指定されている場合
 				m_arc_dll=loadAndCheckPlugin(&m_wcx_list,
-											 arc_path.c_str(),
+											 (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 											 &loaded_library,
 											 CFG.general.wcx_dir,
 											 CFG.general.selected_library_name.c_str(),
@@ -142,7 +187,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			}else{
 				m_arc_dll=loadAndCheck(m_wcx_list.begin(),
 									   m_wcx_list.end(),
-									   arc_path.c_str(),
+									   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 									   &loaded_library);
 			}
 		}
@@ -164,7 +209,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 
 				m_arc_dll=loadAndCheck(v.begin(),
 									   v.end(),
-									   arc_path.c_str(),
+									   (!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 									   &loaded_library);
 			}
 		}
@@ -227,11 +272,11 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 
 				if(m_arc_dll->type()==Archiver::CAL){
 					if(m_arc_dll){
-						m_cur_file.recompress_mhd.assign(static_cast<ArcDll*>(m_arc_dll)->getCompressionFormat((!split_file)?arc_path.c_str():join_file_name.c_str()));
+						m_cur_file.recompress_mhd.assign(static_cast<ArcDll*>(m_arc_dll)->getCompressionFormat((!joined_file)?arc_path.c_str():joined_file_name.c_str()));
 					}
 				}else if(m_arc_dll->type()==Archiver::B2E){
 					if(m_b2e_dll){
-						unsigned int index=m_b2e_dll->getExtractorIndex((!split_file)?arc_path.c_str():join_file_name.c_str());
+						unsigned int index=m_b2e_dll->getExtractorIndex((!joined_file)?arc_path.c_str():joined_file_name.c_str());
 
 						if(index!=0xffffffff){
 							tstring buffer(128,'\0');
@@ -247,8 +292,8 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 					//統合アーカイバ以外
 					for(size_t i=0,list_size=m_arcdll_list.size();i<list_size;i++){
 						if(!(!m_arcdll_list[i]->isLoaded()&&!m_arcdll_list[i]->load())){
-							if(m_arcdll_list[i]->isSupportedArchive((!split_file)?arc_path.c_str():join_file_name.c_str())){
-								if(!(m_cur_file.recompress_mhd.assign(m_arcdll_list[i]->getCompressionFormat((!split_file)?arc_path.c_str():join_file_name.c_str()))).empty()){
+							if(m_arcdll_list[i]->isSupportedArchive((!joined_file)?arc_path.c_str():joined_file_name.c_str())){
+								if(!(m_cur_file.recompress_mhd.assign(m_arcdll_list[i]->getCompressionFormat((!joined_file)?arc_path.c_str():joined_file_name.c_str()))).empty()){
 									break;
 								}
 							}
@@ -310,18 +355,18 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 			if(CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir||
 			   CFG.extract.create_dir_optimization.remove_redundant_dir.only_file){
 				redundant_dir=
-					m_arc_dll->isRedundantDir((!split_file)?arc_path.c_str():join_file_name.c_str(),
-														 CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir,
-														 CFG.extract.create_dir_optimization.remove_redundant_dir.only_file,
-														 &root_dir);
+					m_arc_dll->isRedundantDir((!joined_file)?arc_path.c_str():joined_file_name.c_str(),
+											  CFG.extract.create_dir_optimization.remove_redundant_dir.double_dir,
+											  CFG.extract.create_dir_optimization.remove_redundant_dir.only_file,
+											  &root_dir);
 			}
 
 			{
 				//新規ディレクトリ名作成
-				tstring new_dir_name(path::getFileName((!split_file)?arc_path:join_file_name));
+				tstring new_dir_name(path::getFileName((!joined_file)?arc_path:joined_file_name));
 
-				//tar系を考慮しつつ拡張子削除
-				new_dir_name=removeExtensionEx(new_dir_name);
+				//tar系やRAR分割ファイルを考慮しつつ拡張子削除
+				new_dir_name=(!multivolume_rar)?removeExtensionEx(new_dir_name):removeExtensionEx(new_dir_name,_T("part1"));
 
 				//同名の二重ディレクトリを防ぐ
 				if(redundant_dir&&
@@ -373,7 +418,7 @@ Extract::ARC_RESULT Extract::operator()(const tstring& arc_path,tstring& err_msg
 		tstring log;
 		bool result=false;
 
-		switch(m_arc_dll->extract((!split_file)?arc_path.c_str():join_file_name.c_str(),
+		switch(m_arc_dll->extract((!joined_file)?arc_path.c_str():joined_file_name.c_str(),
 											 output_dir.c_str(),
 											 &log)){
 			case Archiver::ARC_SUCCESS:

@@ -1,7 +1,7 @@
 ﻿//recesBase.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -94,11 +94,53 @@ protected:
 	//m_arcdll_list解放
 	void freeArcLib();
 	//読み込みと対応チェック
-	template<typename I>Archiver* loadAndCheck(I ite,I end,const TCHAR* arc_path=NULL,bool* loaded_library=NULL,const TCHAR* ext=NULL,const TCHAR* libname=NULL,const TCHAR* full_libname=NULL){
+	template<typename I>Archiver* loadAndCheck(I ite,I end,const TCHAR* arc_path=NULL,bool* loaded_library=NULL,const TCHAR* ext=NULL,const TCHAR* libname=NULL,const TCHAR* full_libname=NULL,const tstring& dll_dir=_T(""),DWORD flags=0){
 		for(;!IS_TERMINATED&&ite!=end;++ite){
 			if(!(ext&&!(*ite)->isSupportedExtension(ext))&&
 			   !(!ext&&libname!=NULL&&!sslib::str::isEqualStringIgnoreCase((*ite)->name(),libname))){
-				if(!(!(*ite)->isLoaded()&&!(*ite)->load((full_libname!=NULL)?full_libname:libname,NULL))){
+
+				//フルパスを取得
+				std::vector<TCHAR> buffer(MAX_PATH);
+				tstring full_path;
+
+				if(full_libname!=NULL){
+					if(sslib::path::getFullPath(&buffer[0],buffer.size(),(tstring(full_libname)+_T(".dll")).c_str())&&
+					   str::toLower(full_libname)==path::removeExtension(str::toLower(&buffer[0]))&&
+					   path::fileExists(&buffer[0])){
+						//フルパスが指定されており、そのとおりにdllが存在する場合
+						//loadArcLib()でSystemディレクトリ等に存在するライブラリを一度読み込んでいるので、unload()する
+						(*ite)->unload();
+						full_path.assign(&buffer[0]);
+					}else if(!dll_dir.empty()&&
+							 sslib::path::getFullPath(&buffer[0],buffer.size(),(tstring(full_libname)+_T(".dll")).c_str(),dll_dir.c_str())&&
+							 path::fileExists(&buffer[0])){
+						//Dllパスとディレクトリが指定されており、そのとおりにdllが存在する場合
+						//loadArcLib()でSystemディレクトリ等に存在するライブラリを一度読み込んでいるので、unload()する
+						(*ite)->unload();
+						full_path.assign(&buffer[0]);
+					}
+				}else{
+					if(!dll_dir.empty()&&
+					   sslib::path::getFullPath(&buffer[0],buffer.size(),(tstring((*ite)->name())+_T(".dll")).c_str(),dll_dir.c_str())&&
+					   path::fileExists(&buffer[0])){
+						//dllのあるディレクトリが指定されており、そのとおりにdllが存在する場合
+						//loadArcLib()でSystemディレクトリ等に存在するライブラリを一度読み込んでいるので、unload()する
+						(*ite)->unload();
+						full_path.assign(&buffer[0]);
+					}
+				}
+
+				if(!full_path.empty()){
+					if(!path::fileExists(full_path.c_str())){
+						full_path.clear();
+					}else{
+						//ArcDllは拡張子なしで処理するため削除
+						full_path.assign(&buffer[0]);
+						full_path=path::removeExtension(full_path);
+					}
+				}
+
+				if(!(!(*ite)->isLoaded()&&!(*ite)->load((!full_path.empty())?full_path.c_str():libname,NULL,flags))){
 					if(loaded_library!=NULL)*loaded_library=true;
 					if(!(arc_path!=NULL&&!(*ite)->isSupportedArchive(arc_path))){
 						return *ite;
@@ -151,8 +193,8 @@ extern const UINT WM_DESTROY_PROGRESSBAR;
 
 tstring removeTailCharacter(const tstring& str,TCHAR c);
 //拡張子を取得(tar系考慮)、含まれなければ""を返す
-tstring getExtensionEx(const tstring& file_path);
+tstring getExtensionEx(const tstring& file_path,const tstring& ext=_T("tar"));
 //拡張子を削除(tar系考慮)
-tstring removeExtensionEx(const tstring& file_path);
+tstring removeExtensionEx(const tstring& file_path,const tstring& ext=_T("tar"));
 
 #endif //_RECESBASE_H_814BA2FA_E363_4fd0_97FC_32334E1D1C87

@@ -323,6 +323,11 @@ bool utf82sjis(std::string* sjis,const std::string& utf8){
 	return false;
 }
 
+//strはtargetで終わる文字列である
+bool ends_with(const tstring& str,const tstring& target){
+	return str.size()>=target.size()&&str.compare(str.size()-target.size(),target.size(),target)==0;
+}
+
 //namespace str
 }
 //namespace sslib

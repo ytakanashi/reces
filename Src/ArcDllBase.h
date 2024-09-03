@@ -1,7 +1,7 @@
 ﻿//ArcDll.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -369,8 +369,8 @@ public:
 
 public:
 	//ライブラリを読み込みます
-	virtual bool load();
-	virtual bool load(const TCHAR* library_name,const TCHAR* library_prefix);
+	virtual bool load(DWORD flags=0);
+	virtual bool load(const TCHAR* library_name,const TCHAR* library_prefix,DWORD flags=0);
 	//ライブラリを解放します
 	virtual bool unload();
 

@@ -2,7 +2,7 @@
 //7-zip32.dll操作クラス
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -191,10 +191,34 @@ namespace{
 			}
 		}
 	}
+
+	LRESULT CALLBACK NotifyWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam){
+		return ::DefWindowProc(hWnd,uMsg,wParam,lParam);
+	}
+
+	HWND CreateDummyNotifyWindow(){
+		const TCHAR szClassName[]=_T("SevenZipDummyNotifyWindowClass");
+
+		WNDCLASS wc={};
+		wc.style=0;
+		wc.lpfnWndProc=NotifyWndProc;
+		wc.cbClsExtra=NULL;
+		wc.cbWndExtra=NULL;
+		wc.hInstance=::GetModuleHandle(0);
+		wc.hIcon=NULL;
+		wc.hCursor=NULL;
+		wc.hbrBackground=NULL;
+		wc.lpszMenuName=NULL;
+		wc.lpszClassName=szClassName;
+		::RegisterClass(&wc);
+
+		return ::CreateWindow(szClassName,_T(""),0,0,0,0,0,NULL,0,::GetModuleHandle(NULL),0);
+	}
 }
 
 //対応している書庫であるか
 bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,int mode){
+	if(splitfile::isSplitFile(arc_path_orig))return isSupportedMultiVolumeArchive(arc_path_orig);
 	bool result=false;
 
 	tstring arc_path(arc_path_orig);
@@ -213,6 +237,13 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,int mode){
 #endif
 
 	bool use_password=!CFG.general.password_list.empty();
+
+	//コマンドプロンプトを経由せずrecesを起動(ショートカットから等)した状態で
+	//ヘッダ暗号化書庫をCheckArchive()すると、
+	//パスワード入力ダイアログにフォーカスを奪われて戻ってこない(*)ため、
+	//ダミーウインドウを作成
+	//*CheckArchive()直後はrecesにフォーカスがあるものの、ほかのウインドウを選択してフォーカスを外すと、recesに戻ってこない
+	HWND callback_dummy_wnd=CreateDummyNotifyWindow();
 
 	std::list<tstring>::iterator ite_password_list=CFG.general.password_list.begin();
 	std::list<tstring>::iterator password_list_end=CFG.general.password_list.end();
@@ -237,7 +268,66 @@ bool Arc7zip32::isSupportedArchive(const TCHAR* arc_path_orig,int mode){
 		setDefaultPassword(CFG.general.password.c_str());
 	}
 
+	if(callback_dummy_wnd!=NULL)::DestroyWindow(callback_dummy_wnd);
+
 	return result;
+}
+
+//対応している分割書庫であるか
+bool Arc7zip32::isSupportedMultiVolumeArchive(const TCHAR* arc_path){
+	tstring arc_path_str(arc_path);
+
+	replaceDelimiter(arc_path_str);
+
+	setDefaultPassword(NULL);
+
+	tstring cmd_line(format(_T("%s %s %s "),
+							_T("t"),
+							_T("-hide"),
+							_T("-t*.split")));
+
+	//文字コードの設定
+	if(CFG.general.arc_codepage){
+		cmd_line.append(format(_T("-mcp=%d "),
+							   CFG.general.arc_codepage));
+		setCP(CFG.general.arc_codepage);
+	}
+
+	cmd_line.append(format(_T("-- %s"),
+							path::quote(arc_path_str).c_str()));
+
+	bool use_password=!CFG.general.password_list.empty();
+
+	std::list<tstring>::iterator ite_password_list=CFG.general.password_list.begin();
+	std::list<tstring>::iterator password_list_end=CFG.general.password_list.end();
+
+	HWND callback_dummy_wnd=CreateDummyNotifyWindow();
+
+	int dll_ret=-1;
+
+	do{
+		if(use_password&&ite_password_list!=password_list_end){
+			CFG.general.password=*ite_password_list;
+			++ite_password_list;
+		}else{
+			CFG.general.password.clear();
+		}
+
+		//実行
+		dll_ret=execute(NULL,cmd_line.c_str(),NULL,0);
+	}while(!IS_TERMINATED&&
+		   //正しいパスワードが入力されるまで問い合わせる
+		   dll_ret==ERROR_PASSWORD_FILE);
+
+	if(dll_ret==0&&
+	   !CFG.general.password.empty()){
+		//ここで設定しないとOpenArchive()が失敗してしまう?
+		setDefaultPassword(CFG.general.password.c_str());
+	}
+
+	if(callback_dummy_wnd!=NULL)::DestroyWindow(callback_dummy_wnd);
+
+	return dll_ret==0;
 }
 
 //書庫をテスト
@@ -583,7 +673,6 @@ Arc7zip32::ARC_RESULT Arc7zip32::extract(const TCHAR* arc_path,const TCHAR* outp
 		cmd_line.append(format(_T(" @%s"),
 							   path::quote(list_file_path).c_str()));
 	}
-
 
 	dprintf(_T("%s:%s\n"),name().c_str(),cmd_line.c_str());
 

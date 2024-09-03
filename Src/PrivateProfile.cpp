@@ -2,7 +2,7 @@
 //設定
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -55,6 +55,8 @@ bool Config::save(){
 	write(_T("General"),_T("ANSIstdout"),CFG_VALUE(general.ansi_stdout));
 	//ユーザ独自のパラメータ
 	write(_T("General"),_T("CustomParam"),CFG_VALUE(general.custom_param));
+	//dllがあるディレクトリ
+	write(_T("General"),_T("DllDir"),CFG_VALUE(general.dll_dir));
 	//spiがあるディレクトリ
 	write(_T("General"),_T("SpiDir"),CFG_VALUE(general.spi_dir));
 	//b2eがあるディレクトリ
@@ -288,6 +290,8 @@ bool Config::load(){
 	getDataEx(_T("General"),_T("ANSI"),&m_cfg.general.ansi_stdout);
 	//ユーザ独自のパラメータ
 	getStringDataEx(_T("General"),_T("CustomParam"),&m_cfg.general.custom_param);
+	//dllのあるディレクトリ
+	getStringDataEx(_T("General"),_T("DllDir"),&m_cfg.general.dll_dir);
 	//spiのあるディレクトリ
 	getStringDataEx(_T("General"),_T("SpiDir"),&m_cfg.general.spi_dir);
 	//b2eのあるディレクトリ

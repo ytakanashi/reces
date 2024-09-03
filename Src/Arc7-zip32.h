@@ -1,7 +1,7 @@
 ﻿//Arc7zip32.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -29,6 +29,9 @@ private:
 	long long m_file_size;
 	long long m_write_size;
 	typedef std::pair<tstring,long long> size_info;
+
+	//対応している分割書庫であるか
+	bool isSupportedMultiVolumeArchive(const TCHAR* arc_path_orig);
 
 protected:
 	//リストにフィルタを適用

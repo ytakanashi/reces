@@ -1,7 +1,7 @@
 ﻿//PrivateProfile.h
 
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
-//              reces Ver.0.00r33 by x@rgs
+//              reces Ver.0.00r34 by x@rgs
 //              under NYSL Version 0.9982
 //
 //`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`~^`
@@ -118,6 +118,8 @@ struct GENERAL{
 	bool ansi_stdout;
 	//ユーザ独自のパラメータ
 	tstring custom_param;
+	//dllがあるディレクトリ
+	tstring dll_dir;
 	//spiがあるディレクトリ
 	tstring spi_dir;
 	//b2eがあるディレクトリ
@@ -145,6 +147,7 @@ struct GENERAL{
 		list_codepage(sslib::File::SJIS),
 		ansi_stdout(false),
 		custom_param(),
+		dll_dir(),
 		spi_dir(),
 		b2e_dir(),
 		wcx_dir(){}

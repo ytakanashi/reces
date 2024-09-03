@@ -15,21 +15,21 @@
 //
 LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 1 VERSIONINFO
-    FILEVERSION     0,0,0,33
-    PRODUCTVERSION  0,0,0,33
+    FILEVERSION     0,0,0,34
+    PRODUCTVERSION  0,0,0,34
 {
     BLOCK "StringFileInfo"
     {
         BLOCK "041103A4"
         {
-            VALUE "Comments", "DlgHook.dll for reces Ver.0.00r33"
+            VALUE "Comments", "DlgHook.dll for reces Ver.0.00r34"
             VALUE "CompanyName", "Frost Moon Project"
-            VALUE "FileDescription", "DlgHook.dll for reces Ver.0.00r33"
-            VALUE "FileVersion", "0.00r33"
-            VALUE "InternalName", "DlgHook.dll for reces Ver.0.00r33"
+            VALUE "FileDescription", "DlgHook.dll for reces Ver.0.00r34"
+            VALUE "FileVersion", "0.00r34f"
+            VALUE "InternalName", "DlgHook.dll for reces Ver.0.00r34"
             VALUE "LegalCopyright", "Coded by x@rgs"
             VALUE "OriginalFilename", "DlgHook.dll"
-            VALUE "ProductVersion", "0.00r33"
+            VALUE "ProductVersion", "0.00r34"
         }
     }
     BLOCK "VarFileInfo"
